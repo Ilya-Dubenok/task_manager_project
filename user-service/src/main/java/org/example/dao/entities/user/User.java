@@ -37,6 +37,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
+    private String password;
+
 
     public User() {
     }
@@ -99,5 +101,13 @@ public class User {
 
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
