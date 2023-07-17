@@ -6,6 +6,8 @@ import org.example.core.dto.PageOfUserDTO;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
 import org.example.core.dto.utils.UserEntityToDTOConverter;
+import org.example.core.exception.GeneralException;
+import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
@@ -42,7 +44,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public boolean saveFromApiSource(UserCreateDTO userCreateDTO) {
+    public void saveFromApiSource(UserCreateDTO userCreateDTO) {
 
         User toRegister = updateUserParamsFromUserCreateDTO(
                 new User(UUID.randomUUID()),
@@ -51,38 +53,61 @@ public class UserServiceImpl implements IUserService {
                 UserStatus.WAITING_ACTIVATION);
 
         // TODO  ADD EXCEPTION HANDLING
+        try {
+            // TODO CHANGE EXCEPTION HANDLING DEPENDING ON CONSTRAINTS
+            userRepository.save(toRegister);
+        } catch (Exception e) {
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+        }
 
-        userRepository.save(toRegister);
-
-        return true;
 
     }
 
 
     @Override
-    public boolean saveFromUserSouce(UserRegistrationDTO userRegistrationDTO) {
+    public Integer saveFromUserSouce(UserRegistrationDTO userRegistrationDTO) {
 
 
         String mail = userRegistrationDTO.getMail();
         String fio = userRegistrationDTO.getFio();
         String password = userRegistrationDTO.getPassword();
+        StructuredException structuredException = new StructuredException();
 
-        if (null == mail || null == fio || null == password) {
-            //TODO CHANGE EXCEPTION HANDLING
-            throw new RuntimeException("ПЕРЕДЕЛАТЬ НА КАЖДОЕ ПОЛЕ ОТДЕЛЬНО");
+        //TODO CHANGE EXCEPTION HANDLING
+        if (null == mail || mail.isBlank()) {
+            structuredException.put(
+                    "mail", "Почта не должна быть пустой"
+            );
         }
+        if (null == fio || fio.isBlank()) {
+            structuredException.put(
+                    "fio", "Фио не должно быть пустым"
+            );
+        }
+        if (null == password || password.isBlank()) {
+
+            structuredException.put(
+                    "password", "Пароль не должен быть пустым"
+            );
+        }
+
+        if (structuredException.hasExceptions()) {
+            throw structuredException;
+        }
+
 
         User toRegister = new User(UUID.randomUUID());
 
 
-        // TODO CHANGE EXCEPTION HANDLING
-        toRegister.setMail(mail);
-        toRegister.setPassword(password);
-        toRegister.setFio(fio);
-        toRegister.setRole(UserRole.USER);
-        toRegister.setStatus(UserStatus.WAITING_ACTIVATION);
+        updateUserParamsWithPassedArguments(mail, fio, password, toRegister);
 
-        User user = userRepository.save(toRegister);
+        try {
+
+            // TODO CHANGE EXCEPTION HANDLING DEPENDING ON CONSTRAINTS
+            User user = userRepository.save(toRegister);
+        } catch (Exception e) {
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+        }
 
         // TODO CHANGE EXCEPTION HANDLING
         try {
@@ -90,14 +115,58 @@ public class UserServiceImpl implements IUserService {
             Integer verificationCode = ThreadLocalRandom.current().nextInt(10000);
             codeHolder.put(mail, verificationCode);
             emailService.sendVerificationCodeMessage(mail, verificationCode);
+            return verificationCode;
 
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка при отправке кода аутентификации. Проверьте правильность почты или обратитесь позднее");
+            throw new GeneralException(GeneralException.DEFAULT_SEND_VERIFICATION_EMAIL_EXCEPTION, e);
         }
 
-        return true;
+
 
     }
+
+    @Override
+    public void verifyUser(String email, Integer verificationCode) {
+
+        StructuredException exception = new StructuredException();
+        if (null == email || email.isBlank()) {
+            exception.put("mail", "Значение почты не должно быть пустым");
+        }
+        if (null == verificationCode || verificationCode < 0) {
+            exception.put("code","Значение кода подтверждения не должно быть пустым или меньше нуля");
+        }
+        if (exception.hasExceptions()) {
+            throw exception;
+        }
+        Integer savedCode = this.codeHolder.get(email);
+        if (savedCode == null) {
+            throw new StructuredException(
+                    "mail", "Не найден пользователь с такой почтой или код верификации истек"
+            );
+        }
+        if (!savedCode.equals(verificationCode)) {
+            throw new StructuredException(
+                    "code", "Введен неверный код верификации"
+            );
+
+        }
+        int res;
+
+        try {
+            res = userRepository.setUserActiveByEmail(email);
+        } catch (Exception e) {
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+        }
+
+        if (res != 1) {
+            throw new GeneralException("Что-то пошло не так с активацией пользователя", new RuntimeException());
+        }
+
+
+
+    }
+
+
 
 
     @Override
@@ -108,11 +177,12 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public boolean updateUser(UUID uuid, Long dt_update, UserCreateDTO userCreateDTO) {
+    public void updateUser(UUID uuid, Long dt_update, UserCreateDTO userCreateDTO) {
 
         User toUpdate = userRepository.findByUuid(uuid).orElseThrow(
-                // TODO CHANGE EXCEPTION HANDLING
-                () -> new RuntimeException("ПЕРЕДЕЛАТЬ ОШИБКУ")
+                () -> new StructuredException(
+                        "uuid", "Не найден пользователь с таким uuid"
+                )
         );
 
         if (
@@ -124,46 +194,60 @@ public class UserServiceImpl implements IUserService {
                 )
         ) {
             //TODO CHANGE EXCEPTION HANDLING
-            throw new RuntimeException("ПЕРЕДЕЛАТЬ ОШИБКУ НА СООБЩЕ");
+            throw new StructuredException(
+                    "dt_update", "Версия пользователя уже была обновлена"
+            );
 
         }
 
-        toUpdate = updateUserParamsFromUserCreateDTO(
-                toUpdate, userCreateDTO
-        );
+        toUpdate = updateUserParamsFromUserCreateDTO(toUpdate, userCreateDTO);
 
 
-        //TODO ADD EXCEPTION HANDLING
+        try {
+            //TODO CHANGE EXCEPTION HANDLING DEPENDING ON CONSTRAINTS
 
-        userRepository.save(toUpdate);
+            userRepository.save(toUpdate);
+        } catch (Exception e) {
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+        }
 
 
-        return true;
     }
 
 
     @Override
     public PageOfUserDTO getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage) {
 
+        StructuredException exception = new StructuredException();
+
         if (currentRequestedPage < 0) {
-            // TODO ADD EXCEPTION HANDLING
-            if (rowsPerPage < 1) {
-                // TODO ADD EXCEPTION HANDLING
-            }
-            throw new RuntimeException("ПЕРЕДЕЛАТЬ");
+
+            exception.put("page","Номер страницы не может быть меньше 0");
+
+        }
+        if (rowsPerPage < 1) {
+            exception.put("size", "Размер страницы не может быть меньше 0");
+
         }
 
+        if (exception.hasExceptions()) {
+            throw exception;
+        }
 
-        Window<User> userWindow = userRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
-        Long count = userRepository.count();
-        PageOfUserDTO res = UserEntityToDTOConverter.convertWindofOfUsersToPageOfUserDTO(
-                userWindow, count, currentRequestedPage, rowsPerPage
-        );
+        try {
 
-        // TODO ADD EXCEPTION HANDLING
+            // TODO ADD EXCEPTION HANDLING
+            Window<User> userWindow = userRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
+            Long count = userRepository.count();
+            PageOfUserDTO res = UserEntityToDTOConverter.convertWindofOfUsersToPageOfUserDTO(
+                    userWindow, count, currentRequestedPage, rowsPerPage
+            );
 
 
-        return res;
+            return res;
+        } catch (Exception e) {
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+        }
 
     }
 
@@ -178,7 +262,9 @@ public class UserServiceImpl implements IUserService {
         user.setStatus(userCreateDTO.getStatus());
 
         user.setPassword(userCreateDTO.getPassword());
+
         return user;
+
     }
 
 
@@ -196,6 +282,14 @@ public class UserServiceImpl implements IUserService {
 
         user.setPassword(userCreateDTO.getPassword());
         return user;
+    }
+
+    private static void updateUserParamsWithPassedArguments(String mail, String fio, String password, User toRegister) {
+        toRegister.setMail(mail);
+        toRegister.setPassword(password);
+        toRegister.setFio(fio);
+        toRegister.setRole(UserRole.USER);
+        toRegister.setStatus(UserStatus.WAITING_ACTIVATION);
     }
 
 

@@ -40,8 +40,16 @@ public class Main  {
 
         IEmailService emailService = context.getBean(IEmailService.class);
 
-        iUserService.saveFromUserSouce(new UserRegistrationDTO(
-                "dubenokilya@gmail.com","Ilya Dubenok","2323"
-        ));
+        try {
+
+            Integer integer = iUserService.saveFromUserSouce(new UserRegistrationDTO(
+                    "dubenokilya@gmail.com", "влдаыподл", "2323"
+            ));
+            iUserService.verifyUser("dubenokilya@gmail.com",integer);
+        } catch (Exception e) {
+
+
+            System.out.println(e.getMessage());
+        }
     }
 }

@@ -5,19 +5,20 @@ import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
 import org.example.dao.entities.user.User;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface IUserService {
 
 
-    boolean saveFromApiSource(UserCreateDTO userCreateDTO);
+    void saveFromApiSource(UserCreateDTO userCreateDTO);
 
-    boolean saveFromUserSouce(UserRegistrationDTO userRegistrationDTO);
+    Integer saveFromUserSouce(UserRegistrationDTO userRegistrationDTO);
+
+    void verifyUser(String email, Integer verificationCode);
 
     User getUserById(UUID uuid);
 
-    boolean updateUser(UUID uuid, Long dt_update, UserCreateDTO userCreateDTO);
+    void updateUser(UUID uuid, Long dt_update, UserCreateDTO userCreateDTO);
 
     PageOfUserDTO getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage);
 }
