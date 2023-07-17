@@ -1,4 +1,4 @@
-package org.example;
+package org.example.config;
 
 
 import com.zaxxer.hikari.HikariConfig;
@@ -21,10 +21,6 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
-@ComponentScan
-@EnableJpaRepositories
-@EnableTransactionManagement
-@EnableJpaAuditing
 //@EnableWebMvc
 @PropertySource("classpath:application.properties")
 public class Config {
