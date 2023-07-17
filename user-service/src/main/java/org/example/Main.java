@@ -16,6 +16,7 @@ import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.IEmailService;
 import org.example.service.api.IUserService;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.PageRequest;
@@ -24,32 +25,24 @@ import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.WebApplicationInitializer;
 
 import java.util.UUID;
 
-@ComponentScan
-@EnableJpaRepositories
-@EnableTransactionManagement
-@EnableJpaAuditing
+//@ComponentScan
+//@EnableJpaRepositories
+//@EnableTransactionManagement
+//@EnableJpaAuditing
+//@SpringBootApplication
 public class Main  {
 
     public static void main(String[] args) throws JsonProcessingException {
 
-        ApplicationContext context = SpringApplication.run(Main.class);
-        IUserService iUserService = context.getBean(IUserService.class);
-
-        IEmailService emailService = context.getBean(IEmailService.class);
-
-        try {
-
-            Integer integer = iUserService.saveFromUserSouce(new UserRegistrationDTO(
-                    "dubenokilya@gmail.com", "влдаыподл", "2323"
-            ));
-            iUserService.verifyUser("dubenokilya@gmail.com",integer);
-        } catch (Exception e) {
-
-
-            System.out.println(e.getMessage());
-        }
+//        ApplicationContext context = SpringApplication.run(Main.class);
+//        IUserService iUserService = context.getBean(IUserService.class);
+//
+//        IEmailService emailService = context.getBean(IEmailService.class);
+//
+////        WebApplicationInitializer bean = context.getBean(WebApplicationInitializer.class);
     }
 }
