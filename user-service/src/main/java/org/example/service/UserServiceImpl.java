@@ -1,5 +1,7 @@
 package org.example.service;
 
+import net.jodah.expiringmap.ExpirationPolicy;
+import net.jodah.expiringmap.ExpiringMap;
 import org.example.core.dto.PageOfUserDTO;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
@@ -8,13 +10,17 @@ import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
+import org.example.service.api.IEmailService;
 import org.example.service.api.IUserService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -23,8 +29,16 @@ public class UserServiceImpl implements IUserService {
 
     private IUserRepository userRepository;
 
-    public UserServiceImpl(IUserRepository userRepository) {
+    private IEmailService emailService;
+
+    private Map<String, Integer> codeHolder = ExpiringMap.builder()
+            .expirationPolicy(ExpirationPolicy.CREATED)
+            .expiration(5, TimeUnit.MINUTES)
+            .build();
+
+    public UserServiceImpl(IUserRepository userRepository, IEmailService emailService) {
         this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -36,7 +50,7 @@ public class UserServiceImpl implements IUserService {
                 UserRole.ADMIN,
                 UserStatus.WAITING_ACTIVATION);
 
-        //todo ADD EXCEPTION HANDLING
+        // TODO  ADD EXCEPTION HANDLING
 
         userRepository.save(toRegister);
 
@@ -61,7 +75,7 @@ public class UserServiceImpl implements IUserService {
         User toRegister = new User(UUID.randomUUID());
 
 
-        //TODO CHANGE EXCEPTION HANDLING
+        // TODO CHANGE EXCEPTION HANDLING
         toRegister.setMail(mail);
         toRegister.setPassword(password);
         toRegister.setFio(fio);
@@ -69,7 +83,17 @@ public class UserServiceImpl implements IUserService {
         toRegister.setStatus(UserStatus.WAITING_ACTIVATION);
 
         User user = userRepository.save(toRegister);
-        //TODO ADD MAILSERVICE SENDING
+
+        // TODO CHANGE EXCEPTION HANDLING
+        try {
+
+            Integer verificationCode = ThreadLocalRandom.current().nextInt(10000);
+            codeHolder.put(mail, verificationCode);
+            emailService.sendVerificationCodeMessage(mail, verificationCode);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при отправке кода аутентификации. Проверьте правильность почты или обратитесь позднее");
+        }
 
         return true;
 
@@ -87,7 +111,7 @@ public class UserServiceImpl implements IUserService {
     public boolean updateUser(UUID uuid, Long dt_update, UserCreateDTO userCreateDTO) {
 
         User toUpdate = userRepository.findByUuid(uuid).orElseThrow(
-                //TODO CHANGE EXCEPTION HANDLING
+                // TODO CHANGE EXCEPTION HANDLING
                 () -> new RuntimeException("ПЕРЕДЕЛАТЬ ОШИБКУ")
         );
 
@@ -122,9 +146,9 @@ public class UserServiceImpl implements IUserService {
     public PageOfUserDTO getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage) {
 
         if (currentRequestedPage < 0) {
-            //TODO ADD EXCEPTION HANDLING
+            // TODO ADD EXCEPTION HANDLING
             if (rowsPerPage < 1) {
-                //TODO ADD EXCEPTION HANDLING
+                // TODO ADD EXCEPTION HANDLING
             }
             throw new RuntimeException("ПЕРЕДЕЛАТЬ");
         }
@@ -136,7 +160,7 @@ public class UserServiceImpl implements IUserService {
                 userWindow, count, currentRequestedPage, rowsPerPage
         );
 
-        //TODO ADD EXCEPTION HANDLING
+        // TODO ADD EXCEPTION HANDLING
 
 
         return res;
