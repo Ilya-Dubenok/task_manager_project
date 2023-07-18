@@ -1,0 +1,33 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/user_service?ApplicationName=User_Service
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      schema: app
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL:
+          DEBUG
+        orm:
+          jdbc:
+            bind:
+              Trace
+
+server:
+  port: 80
+  servlet:
+
+    context-path: /user_service
+

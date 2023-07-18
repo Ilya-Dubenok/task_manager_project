@@ -16,6 +16,7 @@ public class User {
     @Id
     private UUID uuid;
 
+
     @CreatedDate
     @Column(name = "dt_create")
     private LocalDateTime dtCreate;

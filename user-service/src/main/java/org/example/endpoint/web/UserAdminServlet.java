@@ -2,13 +2,11 @@ package org.example.endpoint.web;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.core.dto.UserCreateDTO;
-import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.StructuredExceptionDTO;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IUserService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +21,6 @@ public class UserAdminServlet {
 
     public UserAdminServlet(IUserService service) {
         this.service = service;
-
-        System.out.println("CREATED");
     }
 
     @PostMapping

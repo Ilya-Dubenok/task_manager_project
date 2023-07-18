@@ -3,8 +3,6 @@ package org.example.core.dto;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 
-import java.util.UUID;
-
 public class UserCreateDTO {
 
 
