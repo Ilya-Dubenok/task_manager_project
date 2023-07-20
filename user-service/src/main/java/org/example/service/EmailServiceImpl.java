@@ -19,7 +19,7 @@ public class EmailServiceImpl implements IEmailService {
     //TODO REFACTOR THIS
     private static final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT=
             "Добрый день! Для завершения регистрации перейдите по ссылке ниже\n" +
-                    "http://localhost:8081/task_manager/api/v1/users/verification/?code=%s&mail=%s";
+                    "http://localhost/user_service/api/v1/users/verification?code=%s&mail=%s";
 
     private static final String DEFAULT_VERIFICATION_SUBJECT = "Подтверждение регистрации в приложении TaskManager";
 

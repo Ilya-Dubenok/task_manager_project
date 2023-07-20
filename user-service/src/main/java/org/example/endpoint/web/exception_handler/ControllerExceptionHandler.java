@@ -42,4 +42,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(List.of(dto), HttpStatus.BAD_REQUEST);
 
     }
+
+    //TODO add GenerealException status 500
 }

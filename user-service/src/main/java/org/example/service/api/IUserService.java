@@ -11,15 +11,14 @@ import java.util.UUID;
 public interface IUserService {
 
 
-    void saveFromApiSource(UserCreateDTO userCreateDTO);
+    void save(UserCreateDTO userCreateDTO);
 
-    Integer saveFromUserSouce(UserRegistrationDTO userRegistrationDTO);
-
-    void verifyUser(String email, Integer verificationCode);
 
     User getUserById(UUID uuid);
 
     void updateUser(UUID uuid, LocalDateTime dt_update, UserCreateDTO userCreateDTO);
 
     Page<User> getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage);
+
+    int setUserActiveByEmail(String email);
 }
