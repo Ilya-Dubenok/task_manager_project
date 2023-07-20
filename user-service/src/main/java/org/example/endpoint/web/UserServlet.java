@@ -1,10 +1,12 @@
 package org.example.endpoint.web;
 
+import org.example.core.dto.PageOfUserDTO;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserDTO;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,20 +42,29 @@ public class UserServlet {
 
     @PutMapping(value = "/{uuid}/dt_update/{dt_update}")
     public ResponseEntity<?> updateUser(@PathVariable UUID uuid, @PathVariable LocalDateTime dt_update,
-                                           @RequestBody UserCreateDTO userCreateDTO) {
+                                        @RequestBody UserCreateDTO userCreateDTO) {
         service.updateUser(uuid, dt_update, userCreateDTO);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping(value = "/{uuid}")
-    public ResponseEntity<?> getUserByUuid(@PathVariable UUID uuid) {
+    public ResponseEntity<UserDTO> getUserByUuid(@PathVariable UUID uuid) {
 
         User userById = service.getUserById(uuid);
         UserDTO dto = conversionService.convert(userById, UserDTO.class);
-        return new ResponseEntity<>(dto,HttpStatus.OK);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
+    @GetMapping
+    public ResponseEntity<PageOfUserDTO> getPageOfUsers(@RequestParam("page") Integer page, @RequestParam("size") Integer size) {
+
+        Page<User> pageOfUsers = service.getPageOfUsers(page, size);
+        return new ResponseEntity<>(
+                conversionService.convert(pageOfUsers, PageOfUserDTO.class),
+                HttpStatus.OK
+        );
+    }
 
 
 }
