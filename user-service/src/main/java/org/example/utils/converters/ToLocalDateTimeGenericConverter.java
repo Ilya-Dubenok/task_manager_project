@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 @Component
-public class ToLocalDateTimeGenericConverter<IN,OUT>
+public class ToLocalDateTimeGenericConverter<IN, OUT>
         implements GenericConverter {
     @Override
     public Set<ConvertiblePair> getConvertibleTypes() {
@@ -23,21 +23,19 @@ public class ToLocalDateTimeGenericConverter<IN,OUT>
 
     @Override
     public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-        if (sourceType.getType() == String.class) {
+        if (sourceType.getType().equals(String.class)) {
             long timeInMillis = Long.parseLong((String) source);
             return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMillis),
                     TimeZone.getDefault().toZoneId());
-        }
-
-        if (sourceType.getType() == Long.class) {
+        } else if (sourceType.getType().equals(Long.class)) {
             return LocalDateTime.ofInstant(Instant.ofEpochMilli((Long) source),
                     TimeZone.getDefault().toZoneId());
-        };
+        }
+
         return null;
 
+
     }
-
-
 
 
 }

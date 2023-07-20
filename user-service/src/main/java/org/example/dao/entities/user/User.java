@@ -9,7 +9,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users",
+        uniqueConstraints = @UniqueConstraint(name = "user_mail_unique_constraint", columnNames = {"mail"})
+)
+
 @EntityListeners(AuditingEntityListener.class)
 public class User {
 
@@ -33,9 +36,11 @@ public class User {
     private String fio;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private UserRole role;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private UserStatus status;
 
     private String password;

@@ -1,9 +1,9 @@
 package org.example.service.api;
 
-import org.example.core.dto.PageOfUserDTO;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
 import org.example.dao.entities.user.User;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,5 +21,5 @@ public interface IUserService {
 
     void updateUser(UUID uuid, LocalDateTime dt_update, UserCreateDTO userCreateDTO);
 
-    PageOfUserDTO getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage);
+    Page<User> getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage);
 }

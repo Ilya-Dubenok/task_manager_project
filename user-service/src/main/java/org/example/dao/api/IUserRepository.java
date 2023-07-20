@@ -1,8 +1,8 @@
 package org.example.dao.api;
 
 import org.example.dao.entities.user.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -21,7 +21,7 @@ public interface IUserRepository extends CrudRepository<User, UUID> {
     List<User> findAll();
 
 
-    Window<User> findAllByOrderByUuid(Pageable pageable);
+    Page<User> findAllByOrderByUuid(Pageable pageable);
 
     //TODO REFACTOR INTO CONSTANT
     @Query(

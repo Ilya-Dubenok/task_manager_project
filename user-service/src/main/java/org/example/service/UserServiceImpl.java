@@ -2,10 +2,8 @@ package org.example.service;
 
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
-import org.example.core.dto.PageOfUserDTO;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
-import org.example.core.dto.utils.UserEntityToDTOConverter;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
@@ -15,8 +13,8 @@ import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.IEmailService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -221,7 +219,7 @@ public class UserServiceImpl implements IUserService {
 
 
     @Override
-    public PageOfUserDTO getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage) {
+    public Page<User> getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage) {
 
         StructuredException exception = new StructuredException();
 
@@ -242,14 +240,10 @@ public class UserServiceImpl implements IUserService {
         try {
 
             // TODO ADD EXCEPTION HANDLING
-            Window<User> userWindow = userRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
-            Long count = userRepository.count();
-            PageOfUserDTO res = UserEntityToDTOConverter.convertWindofOfUsersToPageOfUserDTO(
-                    userWindow, count, currentRequestedPage, rowsPerPage
-            );
+            Page<User> page = userRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
 
+            return page;
 
-            return res;
         } catch (Exception e) {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
