@@ -5,6 +5,7 @@ import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
 import org.example.dao.entities.user.User;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface IUserService {
@@ -18,7 +19,7 @@ public interface IUserService {
 
     User getUserById(UUID uuid);
 
-    void updateUser(UUID uuid, Long dt_update, UserCreateDTO userCreateDTO);
+    void updateUser(UUID uuid, LocalDateTime dt_update, UserCreateDTO userCreateDTO);
 
     PageOfUserDTO getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage);
 }

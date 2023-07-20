@@ -9,15 +9,17 @@ import org.example.service.api.IUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserAdminServlet {
 
-    IUserService service;
+    private IUserService service;
 
     public UserAdminServlet(IUserService service) {
         this.service = service;
@@ -37,18 +39,19 @@ public class UserAdminServlet {
     }
 
     @GetMapping(value = "/{uuid}")
-    public ResponseEntity<User> getUserByUuid(@PathVariable String uuid) {
+    public ResponseEntity<User> getUserByUuid(@PathVariable UUID uuid) {
 
-        User userById = service.getUserById(UUID.fromString(uuid));
+        User userById = service.getUserById(uuid);
         return new ResponseEntity<User>(userById,HttpStatus.OK);
     }
 
+    @PutMapping(value = "/{uuid}/dt_update/{dt_update}")
+    public ResponseEntity<User> updateUser(@PathVariable UUID uuid, @PathVariable LocalDateTime dt_update) {
+        service.updateUser(uuid, dt_update, null);
 
-    //TODO CHANGE AS REQUIRED
-    @ExceptionHandler({Exception.class})
-    public ResponseEntity<?> printStructuredException(HttpServletResponse response, StructuredException e) throws IOException {
-        StructuredExceptionDTO structuredExceptionDTO = new StructuredExceptionDTO(e);
-        return new ResponseEntity<>(structuredExceptionDTO, HttpStatus.BAD_REQUEST);
+        return null;
     }
+
+
 
 }

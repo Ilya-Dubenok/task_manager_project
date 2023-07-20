@@ -4,14 +4,16 @@ spring:
       hibernate:
         format_sql: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/user_service
+    url: jdbc:postgresql://localhost:5432/user_service?ApplicationName=User_Service
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
     hikari:
       schema: app
-      username: postgres
-      password: postgres
-      driver-class-name: org.postgresql.Driver
   jackson:
     property-naming-strategy: SNAKE_CASE
+  config:
+    import: confidential.yml
 
 
 logging:
@@ -24,3 +26,12 @@ logging:
           jdbc:
             bind:
               Trace
+
+server:
+  port: 80
+  servlet:
+    context-path: /user_service
+
+
+
+

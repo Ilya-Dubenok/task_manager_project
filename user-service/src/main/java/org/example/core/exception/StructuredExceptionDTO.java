@@ -8,7 +8,7 @@ public class StructuredExceptionDTO {
 
     private String logref = "structured_error";
 
-    private List<Map<String, String>> errors;
+    private List<SingleFieldAndMessageExceptionInfoDTO> errors;
 
     public StructuredExceptionDTO() {
     }
@@ -19,13 +19,9 @@ public class StructuredExceptionDTO {
         Map<String, String> exceptionsMap = exception.getExceptionsMap();
         for (Map.Entry<String, String> entry : exceptionsMap.entrySet()) {
             errors.add(
-                    Map.of(
-                            "field", entry.getKey()
-                    )
-            );
-            errors.add(
-                    Map.of(
-                            "message", entry.getValue()
+                    new SingleFieldAndMessageExceptionInfoDTO(
+                            entry.getKey(),
+                            entry.getValue()
                     )
             );
 
@@ -40,11 +36,11 @@ public class StructuredExceptionDTO {
         this.logref = logref;
     }
 
-    public List<Map<String, String>> getErrors() {
+    public List<SingleFieldAndMessageExceptionInfoDTO> getErrors() {
         return errors;
     }
 
-    public void setErrors(List<Map<String, String>> errors) {
+    public void setErrors(List<SingleFieldAndMessageExceptionInfoDTO> errors) {
         this.errors = errors;
     }
 }

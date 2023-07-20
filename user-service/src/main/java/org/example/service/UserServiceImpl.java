@@ -14,10 +14,12 @@ import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.IEmailService;
 import org.example.service.api.IUserService;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Window;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -33,14 +35,17 @@ public class UserServiceImpl implements IUserService {
 
     private IEmailService emailService;
 
+    private final ConversionService conversionService;
+
     private Map<String, Integer> codeHolder = ExpiringMap.builder()
             .expirationPolicy(ExpirationPolicy.CREATED)
             .expiration(5, TimeUnit.MINUTES)
             .build();
 
-    public UserServiceImpl(IUserRepository userRepository, IEmailService emailService) {
+    public UserServiceImpl(IUserRepository userRepository, IEmailService emailService, ConversionService conversionService) {
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.conversionService = conversionService;
     }
 
     @Override
@@ -176,8 +181,10 @@ public class UserServiceImpl implements IUserService {
         ).orElse(null);
     }
 
+
+
     @Override
-    public void updateUser(UUID uuid, Long dt_update, UserCreateDTO userCreateDTO) {
+    public void updateUser(UUID uuid, LocalDateTime dt_update, UserCreateDTO userCreateDTO) {
 
         User toUpdate = userRepository.findByUuid(uuid).orElseThrow(
                 () -> new StructuredException(
@@ -187,10 +194,8 @@ public class UserServiceImpl implements IUserService {
 
         if (
                 !Objects.equals(
-                        dt_update,
-                        UserEntityToDTOConverter.convertLocalDateTimeToLongInMillis(
-                                toUpdate.getDtUpdate()
-                        )
+                        toUpdate.getDtUpdate(),
+                        dt_update
                 )
         ) {
             //TODO CHANGE EXCEPTION HANDLING
