@@ -6,6 +6,7 @@ import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
+import org.example.core.exception.utils.DataBaseExceptionsMapper;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
@@ -49,17 +50,25 @@ public class UserServiceImpl implements IUserService {
     @Override
     public void saveFromApiSource(UserCreateDTO userCreateDTO) {
 
-        User toRegister = updateUserParamsFromUserCreateDTO(
-                new User(UUID.randomUUID()),
-                userCreateDTO,
-                UserRole.ADMIN,
-                UserStatus.WAITING_ACTIVATION);
+
+        //TODO ADD TO CONVERTER
+        User toRegister = new User(UUID.randomUUID());
+        toRegister.setMail(userCreateDTO.getMail());
+        toRegister.setRole(userCreateDTO.getRole());
+        toRegister.setFio(userCreateDTO.getFio());
+        toRegister.setStatus(userCreateDTO.getStatus());
+        toRegister.setPassword(userCreateDTO.getPassword());
 
         // TODO  ADD EXCEPTION HANDLING
         try {
-            // TODO CHANGE EXCEPTION HANDLING DEPENDING ON CONSTRAINTS
             userRepository.save(toRegister);
         } catch (Exception e) {
+            StructuredException structuredException = new
+                    StructuredException();
+            if (DataBaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
