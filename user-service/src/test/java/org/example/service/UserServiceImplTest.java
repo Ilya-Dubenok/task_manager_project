@@ -32,7 +32,6 @@ import java.util.stream.Stream;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserServiceImplTest {
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
@@ -94,18 +93,14 @@ public class UserServiceImplTest {
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void exceptionOnRoleAndStatusIsHandled() {
 
+        StructuredException exception = Assertions.assertThrows(
+                StructuredException.class,
+                () -> userService.save(
+                        new UserCreateDTO("", "", null, null, "ps"))
+        );
 
-        try {
+        Assertions.assertEquals(2, exception.getSize());
 
-            userService.save(
-                    new UserCreateDTO("", "", null, null, "ps")
-            );
-
-        } catch (
-                StructuredException exception
-        ) {
-            Assertions.assertEquals(2,exception.getSize());
-        }
 
     }
 
@@ -145,6 +140,65 @@ public class UserServiceImplTest {
         Assertions.assertEquals(UserStatus.DEACTIVATED, updatedUser.getStatus());
         Assertions.assertEquals("new password", updatedUser.getPassword());
         Assertions.assertNotEquals(dt_update, updatedUser.getDtUpdate());
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void updateUserWithExistingEmail() {
+        User user;
+        try (EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager()) {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+            CriteriaQuery<User> query = criteriaBuilder.createQuery(User.class);
+            Root<User> root = query.from(User.class);
+            query.select(root).where(criteriaBuilder.equal(root.get("mail"), "a@gmail.com"));
+            entityManager.getTransaction().begin();
+            user = entityManager.createQuery(query).getResultList().get(0);
+            entityManager.getTransaction().commit();
+        }
+
+        UserCreateDTO userCreateDTO = new UserCreateDTO(
+                "aa@gmail.com", "fio", user.getRole(), user.getStatus(), user.getPassword()
+        );
+
+
+        UUID uuid = user.getUuid();
+
+        Assertions.assertThrows(StructuredException.class,
+                () -> userService.updateUser(uuid, user.getDtUpdate(), userCreateDTO));
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void setUserActiveByEmail() {
+
+        String mail = "test";
+        UserCreateDTO userCreateDTO = new UserCreateDTO(
+                mail,"test",UserRole.USER, UserStatus.WAITING_ACTIVATION,"test"
+        );
+
+        userService.save(userCreateDTO);
+
+        int i = userService.setUserActiveByEmail(mail);
+        Assertions.assertEquals(1, i);
+
+        User user;
+        try (EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager()) {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+            CriteriaQuery<User> query = criteriaBuilder.createQuery(User.class);
+            Root<User> root = query.from(User.class);
+            query.select(root).where(criteriaBuilder.equal(root.get("mail"), mail));
+            entityManager.getTransaction().begin();
+            user = entityManager.createQuery(query).getResultList().get(0);
+            entityManager.getTransaction().commit();
+        }
+
+        Assertions.assertEquals(
+                UserStatus.ACTIVATED, user.getStatus()
+        );
+
 
     }
 

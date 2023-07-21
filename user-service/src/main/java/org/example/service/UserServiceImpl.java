@@ -113,10 +113,14 @@ public class UserServiceImpl implements IUserService {
 
 
         try {
-            //TODO CHANGE EXCEPTION HANDLING DEPENDING ON CONSTRAINTS
 
             userRepository.save(toUpdate);
         } catch (Exception e) {
+            StructuredException structuredException = new StructuredException();
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 

@@ -26,7 +26,7 @@ public interface IUserRepository extends CrudRepository<User, UUID> {
     //TODO REFACTOR INTO CONSTANT
     @Query(
             value = "update users set status = 'ACTIVATED' " +
-                    "WHERE mail = ?1"
+                    "WHERE mail = ?1 AND status= 'WAITING_ACTIVATION'"
             , nativeQuery = true
     )
     @Modifying
