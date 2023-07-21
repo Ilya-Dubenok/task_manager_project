@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS app;
+
 CREATE TABLE IF NOT EXISTS app.users
 (
     uuid uuid NOT NULL,
@@ -10,4 +12,4 @@ CREATE TABLE IF NOT EXISTS app.users
     password character varying(255),
     CONSTRAINT users_pkey PRIMARY KEY (uuid),
     CONSTRAINT user_mail_unique_constraint UNIQUE (mail)
-)
+);

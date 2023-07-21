@@ -5,7 +5,7 @@ import org.example.dao.entities.user.User;
 import org.hibernate.PropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
 
-public class DataBaseExceptionsMapper {
+public class DatabaseExceptionsMapper {
 
 
     public static boolean isExceptionCauseRecognized(Throwable cause, StructuredException exception) {

@@ -13,16 +13,21 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @ControllerAdvice
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
+    private static final String MESSAGE_FOR_INVALID_PROPERTY =
+            "%s не может быть распознан";
+
     @ExceptionHandler(value = StructuredException.class)
     protected ResponseEntity<Object> handleConflict(StructuredException e, WebRequest request) {
-        //TODO TEST
         StructuredExceptionDTO dto = new StructuredExceptionDTO(e);
         return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
     }
@@ -34,12 +39,36 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = Exception.class)
+    protected ResponseEntity<Object> handleConflict(Exception e, WebRequest request) {
+        GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(
+                new GeneralException("Внутренняя ошибка сервера. Сервер не смог корректно обработать запрос", e)
+        );
+        return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         //TODO ADD ALL NECESSARY CHECKS
         status = HttpStatus.BAD_REQUEST;
         String propertyName = ex.getPropertyName();
-        return new ResponseEntity<>(propertyName, status);
+        StructuredException structuredException = new StructuredException();
+        if (Objects.equals(propertyName, "uuid") ||
+                Objects.equals(propertyName, "page") ||
+                Objects.equals(propertyName, "size") ||
+                Objects.equals(propertyName, "dt_update")
+        ) {
+            structuredException.put(
+                    propertyName, String.format(MESSAGE_FOR_INVALID_PROPERTY, propertyName)
+            );
+            return new ResponseEntity<>(
+                    new StructuredExceptionDTO(structuredException), status
+            );
+
+        }
+
+        return new ResponseEntity<>(List.of(new GeneralExceptionDTO("При обработке входных параметров произошла ошибка")),
+                status);
     }
 
     @Override
@@ -51,5 +80,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     }
 
-    //TODO add GenerealException status 500
+
+
 }

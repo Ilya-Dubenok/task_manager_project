@@ -1,11 +1,9 @@
 package org.example.service;
 
-import net.jodah.expiringmap.ExpirationPolicy;
-import net.jodah.expiringmap.ExpiringMap;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
-import org.example.core.exception.utils.DataBaseExceptionsMapper;
+import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
@@ -17,10 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -42,21 +38,36 @@ public class UserServiceImpl implements IUserService {
     public void save(UserCreateDTO userCreateDTO) {
 
 
-        //TODO ADD TO CONVERTER
-        User toRegister = new User(UUID.randomUUID());
-        toRegister.setMail(userCreateDTO.getMail());
-        toRegister.setRole(userCreateDTO.getRole());
-        toRegister.setFio(userCreateDTO.getFio());
-        toRegister.setStatus(userCreateDTO.getStatus());
-        toRegister.setPassword(userCreateDTO.getPassword());
+        UserRole role = userCreateDTO.getRole();
+        UserStatus status = userCreateDTO.getStatus();
+        StructuredException structuredException = new StructuredException();
+
+        if (role == null) {
+            structuredException.put(
+                    "role","Не передана роль пользователя"
+            );
+        }
+        if (status == null) {
+            structuredException.put(
+                    "status", "Не передан статус пользователя"
+            );
+        }
+
+        if (structuredException.hasExceptions()) {
+            throw structuredException;
+        }
+
+        User toRegister = conversionService.convert(
+                userCreateDTO, User.class
+        );
+        toRegister.setUuid(UUID.randomUUID());
 
         // TODO  ADD EXCEPTION HANDLING
         try {
             userRepository.save(toRegister);
         } catch (Exception e) {
-            StructuredException structuredException = new
-                    StructuredException();
-            if (DataBaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
                 throw structuredException;
             }
 
@@ -169,30 +180,6 @@ public class UserServiceImpl implements IUserService {
 
     }
 
-
-    private static User updateUserParamsFromUserCreateDTO(User user, UserCreateDTO userCreateDTO,
-                                                          UserRole defaultRole, UserStatus defaultStatus) {
-
-        user.setMail(userCreateDTO.getMail());
-        user.setFio(userCreateDTO.getFio());
-
-        UserRole role = userCreateDTO.getRole();
-        user.setRole(role == null ? defaultRole : role);
-
-        UserStatus status = userCreateDTO.getStatus();
-        user.setStatus(status == null ? defaultStatus : status);
-
-        user.setPassword(userCreateDTO.getPassword());
-        return user;
-    }
-
-    private static void updateUserParamsWithPassedArguments(String mail, String fio, String password, User toRegister) {
-        toRegister.setMail(mail);
-        toRegister.setPassword(password);
-        toRegister.setFio(fio);
-        toRegister.setRole(UserRole.USER);
-        toRegister.setStatus(UserStatus.WAITING_ACTIVATION);
-    }
 
 
 }
