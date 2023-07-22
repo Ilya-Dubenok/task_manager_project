@@ -2,6 +2,7 @@ package org.example.core.exception.utils;
 
 import org.example.core.exception.StructuredException;
 import org.example.dao.entities.user.User;
+import org.example.dao.entities.verification.VerificationInfo;
 import org.hibernate.PropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
 
@@ -90,7 +91,9 @@ public class DatabaseExceptionsMapper {
                 "user_mail_unique_constraint",
                 "mail", "введеное значение электронной почты уже используется"
 
-        );
+        ),
+        VERIFICATION_INFO_MAIL_CONSTRAINT("verification_mail_unique_constraint",
+                "mail", "введеное значение электронной почты уже используется");
 
 
         private final String constraintName;
@@ -122,7 +125,10 @@ public class DatabaseExceptionsMapper {
         USER_ROLE_NOT_NULL(
                 User.class, "role", "role", "Не задана роль для юзера"),
         USER_STATUS_NOT_NULL(
-                User.class, "status", "status", "Не задан статус для юзера");
+                User.class, "status", "status", "Не задан статус для юзера"),
+        VERIFICATION_INFO_CODE_NOT_NULL(
+                VerificationInfo.class, "code", "code", "Ошибка при генерации кода"
+        );
 
 
         private final Class<?> entity;

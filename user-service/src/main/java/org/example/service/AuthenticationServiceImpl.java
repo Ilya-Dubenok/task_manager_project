@@ -7,15 +7,20 @@ import org.example.core.dto.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;
+import org.example.dao.api.IVerificationInfoRepository;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
+import org.example.dao.entities.verification.EmailStatus;
+import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IAuthenticationService;
 import org.example.service.api.IEmailService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -26,18 +31,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     private IEmailService emailService;
 
+    private IVerificationInfoRepository verificationInfoRepository;
+
     private ConversionService conversionService;
 
 
-    private Map<String, Integer> codeHolder = ExpiringMap.builder()
-            .expirationPolicy(ExpirationPolicy.CREATED)
-            .expiration(5, TimeUnit.MINUTES)
-            .build();
-
-
-    public AuthenticationServiceImpl(IUserService userService, IEmailService emailService, ConversionService conversionService) {
+    public AuthenticationServiceImpl(IUserService userService, IEmailService emailService, IVerificationInfoRepository verificationInfoRepository, ConversionService conversionService) {
         this.userService = userService;
         this.emailService = emailService;
+        this.verificationInfoRepository = verificationInfoRepository;
         this.conversionService = conversionService;
     }
 
@@ -81,10 +83,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         dto.setRole(UserRole.USER);
         dto.setStatus(UserStatus.WAITING_ACTIVATION);
 
-        try {
+        Integer verificationCode;
 
-            // TODO CHANGE EXCEPTION HANDLING DEPENDING ON CONSTRAINTS
+        try {
             userService.save(dto);
+            verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 5);
+
+            verificationCode = ThreadLocalRandom.current().nextInt(10000);
+            VerificationInfo info = formVerificationInfo(mail, verificationCode);
+
+            verificationInfoRepository.save(info);
+
         } catch (Exception e) {
             if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
                 throw structuredException;
@@ -92,11 +101,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
+
         // TODO CHANGE EXCEPTION HANDLING
         try {
 
-            Integer verificationCode = ThreadLocalRandom.current().nextInt(10000);
-            codeHolder.put(mail, verificationCode);
             emailService.sendVerificationCodeMessage(mail, verificationCode);
             return verificationCode;
 
@@ -119,30 +127,43 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (exception.hasExceptions()) {
             throw exception;
         }
-        Integer savedCode = this.codeHolder.get(email);
-        if (savedCode == null) {
+        verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 5);
+        VerificationInfo verificationInfo = verificationInfoRepository.findByMail(email);
+        if (verificationInfo == null) {
+
             throw new StructuredException(
                     "mail", "Не найден пользователь с такой почтой или код верификации истек"
             );
         }
+        Integer savedCode = verificationInfo.getCode();
+
         if (!savedCode.equals(verificationCode)) {
             throw new StructuredException(
                     "code", "Введен неверный код верификации"
             );
 
         }
-        int res;
 
         try {
-            res = userService.setUserActiveByEmail(email);
+            userService.setUserActiveByEmail(email);
+            verificationInfoRepository.cleanUsedCode(email);
+
         } catch (Exception e) {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
-        if (res != 1) {
-            throw new GeneralException("Что-то пошло не так с активацией пользователя", new RuntimeException());
-        }
 
+    }
+
+    private static VerificationInfo formVerificationInfo(String mail, Integer verificationCode) {
+        VerificationInfo info = new VerificationInfo();
+        info.setUuid(UUID.randomUUID());
+        info.setMail(mail);
+        info.setCode(verificationCode);
+        info.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+        info.setEmailStatus(EmailStatus.WAITING_TO_BE_SENT);
+
+        return info;
     }
 
 

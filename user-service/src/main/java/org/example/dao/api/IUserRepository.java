@@ -23,7 +23,6 @@ public interface IUserRepository extends CrudRepository<User, UUID> {
 
     Page<User> findAllByOrderByUuid(Pageable pageable);
 
-    //TODO REFACTOR INTO CONSTANT
     @Query(
             value = "update users set status = 'ACTIVATED' " +
                     "WHERE mail = ?1 AND status= 'WAITING_ACTIVATION'"
