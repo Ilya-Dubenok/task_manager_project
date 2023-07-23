@@ -1,10 +1,22 @@
 package org.example.service;
 
 import org.example.config.property.ConfidentialProperties;
+import org.example.dao.api.IVerificationInfoRepository;
+import org.example.dao.entities.verification.EmailStatus;
+import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IEmailService;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class EmailServiceImpl implements IEmailService {
@@ -13,20 +25,28 @@ public class EmailServiceImpl implements IEmailService {
 
     private String emailFrom;
 
+    private TaskScheduler taskScheduler;
 
-    private ConfidentialProperties property;
+    private volatile ScheduledFuture<?> scheduledFuture;
+
+    private ReentrantLock lock = new ReentrantLock();
+
+
+    private IVerificationInfoRepository repository;
+
 
     //TODO REFACTOR THIS
-    private static final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT=
+    private static final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT =
             "Добрый день! Для завершения регистрации перейдите по ссылке ниже\n" +
                     "http://localhost/user_service/api/v1/users/verification?code=%s&mail=%s";
 
     private static final String DEFAULT_VERIFICATION_SUBJECT = "Подтверждение регистрации в приложении TaskManager";
 
-    public EmailServiceImpl(JavaMailSender javaMailSender, ConfidentialProperties property) {
+    public EmailServiceImpl(JavaMailSender javaMailSender, ConfidentialProperties property, TaskScheduler taskScheduler, IVerificationInfoRepository repository) {
         this.javaMailSender = javaMailSender;
         this.emailFrom = property.getMail().getEmail();
-
+        this.taskScheduler = taskScheduler;
+        this.repository = repository;
     }
 
     @Override
@@ -41,12 +61,82 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
+    @Async
     public void sendVerificationCodeMessage(String mail, Integer verificationCode) {
 
         String text = String.format(
                 DEFAULT_VERIFICATION_CODE_TEXT_FORMAT, verificationCode, mail
         );
 
-        sendMessage(mail,text, DEFAULT_VERIFICATION_SUBJECT);
+        try {
+
+            sendMessage(mail, text, DEFAULT_VERIFICATION_SUBJECT);
+            repository.setEmailStatus(EmailStatus.SUCCESSFULLY_SENT.toString(), mail);
+
+
+        } catch (MailException e) {
+            repository.setEmailStatus(EmailStatus.FAILURE_ON_SENT.toString(), mail);
+            startScheduledRepeatableSendingIfNeeded();
+
+        }
+
     }
+
+
+
+    private void startScheduledRepeatableSendingIfNeeded() {
+
+        lock.lock();
+        if (scheduledFuture == null) {
+            scheduledFuture = taskScheduler.scheduleAtFixedRate(
+                    this::scheduledRepeatableSending,
+                    Instant.now().plusSeconds(20),
+                    Duration.ofSeconds(60)
+            );
+
+        }
+        lock.unlock();
+
+    }
+
+    private void scheduledRepeatableSending() {
+        List<VerificationInfo> failedEmails = repository.findByEmailStatusIsAndCountOfAttemptsIsLessThan(
+                EmailStatus.FAILURE_ON_SENT, 5
+        );
+
+        if (failedEmails.size() == 0) {
+            lock.lock();
+            scheduledFuture.cancel(true);
+            scheduledFuture = null;
+            lock.unlock();
+            return;
+
+        }
+
+        failedEmails.forEach(x -> sendVerificationCodeMessageWithoutFurtherScheduling(x.getMail(), x.getCode()));
+
+
+    }
+
+
+    private void sendVerificationCodeMessageWithoutFurtherScheduling(String mail, Integer verificationCode) {
+
+        String text = String.format(
+                DEFAULT_VERIFICATION_CODE_TEXT_FORMAT, verificationCode, mail
+        );
+
+        try {
+
+            sendMessage(mail, text, DEFAULT_VERIFICATION_SUBJECT);
+            repository.setEmailStatus(EmailStatus.SUCCESSFULLY_SENT.toString(), mail);
+
+
+        } catch (MailException ignored) {
+
+            repository.increaseCountOfFailedAttempts(mail);
+
+        }
+
+    }
+
 }
