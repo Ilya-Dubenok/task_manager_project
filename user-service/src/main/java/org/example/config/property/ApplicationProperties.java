@@ -1,12 +1,11 @@
 package org.example.config.property;
 
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-@ConfigurationProperties(prefix = "app")
-public class ConfidentialProperties {
+public class ApplicationProperties {
 
     private MailProp mail;
+
+    private NetworkProp network;
 
     public MailProp getMail() {
         return mail;
@@ -14,6 +13,14 @@ public class ConfidentialProperties {
 
     public void setMail(MailProp mail) {
         this.mail = mail;
+    }
+
+    public NetworkProp getNetwork() {
+        return network;
+    }
+
+    public void setNetwork(NetworkProp network) {
+        this.network = network;
     }
 
     public static class MailProp {
@@ -35,6 +42,19 @@ public class ConfidentialProperties {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+    }
+
+    public static class NetworkProp {
+
+        private String host;
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
         }
     }
 

@@ -1,6 +1,6 @@
 package org.example.service;
 
-import org.example.config.property.ConfidentialProperties;
+import org.example.config.property.ApplicationProperties;
 import org.example.dao.api.IVerificationInfoRepository;
 import org.example.dao.entities.verification.EmailStatus;
 import org.example.dao.entities.verification.VerificationInfo;
@@ -25,6 +25,8 @@ public class EmailServiceImpl implements IEmailService {
 
     private String emailFrom;
 
+    private String host;
+
     private TaskScheduler taskScheduler;
 
     private volatile ScheduledFuture<?> scheduledFuture;
@@ -35,16 +37,16 @@ public class EmailServiceImpl implements IEmailService {
     private IVerificationInfoRepository repository;
 
 
-    //TODO REFACTOR THIS
-    private static final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT =
+    private final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT =
             "Добрый день! Для завершения регистрации перейдите по ссылке ниже\n" +
-                    "http://localhost/user_service/api/v1/users/verification?code=%s&mail=%s";
+                    "http://%s/user_service/api/v1/users/verification?code=%s&mail=%s";
 
     private static final String DEFAULT_VERIFICATION_SUBJECT = "Подтверждение регистрации в приложении TaskManager";
 
-    public EmailServiceImpl(JavaMailSender javaMailSender, ConfidentialProperties property, TaskScheduler taskScheduler, IVerificationInfoRepository repository) {
+    public EmailServiceImpl(JavaMailSender javaMailSender, ApplicationProperties property, TaskScheduler taskScheduler, IVerificationInfoRepository repository) {
         this.javaMailSender = javaMailSender;
         this.emailFrom = property.getMail().getEmail();
+        this.host = property.getNetwork().getHost();
         this.taskScheduler = taskScheduler;
         this.repository = repository;
     }
@@ -65,7 +67,7 @@ public class EmailServiceImpl implements IEmailService {
     public void sendVerificationCodeMessage(String mail, Integer verificationCode) {
 
         String text = String.format(
-                DEFAULT_VERIFICATION_CODE_TEXT_FORMAT, verificationCode, mail
+                DEFAULT_VERIFICATION_CODE_TEXT_FORMAT, host, verificationCode, mail
         );
 
         try {

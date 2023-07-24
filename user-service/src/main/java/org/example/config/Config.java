@@ -1,7 +1,7 @@
 package org.example.config;
 
 
-import org.example.config.property.ConfidentialProperties;
+import org.example.config.property.ApplicationProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.core.task.TaskExecutor;
@@ -17,13 +17,13 @@ public class Config implements WebMvcConfigurer {
 
     @Bean
     @ConfigurationProperties("app")
-    public ConfidentialProperties getProperty() {
-        return new ConfidentialProperties();
+    public ApplicationProperties getProperty() {
+        return new ApplicationProperties();
     }
 
     @Bean
-    public JavaMailSender getJavaMailSender(ConfidentialProperties property) {
-        ConfidentialProperties.MailProp mailProp = property.getMail();
+    public JavaMailSender getJavaMailSender(ApplicationProperties property) {
+        ApplicationProperties.MailProp mailProp = property.getMail();
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost("smtp.mail.ru");
         mailSender.setPort(587);

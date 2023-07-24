@@ -33,5 +33,10 @@ server:
     context-path: /user_service
 
 
+app:
+  network:
+    host: localhost
+
+
 
 
