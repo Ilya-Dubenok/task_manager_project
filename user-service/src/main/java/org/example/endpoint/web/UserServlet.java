@@ -4,6 +4,7 @@ import org.example.core.dto.PageOfUserDTO;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserDTO;
 import org.example.dao.entities.user.User;
+import org.example.service.UserServiceImpl;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
@@ -18,11 +19,11 @@ import java.util.UUID;
 @RequestMapping("/api/v1/users")
 public class UserServlet {
 
-    private IUserService service;
+    private UserServiceImpl service;
 
     private ConversionService conversionService;
 
-    public UserServlet(IUserService service, ConversionService conversionService) {
+    public UserServlet(UserServiceImpl service, ConversionService conversionService) {
         this.service = service;
         this.conversionService = conversionService;
     }

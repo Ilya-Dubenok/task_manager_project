@@ -81,8 +81,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         Integer verificationCode;
 
+        userService.save(dto);
         try {
-            userService.save(dto);
             verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 10);
 
             verificationCode = ThreadLocalRandom.current().nextInt(100000);
@@ -140,8 +140,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         }
 
+        userService.setUserActiveByEmail(email);
         try {
-            userService.setUserActiveByEmail(email);
             verificationInfoRepository.cleanUsedCode(email);
 
         } catch (Exception e) {
