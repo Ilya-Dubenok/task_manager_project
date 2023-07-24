@@ -58,7 +58,8 @@ public class UserServlet {
     }
 
     @GetMapping
-    public ResponseEntity<PageOfUserDTO> getPageOfUsers(@RequestParam("page") Integer page, @RequestParam("size") Integer size) {
+    public ResponseEntity<PageOfUserDTO> getPageOfUsers(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                        @RequestParam(value = "size", defaultValue = "20") Integer size) {
 
         Page<User> pageOfUsers = service.getPageOfUsers(page, size);
         return new ResponseEntity<>(

@@ -53,6 +53,15 @@ public class User {
         this.uuid = uuid;
     }
 
+    public User(UUID uuid, String mail, String fio, UserRole role, UserStatus status, String password) {
+        this.uuid = uuid;
+        this.mail = mail;
+        this.fio = fio;
+        this.role = role;
+        this.status = status;
+        this.password = password;
+    }
+
     public UUID getUuid() {
         return uuid;
     }
