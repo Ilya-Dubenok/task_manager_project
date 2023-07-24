@@ -62,7 +62,6 @@ public class UserServiceImpl implements IUserService {
         );
         toRegister.setUuid(UUID.randomUUID());
 
-        // TODO  ADD EXCEPTION HANDLING
         try {
             userRepository.save(toRegister);
         } catch (Exception e) {
@@ -102,7 +101,6 @@ public class UserServiceImpl implements IUserService {
                         dt_update
                 )
         ) {
-            //TODO CHANGE EXCEPTION HANDLING
             throw new StructuredException(
                     "dt_update", "Версия пользователя уже была обновлена"
             );
@@ -149,7 +147,6 @@ public class UserServiceImpl implements IUserService {
 
         try {
 
-            // TODO ADD EXCEPTION HANDLING
             Page<User> page = userRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
 
             return page;
@@ -162,8 +159,17 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public int setUserActiveByEmail(String email) {
+        try {
 
-        return userRepository.setUserActiveByEmail(email);
+            return userRepository.setUserActiveByEmail(email);
+        } catch (Exception e) {
+            StructuredException structuredException = new StructuredException();
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+        }
 
 
     }

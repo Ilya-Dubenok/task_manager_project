@@ -22,8 +22,8 @@ public class VerificationInfo {
     @Column(nullable = false)
     private Integer code;
 
-    @Column(name = "expiration_time")
-    private LocalDateTime expirationTime;
+    @Column(name = "registered_time")
+    private LocalDateTime registeredTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "email_status")
@@ -36,12 +36,14 @@ public class VerificationInfo {
     public VerificationInfo() {
     }
 
-    public VerificationInfo(UUID uuid, String mail, Integer code, LocalDateTime expirationTime, EmailStatus emailStatus) {
+    public VerificationInfo(UUID uuid, String mail, Integer code, LocalDateTime registeredTime, EmailStatus emailStatus,
+                            Integer countOfAttempts) {
         this.uuid = uuid;
         this.mail = mail;
         this.code = code;
-        this.expirationTime = expirationTime;
+        this.registeredTime = registeredTime;
         this.emailStatus = emailStatus;
+        this.countOfAttempts = countOfAttempts;
     }
 
     public UUID getUuid() {
@@ -68,12 +70,12 @@ public class VerificationInfo {
         this.code = code;
     }
 
-    public LocalDateTime getExpirationTime() {
-        return expirationTime;
+    public LocalDateTime getRegisteredTime() {
+        return registeredTime;
     }
 
-    public void setExpirationTime(LocalDateTime expirationTime) {
-        this.expirationTime = expirationTime;
+    public void setRegisteredTime(LocalDateTime registeredTime) {
+        this.registeredTime = registeredTime;
     }
 
     public EmailStatus getEmailStatus() {

@@ -1,7 +1,5 @@
 package org.example.service;
 
-import net.jodah.expiringmap.ExpirationPolicy;
-import net.jodah.expiringmap.ExpiringMap;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
@@ -19,10 +17,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthenticationServiceImpl implements IAuthenticationService {
@@ -85,11 +81,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         Integer verificationCode;
 
+        userService.save(dto);
         try {
-            userService.save(dto);
-            verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 5);
+            verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 10);
 
-            verificationCode = ThreadLocalRandom.current().nextInt(10000);
+            verificationCode = ThreadLocalRandom.current().nextInt(100000);
             VerificationInfo info = formVerificationInfo(mail, verificationCode);
 
             verificationInfoRepository.save(info);
@@ -127,7 +123,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (exception.hasExceptions()) {
             throw exception;
         }
-        verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 5);
+        verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 10);
         VerificationInfo verificationInfo = verificationInfoRepository.findByMail(email);
         if (verificationInfo == null) {
 
@@ -144,8 +140,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         }
 
+        userService.setUserActiveByEmail(email);
         try {
-            userService.setUserActiveByEmail(email);
             verificationInfoRepository.cleanUsedCode(email);
 
         } catch (Exception e) {
@@ -160,8 +156,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         info.setUuid(UUID.randomUUID());
         info.setMail(mail);
         info.setCode(verificationCode);
-        info.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+        info.setRegisteredTime(LocalDateTime.now());
         info.setEmailStatus(EmailStatus.WAITING_TO_BE_SENT);
+        info.setCountOfAttempts(1);
 
         return info;
     }

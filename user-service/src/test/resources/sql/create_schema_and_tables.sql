@@ -13,3 +13,17 @@ CREATE TABLE IF NOT EXISTS app.users
     CONSTRAINT users_pkey PRIMARY KEY (uuid),
     CONSTRAINT user_mail_unique_constraint UNIQUE (mail)
 );
+
+
+CREATE TABLE IF NOT EXISTS app.verification_info
+(
+   	uuid uuid NOT NULL,
+    mail character varying(255) NOT NULL,
+	code integer NOT NULL,
+	registered_time timestamp(3) without time zone,
+	email_status character varying(255) NOT NULL,
+	count_of_attempts integer default 1,
+    CONSTRAINT verification_info_pkey PRIMARY KEY (uuid),
+	CONSTRAINT verification_mail_unique_constraint UNIQUE (mail)
+
+)
