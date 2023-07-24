@@ -34,6 +34,13 @@ services:
     networks:
       - taskmanager_ntwrk
 
+  proxy:
+    build: proxy
+    image: taskmanager_proxy:1.0.0
+    ports:
+      - "80:80"
+    networks:
+      - taskmanager_ntwrk
 networks:
     taskmanager_ntwrk:
       name: taskmanager_ntwrk
