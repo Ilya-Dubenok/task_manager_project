@@ -27,6 +27,13 @@ services:
       - "81:8080"
     networks:
       - taskmanager_ntwrk
+
+  user-service:
+    build: user-service
+    image: taskmanager_user-service:1.0.0
+    networks:
+      - taskmanager_ntwrk
+
 networks:
     taskmanager_ntwrk:
       name: taskmanager_ntwrk
