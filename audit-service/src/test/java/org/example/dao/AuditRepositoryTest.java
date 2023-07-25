@@ -3,6 +3,7 @@ package org.example.dao;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.core.dto.AuditCreateDTO;
 import org.example.core.dto.AuditDTO;
 import org.example.core.dto.PageOfTypeDTO;
 import org.example.dao.api.IAuditRepository;
@@ -28,7 +29,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -100,6 +100,32 @@ public class AuditRepositoryTest {
         );
 
         Assertions.assertNotNull(convert);
+    }
+
+    @Test
+    public void canConvertFromAuditDTOtoAuditWithoutException() throws JsonProcessingException {
+        ObjectMapper objectMapper = this.springMvcJacksonConverter.getObjectMapper();
+
+        String rawConvert = """
+                {
+                    "user":{
+                        "uuid":"2d6aee7b-31a4-49dd-b910-130aaaa3e185",
+                        "mail":"some mail",
+                        "fio":"some fio",
+                        "role":"USER"
+                    },
+                    "text":"some text added",
+                    "type":"USER"
+                }""";
+
+        AuditCreateDTO dto = objectMapper.readValue(rawConvert, AuditCreateDTO.class);
+        Audit convert = conversionService.convert(
+                dto, Audit.class
+        );
+
+        Assertions.assertNotNull(convert);
+
+
     }
 
 

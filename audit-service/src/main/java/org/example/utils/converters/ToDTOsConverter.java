@@ -2,10 +2,8 @@ package org.example.utils.converters;
 
 import org.example.core.dto.AuditDTO;
 import org.example.core.dto.PageOfTypeDTO;
-import org.example.core.dto.UserDTO;
 import org.example.dao.entities.audit.Audit;
 import org.example.dao.entities.audit.Type;
-import org.example.dao.entities.user.User;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.domain.Page;
@@ -25,7 +23,6 @@ public class ToDTOsConverter<IN, OUT> implements
     public Set<ConvertiblePair> getConvertibleTypes() {
         return Set.of(
                 new ConvertiblePair(Page.class, PageOfTypeDTO.class),
-                new ConvertiblePair(User.class, UserDTO.class),
                 new ConvertiblePair(Audit.class, AuditDTO.class)
         );
 
@@ -60,15 +57,7 @@ public class ToDTOsConverter<IN, OUT> implements
 
         }
 
-        if (sourceType.getType().equals(User.class) && targetType.getType().equals(UserDTO.class)) {
-            UserDTO res = new UserDTO();
-            User user = (User) source;
-            res.setUuid(user.getUuid());
-            res.setMail(user.getMail());
-            res.setFio(user.getFio());
-            res.setRole(user.getRole());
-            return res;
-        }
+
 
         if (sourceType.getType().equals(Audit.class) && targetType.getType().equals(AuditDTO.class)) {
             AuditDTO res = new AuditDTO();
@@ -82,9 +71,7 @@ public class ToDTOsConverter<IN, OUT> implements
             Type type = audit.getType();
             res.setType(type);
             res.setId(type.getId());
-            res.setUser(
-                    (UserDTO) this.convert(audit.getUser(),TypeDescriptor.valueOf(User.class), TypeDescriptor.valueOf(UserDTO.class))
-            );
+            res.setUser(audit.getUser());
 
             return res;
         }
