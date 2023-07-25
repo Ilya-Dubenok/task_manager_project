@@ -1,40 +1,34 @@
-package org.example.dao;
+package org.example.service;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.ConstraintViolationException;
 import org.example.core.dto.AuditCreateDTO;
-import org.example.core.dto.AuditDTO;
-import org.example.core.dto.PageOfTypeDTO;
+import org.example.core.exception.GeneralException;
+import org.example.core.exception.StructuredException;
 import org.example.dao.api.IAuditRepository;
 import org.example.dao.entities.audit.Audit;
 import org.example.dao.entities.audit.Type;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
+import org.example.service.api.IAuditService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class AuditRepositoryTest {
+public class AuditServiceImplTest {
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
@@ -45,6 +39,7 @@ public class AuditRepositoryTest {
     @Autowired
     IAuditRepository repository;
 
+
     @Autowired
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
@@ -54,83 +49,99 @@ public class AuditRepositoryTest {
     @Autowired
     private ConversionService conversionService;
 
+    @Autowired
+    private IAuditService auditService;
+
     @Test
-    public void canGetDefaultValues() throws JsonProcessingException {
+    public void saveWithNotValidAuditCreateDTO() {
 
-        List<Audit> all = repository.findAll();
-        Assertions.assertEquals(6, all.size());
+        AuditCreateDTO createDTO = new AuditCreateDTO();
 
-        UUID uuid = all.get(0).getUuid();
+        createDTO.setText("");
 
-        Audit found = repository.findByUuid(uuid).orElseThrow();
+        createDTO.setType(Type.USER);
+
+        ConstraintViolationException exception = Assertions.assertThrows(
+                ConstraintViolationException.class,
+                () -> auditService.save(createDTO)
+        );
 
         Assertions.assertEquals(
-                all.get(0).getUuid(), found.getUuid()
+                2, exception.getConstraintViolations().size()
+        );
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void saveWithValidAuditCreateDTO() {
+
+        AuditCreateDTO createDTO = new AuditCreateDTO();
+
+        createDTO.setText("some");
+
+        createDTO.setUser(
+                new User(UUID.randomUUID(), "mail", "fio", UserRole.USER)
+        );
+
+        createDTO.setType(Type.USER);
+
+        Assertions.assertDoesNotThrow(
+                () -> auditService.save(createDTO)
         );
 
     }
 
     @Test
-    public void findByUserRoleWorksFine() {
+    public void getPagewithInvalidValuesFails() {
 
-        List<Audit> byUserRole = repository.findByUserRole(UserRole.ADMIN);
-        Assertions.assertEquals(2, byUserRole.size());
+        StructuredException exception = Assertions.assertThrows(
+                StructuredException.class,
+                () -> auditService.getPageOfAudit(
+                        -1, 0
+                )
+        );
+
+        Assertions.assertEquals(2, exception.getSize());
+
+    }
+
+
+    @Test
+    public void getPageValidWorks() {
+
+        Page<Audit> pageOfAudit = auditService.getPageOfAudit(1, 2);
+
+        Assertions.assertNotNull(pageOfAudit);
+
+        Assertions.assertEquals(3, pageOfAudit.getTotalPages());
+
 
     }
 
     @Test
-    public void canGetPages() throws JsonProcessingException {
+    public void getAuditByIdWorks() {
 
-        Page<Audit> page = repository.findAllByOrderByUuid(
-                PageRequest.of(1, 2)
-        );
+        UUID uuid = repository.findAll().get(0).getUuid();
 
-        Assertions.assertEquals(3, page.getTotalPages());
-        Assertions.assertEquals(6, page.getTotalElements());
-        Assertions.assertEquals(2, page.getSize());
+        Audit audit = auditService.getAuditById(uuid);
+
+        Assertions.assertNotNull(audit);
+
+        Assertions.assertEquals(uuid, audit.getUuid());
 
     }
 
-    @Test
-    public void canConvertToParametrizedPageWithoutException() {
-        Page<Audit> page = repository.findAllByOrderByUuid(
-                PageRequest.of(1, 2)
-        );
-
-        ResolvableType resolvableType = ResolvableType.forClassWithGenerics(
-                PageOfTypeDTO.class, AuditDTO.class
-        );
-
-        PageOfTypeDTO<AuditDTO> convert = (PageOfTypeDTO<AuditDTO>) conversionService.convert(
-                page, TypeDescriptor.valueOf(PageImpl.class),
-                new TypeDescriptor(resolvableType, null, null)
-        );
-
-        Assertions.assertNotNull(convert);
-    }
 
     @Test
-    public void canConvertFromAuditDTOtoAuditWithoutException() throws JsonProcessingException {
-        ObjectMapper objectMapper = this.springMvcJacksonConverter.getObjectMapper();
+    public void getAuditByIdFailsWhenNotFound() {
 
-        String rawConvert = """
-                {
-                    "user":{
-                        "uuid":"2d6aee7b-31a4-49dd-b910-130aaaa3e185",
-                        "mail":"some mail",
-                        "fio":"some fio",
-                        "role":"USER"
-                    },
-                    "text":"some text added",
-                    "type":"USER"
-                }""";
+        UUID uuid = UUID.randomUUID();
 
-        AuditCreateDTO dto = objectMapper.readValue(rawConvert, AuditCreateDTO.class);
-        Audit convert = conversionService.convert(
-                dto, Audit.class
+        Assertions.assertThrows(
+                GeneralException.class,
+                () -> auditService.getAuditById(uuid)
         );
-
-        Assertions.assertNotNull(convert);
 
 
     }
@@ -180,4 +191,5 @@ public class AuditRepositoryTest {
                 .forEach(repository::save);
 
     }
+
 }
