@@ -1,5 +1,6 @@
 package org.example.service;
 
+import jakarta.validation.Valid;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
@@ -10,15 +11,17 @@ import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-
+@Validated
 @Service
 public class UserServiceImpl implements IUserService {
 
@@ -35,27 +38,8 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public void save(UserCreateDTO userCreateDTO) {
+    public void save(@Valid UserCreateDTO userCreateDTO) {
 
-
-        UserRole role = userCreateDTO.getRole();
-        UserStatus status = userCreateDTO.getStatus();
-        StructuredException structuredException = new StructuredException();
-
-        if (role == null) {
-            structuredException.put(
-                    "role","Не передана роль пользователя"
-            );
-        }
-        if (status == null) {
-            structuredException.put(
-                    "status", "Не передан статус пользователя"
-            );
-        }
-
-        if (structuredException.hasExceptions()) {
-            throw structuredException;
-        }
 
         User toRegister = conversionService.convert(
                 userCreateDTO, User.class
@@ -65,6 +49,8 @@ public class UserServiceImpl implements IUserService {
         try {
             userRepository.save(toRegister);
         } catch (Exception e) {
+
+            StructuredException structuredException = new StructuredException();
 
             if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
                 throw structuredException;
@@ -81,17 +67,18 @@ public class UserServiceImpl implements IUserService {
     public User getUserById(UUID uuid) {
         return userRepository.findByUuid(
                 uuid
-        ).orElse(null);
+        ).orElseThrow(
+                () -> new GeneralException("Не найден пользователь по такому uuid")
+        );
     }
 
 
-
     @Override
-    public void updateUser(UUID uuid, LocalDateTime dt_update, UserCreateDTO userCreateDTO) {
+    public void updateUser(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO) {
 
         User toUpdate = userRepository.findByUuid(uuid).orElseThrow(
-                () -> new StructuredException(
-                        "uuid", "Не найден пользователь с таким uuid"
+                () -> new GeneralException(
+                        "Не найден пользователь с таким uuid"
                 )
         );
 
@@ -101,8 +88,8 @@ public class UserServiceImpl implements IUserService {
                         dt_update
                 )
         ) {
-            throw new StructuredException(
-                    "dt_update", "Версия пользователя уже была обновлена"
+            throw new GeneralException(
+                    "Версия пользователя уже была обновлена"
             );
 
         }
@@ -112,6 +99,7 @@ public class UserServiceImpl implements IUserService {
 
         try {
 
+            //TODO CHECK FOR SPLIT OF EXCEPTION
             userRepository.save(toUpdate);
         } catch (Exception e) {
             StructuredException structuredException = new StructuredException();
@@ -133,7 +121,7 @@ public class UserServiceImpl implements IUserService {
 
         if (currentRequestedPage < 0) {
 
-            exception.put("page","Номер страницы не может быть меньше 0");
+            exception.put("page", "Номер страницы не может быть меньше 0");
 
         }
         if (rowsPerPage < 1) {
@@ -189,7 +177,6 @@ public class UserServiceImpl implements IUserService {
         return user;
 
     }
-
 
 
 }

@@ -11,6 +11,9 @@ public class GeneralException extends RuntimeException{
             "по электронной почте. Проверьте правильной введенной электронной почты или попробуйте позже";
 
 
+    public GeneralException(String message) {
+        super(message);
+    }
 
     public GeneralException(String message, Throwable cause) {
         super(message, cause);

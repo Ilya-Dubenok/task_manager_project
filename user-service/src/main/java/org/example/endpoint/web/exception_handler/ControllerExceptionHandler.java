@@ -1,5 +1,9 @@
 package org.example.endpoint.web.exception_handler;
 
+import com.google.common.base.CaseFormat;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.GeneralExceptionDTO;
 import org.example.core.exception.StructuredException;
@@ -13,12 +17,11 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 @ControllerAdvice
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
@@ -39,6 +42,15 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = ConstraintViolationException.class)
+    protected ResponseEntity<Object> handleConflict(ConstraintViolationException e, WebRequest request) {
+
+
+       StructuredExceptionDTO structuredExceptionDTO = parseConstraintViolationException(e);
+
+        return new ResponseEntity<>(structuredExceptionDTO, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(value = Exception.class)
     protected ResponseEntity<Object> handleConflict(Exception e, WebRequest request) {
         GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(
@@ -46,6 +58,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         );
         return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -80,6 +93,39 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     }
 
+    private StructuredExceptionDTO parseConstraintViolationException(ConstraintViolationException e) {
+        StructuredException exception = new StructuredException();
+        Iterator<ConstraintViolation<?>> iterator = e.getConstraintViolations().iterator();
+        while (iterator.hasNext()) {
+            ConstraintViolation<?> constraintViolation = iterator.next();
+            String propName = parseForPropNameInSnakeCase(constraintViolation);
+            String message = constraintViolation.getMessage();
+            exception.put(propName, message);
+
+
+        }
+
+
+        return new StructuredExceptionDTO(exception);
+    }
+
+    private String parseForPropNameInSnakeCase(ConstraintViolation<?> next) {
+
+        Path propertyPath = next.getPropertyPath();
+
+
+        Iterator<Path.Node> iterator = propertyPath.iterator();
+        Path.Node node = null;
+
+        while (iterator.hasNext()) {
+            node = iterator.next();
+
+        }
+
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,node.getName());
+
+
+    }
 
 
 }

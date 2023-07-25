@@ -1,5 +1,6 @@
 package org.example.service;
 
+import jakarta.validation.ConstraintViolationException;
 import org.example.core.dto.UserRegistrationDTO;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
@@ -63,7 +64,7 @@ public class AuthenticationServiceImplTest {
 
 
         Assertions.assertDoesNotThrow(() -> authenticationService.registerUser(
-                new UserRegistrationDTO("fake2", "fio", "123")
+                new UserRegistrationDTO("fake2@mail.com", "fio", "12334")
         ));
 
         InOrder inOrder = inOrder(verificationInfoRepository, spyEmailService);
@@ -81,30 +82,30 @@ public class AuthenticationServiceImplTest {
 
         UserRegistrationDTO userRegistrationDTO = new UserRegistrationDTO(null, null, null);
 
-        StructuredException exception3 = Assertions.assertThrows(
-                StructuredException.class, () -> authenticationService.registerUser(
+        ConstraintViolationException exception3 = Assertions.assertThrows(
+                ConstraintViolationException.class, () -> authenticationService.registerUser(
                         userRegistrationDTO
                 )
         );
 
-        userRegistrationDTO.setMail("someMail");
+        userRegistrationDTO.setMail("someMail@mail.com");
 
-        StructuredException exception2 = Assertions.assertThrows(
-                StructuredException.class, () -> authenticationService.registerUser(
+        ConstraintViolationException exception2 = Assertions.assertThrows(
+                ConstraintViolationException.class, () -> authenticationService.registerUser(
                         userRegistrationDTO
                 )
         );
         userRegistrationDTO.setFio("someFio");
 
-        StructuredException exception1 = Assertions.assertThrows(
-                StructuredException.class, () -> authenticationService.registerUser(
+        ConstraintViolationException exception1 = Assertions.assertThrows(
+                ConstraintViolationException.class, () -> authenticationService.registerUser(
                         userRegistrationDTO
                 )
         );
 
-        Assertions.assertEquals(3, exception3.getSize());
-        Assertions.assertEquals(2, exception2.getSize());
-        Assertions.assertEquals(1, exception1.getSize());
+        Assertions.assertEquals(3, exception3.getConstraintViolations().size());
+        Assertions.assertEquals(2, exception2.getConstraintViolations().size());
+        Assertions.assertEquals(1, exception1.getConstraintViolations().size());
 
 
     }
@@ -144,7 +145,7 @@ public class AuthenticationServiceImplTest {
     public void oldCodesAreErased() {
         verificationInfoRepository.save(
                 new VerificationInfo(
-                        UUID.randomUUID(), "mail", 3334, LocalDateTime.now().minusMinutes(20),
+                        UUID.randomUUID(), "mail@mail.com", 3334, LocalDateTime.now().minusMinutes(20),
                         EmailStatus.WAITING_TO_BE_SENT, 1
                 )
         );
@@ -152,7 +153,7 @@ public class AuthenticationServiceImplTest {
         StructuredException exception = Assertions.assertThrows(
                 StructuredException.class, () ->
                         authenticationService.verifyUserWithCode(
-                                3334, "mail"
+                                3334, "mail@mail.com"
                         )
         );
 

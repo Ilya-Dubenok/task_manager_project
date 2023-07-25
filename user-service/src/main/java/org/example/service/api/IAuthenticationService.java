@@ -1,11 +1,11 @@
 package org.example.service.api;
 
+import jakarta.validation.Valid;
 import org.example.core.dto.UserRegistrationDTO;
-import org.example.dao.entities.verification.EmailStatus;
 
 public interface IAuthenticationService {
 
-    Integer registerUser(UserRegistrationDTO userRegistrationDTO);
+    Integer registerUser(@Valid UserRegistrationDTO userRegistrationDTO);
 
     void verifyUserWithCode(Integer code, String mail);
 

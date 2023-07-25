@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import jakarta.validation.ConstraintViolationException;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserDTO;
 import org.example.core.exception.StructuredException;
@@ -70,18 +71,18 @@ public class UserServiceImplTest {
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void userRoleAndSatusNullsAreNotPassed() {
         Assertions.assertThrows(
-                StructuredException.class, () -> userService.save(
+                ConstraintViolationException.class, () -> userService.save(
                         new UserCreateDTO("", "", UserRole.USER, null, "ps")
                 )
         );
         Assertions.assertThrows(
-                StructuredException.class, () -> userService.save(
+                ConstraintViolationException.class, () -> userService.save(
                         new UserCreateDTO("", "", null, UserStatus.ACTIVATED, "ps")
                 )
         );
 
         Assertions.assertThrows(
-                StructuredException.class, () -> userService.save(
+                ConstraintViolationException.class, () -> userService.save(
                         new UserCreateDTO("", "", null, null, "ps")
                 )
         );
@@ -92,13 +93,13 @@ public class UserServiceImplTest {
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void exceptionOnRoleAndStatusIsHandled() {
 
-        StructuredException exception = Assertions.assertThrows(
-                StructuredException.class,
+        ConstraintViolationException exception = Assertions.assertThrows(
+                ConstraintViolationException.class,
                 () -> userService.save(
                         new UserCreateDTO("", "", null, null, "ps"))
         );
 
-        Assertions.assertEquals(2, exception.getSize());
+        Assertions.assertEquals(5, exception.getConstraintViolations().size());
 
 
     }
@@ -115,7 +116,7 @@ public class UserServiceImplTest {
         LocalDateTime dt_update = conversionService.convert(dt_update_in_long, LocalDateTime.class);
 
         UserCreateDTO userCreateDTO = new UserCreateDTO(
-                "new mail", "new fio", UserRole.ADMIN, UserStatus.DEACTIVATED, "new password"
+                "new_mail@gmail.com", "new fio", UserRole.ADMIN, UserStatus.DEACTIVATED, "new password"
         );
 
         userService.updateUser(uuid, dt_update, userCreateDTO);
@@ -126,7 +127,7 @@ public class UserServiceImplTest {
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
             CriteriaQuery<User> query = criteriaBuilder.createQuery(User.class);
             Root<User> root = query.from(User.class);
-            query.select(root).where(criteriaBuilder.equal(root.get("mail"), "new mail"));
+            query.select(root).where(criteriaBuilder.equal(root.get("mail"), "new_mail@gmail.com"));
             entityManager.getTransaction().begin();
             resultList = entityManager.createQuery(query).getResultList();
             entityManager.getTransaction().commit();
@@ -173,9 +174,9 @@ public class UserServiceImplTest {
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void setUserActiveByEmail() {
 
-        String mail = "test";
+        String mail = "test@mail.ru";
         UserCreateDTO userCreateDTO = new UserCreateDTO(
-                mail,"test",UserRole.USER, UserStatus.WAITING_ACTIVATION,"test"
+                mail,"test",UserRole.USER, UserStatus.WAITING_ACTIVATION,"test1"
         );
 
         userService.save(userCreateDTO);
@@ -215,19 +216,19 @@ public class UserServiceImplTest {
     private static void fillUserTableWithDefaultValues(IUserService userService) {
         Stream.of(
                 new UserCreateDTO(
-                        "a@gmail.com", "one", UserRole.USER, UserStatus.ACTIVATED, "123"
+                        "a@gmail.com", "one", UserRole.USER, UserStatus.ACTIVATED, "12345"
                 ),
                 new UserCreateDTO(
-                        "aa@gmail.com", "two", UserRole.USER, UserStatus.ACTIVATED, "123"
+                        "aa@gmail.com", "two", UserRole.USER, UserStatus.ACTIVATED, "12345"
                 ),
                 new UserCreateDTO(
-                        "aaa@gmail.com", "three", UserRole.USER, UserStatus.ACTIVATED, "123"
+                        "aaa@gmail.com", "three", UserRole.USER, UserStatus.ACTIVATED, "12345"
                 ),
                 new UserCreateDTO(
-                        "ab@gmail.com", "four", UserRole.USER, UserStatus.ACTIVATED, "123"
+                        "ab@gmail.com", "four", UserRole.USER, UserStatus.ACTIVATED, "12345"
                 ),
                 new UserCreateDTO(
-                        "abb@gmail.com", "five", UserRole.USER, UserStatus.ACTIVATED, "123"
+                        "abb@gmail.com", "five", UserRole.USER, UserStatus.ACTIVATED, "12345"
                 )
         ).forEach(userService::save);
 
