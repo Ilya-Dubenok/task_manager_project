@@ -36,14 +36,14 @@ public class Audit {
         this.uuid = uuid;
     }
 
-    public Audit(UUID uuid, LocalDateTime dtCreate, User user, String text, Type type, String id) {
+    public Audit(UUID uuid, User user, String text, Type type, String id) {
         this.uuid = uuid;
-        this.dtCreate = dtCreate;
         this.user = user;
         this.text = text;
         this.type = type;
         this.id = id;
     }
+
 
     public UUID getUuid() {
         return uuid;

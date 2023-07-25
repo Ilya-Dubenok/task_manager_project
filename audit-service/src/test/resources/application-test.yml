@@ -5,7 +5,7 @@ spring:
       hibernate:
         format_sql: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/audit_service?ApplicationName=Audit_Service
+    url: jdbc:postgresql://localhost:5432/audit_service_test?ApplicationName=Audit_Service
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver

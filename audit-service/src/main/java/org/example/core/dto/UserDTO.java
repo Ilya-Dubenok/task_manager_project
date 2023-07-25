@@ -1,7 +1,6 @@
 package org.example.core.dto;
 
 import org.example.dao.entities.user.UserRole;
-import org.example.dao.entities.user.UserStatus;
 
 import java.util.UUID;
 
@@ -9,9 +8,6 @@ public class UserDTO {
 
     private UUID uuid;
 
-    private Long dtCreate;
-
-    private Long dtUpdate;
 
     private String mail;
 
@@ -19,19 +15,15 @@ public class UserDTO {
 
     private UserRole role;
 
-    private UserStatus status;
 
     public UserDTO() {
     }
 
-    public UserDTO(UUID uuid, Long dtCreate, Long dtUpdate, String mail, String fio, UserRole role, UserStatus status) {
+    public UserDTO(UUID uuid, Long dtCreate, Long dtUpdate, String mail, String fio, UserRole role) {
         this.uuid = uuid;
-        this.dtCreate = dtCreate;
-        this.dtUpdate = dtUpdate;
         this.mail = mail;
         this.fio = fio;
         this.role = role;
-        this.status = status;
     }
 
     public UUID getUuid() {
@@ -42,21 +34,6 @@ public class UserDTO {
         this.uuid = uuid;
     }
 
-    public Long getDtCreate() {
-        return dtCreate;
-    }
-
-    public void setDtCreate(Long dtCreate) {
-        this.dtCreate = dtCreate;
-    }
-
-    public Long getDtUpdate() {
-        return dtUpdate;
-    }
-
-    public void setDtUpdate(Long dtUpdate) {
-        this.dtUpdate = dtUpdate;
-    }
 
     public String getMail() {
         return mail;
@@ -82,11 +59,4 @@ public class UserDTO {
         this.role = role;
     }
 
-    public UserStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(UserStatus status) {
-        this.status = status;
-    }
 }

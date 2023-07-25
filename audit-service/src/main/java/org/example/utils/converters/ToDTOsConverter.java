@@ -64,16 +64,9 @@ public class ToDTOsConverter<IN, OUT> implements
             UserDTO res = new UserDTO();
             User user = (User) source;
             res.setUuid(user.getUuid());
-            res.setStatus(user.getStatus());
-            res.setRole(user.getRole());
-            res.setFio(user.getFio());
             res.setMail(user.getMail());
-            res.setDtCreate(
-                    ZonedDateTime.of(user.getDtCreate(), ZoneId.systemDefault()).toInstant().toEpochMilli()
-            );
-            res.setDtUpdate(
-                    ZonedDateTime.of(user.getDtUpdate(), ZoneId.systemDefault()).toInstant().toEpochMilli()
-            );
+            res.setFio(user.getFio());
+            res.setRole(user.getRole());
             return res;
         }
 

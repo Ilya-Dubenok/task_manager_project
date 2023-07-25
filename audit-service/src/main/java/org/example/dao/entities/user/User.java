@@ -14,28 +14,13 @@ public class User {
     private UUID uuid;
 
 
-    @Column(name = "user_dt_create")
-    private LocalDateTime dtCreate;
-
-
-    @Column(name = "user_dt_update")
-    private LocalDateTime dtUpdate;
-
-
     private String mail;
-
 
     private String fio;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserStatus status;
-
-    private String password;
 
 
     public User() {
@@ -45,13 +30,12 @@ public class User {
         this.uuid = uuid;
     }
 
-    public User(UUID uuid, String mail, String fio, UserRole role, UserStatus status, String password) {
+    public User(UUID uuid, String mail, String fio, UserRole role) {
         this.uuid = uuid;
         this.mail = mail;
         this.fio = fio;
         this.role = role;
-        this.status = status;
-        this.password = password;
+
     }
 
     public UUID getUuid() {
@@ -62,21 +46,6 @@ public class User {
         this.uuid = uuid;
     }
 
-    public LocalDateTime getDtCreate() {
-        return dtCreate;
-    }
-
-    public void setDtCreate(LocalDateTime dtCreate) {
-        this.dtCreate = dtCreate;
-    }
-
-    public LocalDateTime getDtUpdate() {
-        return dtUpdate;
-    }
-
-    public void setDtUpdate(LocalDateTime dtUpdate) {
-        this.dtUpdate = dtUpdate;
-    }
 
     public String getMail() {
         return mail;
@@ -102,19 +71,5 @@ public class User {
         this.role = role;
     }
 
-    public UserStatus getStatus() {
-        return status;
-    }
 
-    public void setStatus(UserStatus status) {
-        this.status = status;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }

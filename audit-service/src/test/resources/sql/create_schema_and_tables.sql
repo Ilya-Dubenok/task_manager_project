@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS app;
+
 CREATE TABLE IF NOT EXISTS app.audit
 (
 
@@ -13,5 +15,3 @@ CREATE TABLE IF NOT EXISTS app.audit
     CONSTRAINT audit_pkey PRIMARY KEY (uuid)
 
 );
-
-
