@@ -1,5 +1,6 @@
 package org.example.service;
 
+import jakarta.validation.Valid;
 import org.example.core.dto.UserCreateDTO;
 import org.example.core.dto.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
@@ -15,11 +16,13 @@ import org.example.service.api.IEmailService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Validated
 @Service
 public class AuthenticationServiceImpl implements IAuthenticationService {
 
@@ -40,34 +43,13 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     @Override
-    public Integer registerUser(UserRegistrationDTO userRegistrationDTO) {
+    public Integer registerUser(@Valid UserRegistrationDTO userRegistrationDTO) {
 
         String mail = userRegistrationDTO.getMail();
         String fio = userRegistrationDTO.getFio();
         String password = userRegistrationDTO.getPassword();
         StructuredException structuredException = new StructuredException();
 
-        //TODO CHANGE EXCEPTION HANDLING?
-        if (null == mail || mail.isBlank()) {
-            structuredException.put(
-                    "mail", "Почта не должна быть пустой"
-            );
-        }
-        if (null == fio || fio.isBlank()) {
-            structuredException.put(
-                    "fio", "Фио не должно быть пустым"
-            );
-        }
-        if (null == password || password.isBlank()) {
-
-            structuredException.put(
-                    "password", "Пароль не должен быть пустым"
-            );
-        }
-
-        if (structuredException.hasExceptions()) {
-            throw structuredException;
-        }
 
 
         //TODO ADD CONVERTER

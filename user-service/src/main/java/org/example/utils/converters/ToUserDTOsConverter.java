@@ -1,5 +1,6 @@
 package org.example.utils.converters;
 
+import org.example.core.dto.GenerizedDTO;
 import org.example.core.dto.PageOfUserDTO;
 import org.example.core.dto.UserDTO;
 import org.example.dao.entities.user.User;
@@ -22,7 +23,8 @@ public class ToUserDTOsConverter<IN, OUT> implements
     public Set<ConvertiblePair> getConvertibleTypes() {
         return Set.of(
                 new ConvertiblePair(Page.class, PageOfUserDTO.class),
-                new ConvertiblePair(User.class, UserDTO.class)
+                new ConvertiblePair(User.class, UserDTO.class),
+                new ConvertiblePair(User.class, GenerizedDTO.class)
         );
 
     }
@@ -65,6 +67,21 @@ public class ToUserDTOsConverter<IN, OUT> implements
                     ZonedDateTime.of(user.getDtUpdate(), ZoneId.systemDefault()).toInstant().toEpochMilli()
             );
             return res;
+        } else if (
+                sourceType.getType().equals(User.class)
+                        && targetType.getType().equals(GenerizedDTO.class)
+                        && targetType.getResolvableType().getGeneric(0).getType().equals(User.class)
+        ) {
+
+            GenerizedDTO<User> res = new GenerizedDTO<>();
+            res.setNumberOfSth(10);
+            res.setField((User) source);
+            res.setContent(
+                    List.of((User) source, (User) source, (User) source, (User) source)
+            );
+
+            return res;
+
         }
 
 

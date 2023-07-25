@@ -34,5 +34,7 @@ public class AuthenticationServlet {
 
     }
 
+    //TODO SPLIT TO NOTIFICATIONSERVICE
+
 
 }
