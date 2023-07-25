@@ -5,10 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface IAuditRepository extends CrudRepository<Audit,UUID> {
+
+    List<Audit> findAll();
 
     Optional<Audit> findByUuid(UUID uuid);
 

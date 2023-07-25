@@ -35,20 +35,20 @@ public class ToDTOsConverter<IN, OUT> implements
     public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
         if (sourceType.getType().equals(PageImpl.class)
                 && targetType.getType().equals(PageOfTypeDTO.class)
-                && targetType.getResolvableType().getGeneric(0).getType().equals(Audit.class)
+                && targetType.getResolvableType().getGeneric(0).getType().equals(AuditDTO.class)
         ) {
 
-            PageOfTypeDTO<Audit> res = new PageOfTypeDTO<>();
+            PageOfTypeDTO<AuditDTO> res = new PageOfTypeDTO<>();
             Page<Audit> info = (Page<Audit>) source;
             res.setNumber(info.getNumber());
             res.setTotalPages(info.getTotalPages());
             res.setTotalElements(info.getTotalElements());
             res.setFirst(info.isFirst());
             res.setLast(!info.hasNext());
-            List<Audit> content = new ArrayList<>();
+            List<AuditDTO> content = new ArrayList<>();
             for (Audit audit : info.toList()) {
                 content.add(
-                        (Audit) this.convert(audit, TypeDescriptor.valueOf(Audit.class), TypeDescriptor.valueOf(AuditDTO.class))
+                        (AuditDTO) this.convert(audit, TypeDescriptor.valueOf(Audit.class), TypeDescriptor.valueOf(AuditDTO.class))
                 );
             }
             res.setSize(info.getSize());
@@ -85,6 +85,8 @@ public class ToDTOsConverter<IN, OUT> implements
             res.setUser(
                     (UserDTO) this.convert(audit.getUser(),TypeDescriptor.valueOf(User.class), TypeDescriptor.valueOf(UserDTO.class))
             );
+
+            return res;
         }
 
         

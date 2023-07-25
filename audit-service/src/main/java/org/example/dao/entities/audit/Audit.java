@@ -25,6 +25,7 @@ public class Audit {
 
     private String text;
 
+    @Enumerated(EnumType.STRING)
     private Type type;
 
     private String id;
