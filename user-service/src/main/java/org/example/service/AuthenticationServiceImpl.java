@@ -1,8 +1,8 @@
 package org.example.service;
 
 import jakarta.validation.Valid;
-import org.example.core.dto.UserCreateDTO;
-import org.example.core.dto.UserRegistrationDTO;
+import org.example.core.dto.user.UserCreateDTO;
+import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;

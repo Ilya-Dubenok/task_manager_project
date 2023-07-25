@@ -1,7 +1,7 @@
 package org.example.endpoint.web;
 
 
-import org.example.core.dto.UserRegistrationDTO;
+import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.service.api.IAuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

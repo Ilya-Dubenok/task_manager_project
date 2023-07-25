@@ -1,7 +1,7 @@
 package org.example.service;
 
 import jakarta.validation.ConstraintViolationException;
-import org.example.core.dto.UserRegistrationDTO;
+import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.api.IVerificationInfoRepository;

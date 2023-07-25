@@ -1,7 +1,7 @@
 package org.example.utils.converters;
 
-import org.example.core.dto.PageOfUserDTO;
-import org.example.core.dto.UserDTO;
+import org.example.core.dto.user.PageOfUserDTO;
+import org.example.core.dto.user.UserDTO;
 import org.example.dao.entities.user.User;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;

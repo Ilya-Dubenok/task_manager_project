@@ -1,4 +1,4 @@
-package org.example.core.dto;
+package org.example.core.dto.user;
 
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;

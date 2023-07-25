@@ -37,6 +37,9 @@ server:
 app:
   network:
     host: localhost
+    audit_service:
+      host: localhost:81
+      appendix: /audit_service/api/v1/audit
 
 
 
