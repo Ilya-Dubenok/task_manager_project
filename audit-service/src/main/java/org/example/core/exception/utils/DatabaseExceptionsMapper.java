@@ -1,6 +1,7 @@
 package org.example.core.exception.utils;
 
 import org.example.core.exception.StructuredException;
+import org.example.dao.entities.audit.Audit;
 import org.example.dao.entities.user.User;
 import org.hibernate.PropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
@@ -115,7 +116,16 @@ public class DatabaseExceptionsMapper {
     }
 
     private enum PropertyLimit {
-        ;
+        AUDIT_ID_NOT_NULL(
+                Audit.class, "id", "id", "Не задано id для типа записи"),
+        AUDIT_TEXT_NOT_NULL(
+                Audit.class, "text", "text", "Не задан текст для записи"),
+        AUDIT_TYPE_NOT_NULL(
+                Audit.class, "type", "type", "Не задан type для записи");
+
+
+
+
 
         private final Class<?> entity;
 

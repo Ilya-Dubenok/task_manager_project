@@ -46,7 +46,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleConflict(ConstraintViolationException e, WebRequest request) {
 
 
-       StructuredExceptionDTO structuredExceptionDTO = parseConstraintViolationException(e);
+        StructuredExceptionDTO structuredExceptionDTO = parseConstraintViolationException(e);
 
         return new ResponseEntity<>(structuredExceptionDTO, HttpStatus.BAD_REQUEST);
     }
@@ -68,8 +68,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         StructuredException structuredException = new StructuredException();
         if (Objects.equals(propertyName, "uuid") ||
                 Objects.equals(propertyName, "page") ||
-                Objects.equals(propertyName, "size") ||
-                Objects.equals(propertyName, "dt_update")
+                Objects.equals(propertyName, "size")
         ) {
             structuredException.put(
                     propertyName, String.format(MESSAGE_FOR_INVALID_PROPERTY, propertyName)
@@ -122,7 +121,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
         }
 
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,node.getName());
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, node.getName());
 
 
     }
