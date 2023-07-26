@@ -1,8 +1,6 @@
 package org.example.service;
 
 import jakarta.validation.Valid;
-import org.example.core.dto.audit.AuditCreateDTO;
-import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.audit.Type;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.exception.GeneralException;
@@ -17,11 +15,9 @@ import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -39,12 +35,9 @@ public class UserServiceImpl implements IUserService {
     private ISenderInfoService senderInfoService;
 
 
+    //TODO replace when real author is determined
     private User dummyUser = new User(
             UUID.randomUUID(), "mail@mail.ru", "some_not_real_fio", UserRole.ADMIN, UserStatus.ACTIVATED, "****"
-    );
-
-    private AuditUserDTO dummyUser2 = new AuditUserDTO(
-            UUID.randomUUID(), "mail@mail.ru", "dummyFio", UserRole.ADMIN
     );
 
 
@@ -129,6 +122,8 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
+        senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_UPDATED_MESSAGE, Type.USER);
+
 
     }
 
@@ -168,7 +163,19 @@ public class UserServiceImpl implements IUserService {
     public int setUserActiveByEmail(String email) {
         try {
 
-            return userRepository.setUserActiveByEmail(email);
+            int i = userRepository.setUserActiveByEmail(email);
+
+            User user = userRepository.findByMailAndStatusEquals(email, UserStatus.ACTIVATED);
+
+            if (user != null) {
+
+                senderInfoService.sendAudit(
+                        user, ISenderInfoService.AuditMessages.USER_REGISTERED_MESSAGE, Type.USER
+                );
+            }
+
+            return i;
+
         } catch (Exception e) {
             StructuredException structuredException = new StructuredException();
             if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {

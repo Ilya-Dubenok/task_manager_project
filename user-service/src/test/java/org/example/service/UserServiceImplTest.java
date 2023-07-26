@@ -13,10 +13,12 @@ import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
+import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -52,6 +54,9 @@ public class UserServiceImplTest {
     @Autowired
     private ConversionService conversionService;
 
+    @MockBean
+    private ISenderInfoService senderInfoService;
+
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IUserService userService) {
         clearAndInitSchema(dataSource);
@@ -86,6 +91,16 @@ public class UserServiceImplTest {
                         new UserCreateDTO("", "", null, null, "ps")
                 )
         );
+
+    }
+
+
+    @Test
+    public void finByEmailAndStatusIsActive() {
+
+        User byEmailAndStatusIsActivated = repository.findByMailAndStatusEquals("a@gmail.com", UserStatus.ACTIVATED);
+
+        Assertions.assertNotNull(byEmailAndStatusIsActivated);
 
     }
 
@@ -225,10 +240,10 @@ public class UserServiceImplTest {
                         "aaa@gmail.com", "three", UserRole.USER, UserStatus.ACTIVATED, "12345"
                 ),
                 new UserCreateDTO(
-                        "ab@gmail.com", "four", UserRole.USER, UserStatus.ACTIVATED, "12345"
+                        "ab@gmail.com", "four", UserRole.USER, UserStatus.DEACTIVATED, "12345"
                 ),
                 new UserCreateDTO(
-                        "abb@gmail.com", "five", UserRole.USER, UserStatus.ACTIVATED, "12345"
+                        "abb@gmail.com", "five", UserRole.USER, UserStatus.WAITING_ACTIVATION, "12345"
                 )
         ).forEach(userService::save);
 

@@ -1,6 +1,7 @@
 package org.example.dao.api;
 
 import org.example.dao.entities.user.User;
+import org.example.dao.entities.user.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -22,6 +23,11 @@ public interface IUserRepository extends CrudRepository<User, UUID> {
 
 
     Page<User> findAllByOrderByUuid(Pageable pageable);
+
+
+    User findByMailAndStatusEquals(String email, UserStatus status);
+
+
 
     @Query(
             value = "update users set status = 'ACTIVATED' " +

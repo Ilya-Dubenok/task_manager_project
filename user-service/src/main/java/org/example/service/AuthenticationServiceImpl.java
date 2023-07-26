@@ -7,8 +7,6 @@ import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.IVerificationInfoRepository;
-import org.example.dao.entities.user.UserRole;
-import org.example.dao.entities.user.UserStatus;
 import org.example.dao.entities.verification.EmailStatus;
 import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IAuthenticationService;
@@ -46,20 +44,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public Integer registerUser(@Valid UserRegistrationDTO userRegistrationDTO) {
 
         String mail = userRegistrationDTO.getMail();
-        String fio = userRegistrationDTO.getFio();
-        String password = userRegistrationDTO.getPassword();
-        StructuredException structuredException = new StructuredException();
 
 
-
-        //TODO ADD CONVERTER
-        UserCreateDTO dto = new UserCreateDTO();
-
-        dto.setFio(fio);
-        dto.setPassword(password);
-        dto.setMail(mail);
-        dto.setRole(UserRole.USER);
-        dto.setStatus(UserStatus.WAITING_ACTIVATION);
+        UserCreateDTO dto = conversionService.convert(userRegistrationDTO, UserCreateDTO.class);
 
         Integer verificationCode;
 
@@ -73,6 +60,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             verificationInfoRepository.save(info);
 
         } catch (Exception e) {
+            StructuredException structuredException = new StructuredException();
+
             if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
                 throw structuredException;
             }

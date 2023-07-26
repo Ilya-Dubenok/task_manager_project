@@ -13,6 +13,11 @@ public interface ISenderInfoService {
 
         public static String USER_CREATED_MESSAGE = "New user was created";
 
+        public static String USER_UPDATED_MESSAGE = "User was updated";
+
+        public static String USER_REGISTERED_MESSAGE = "User was registered";
+
+
     }
 
 }
