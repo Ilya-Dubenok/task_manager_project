@@ -1,13 +1,8 @@
 package org.example.config;
 
 
-import feign.Feign;
-import feign.codec.Decoder;
 import org.example.config.property.ApplicationProperties;
-import org.example.service.api.IAuditSenderService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
-import org.springframework.cloud.openfeign.support.SpringMvcContract;
 import org.springframework.context.annotation.*;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.mail.javamail.JavaMailSender;

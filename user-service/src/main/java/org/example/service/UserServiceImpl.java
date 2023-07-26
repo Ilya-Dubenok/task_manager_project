@@ -11,7 +11,8 @@ import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
-import org.example.service.api.IAuditSenderService;
+import org.example.dao.entities.user.UserStatus;
+import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,18 +36,22 @@ public class UserServiceImpl implements IUserService {
 
     private ConversionService conversionService;
 
-    private IAuditSenderService auditSenderService;
+    private ISenderInfoService senderInfoService;
 
 
-    private AuditUserDTO dummyUser = new AuditUserDTO(
-            UUID.randomUUID(), "mail@mail.ru","dummyFio", UserRole.ADMIN
+    private User dummyUser = new User(
+            UUID.randomUUID(), "mail@mail.ru", "some_not_real_fio", UserRole.ADMIN, UserStatus.ACTIVATED, "****"
+    );
+
+    private AuditUserDTO dummyUser2 = new AuditUserDTO(
+            UUID.randomUUID(), "mail@mail.ru", "dummyFio", UserRole.ADMIN
     );
 
 
-    public UserServiceImpl(IUserRepository userRepository, ConversionService conversionService, IAuditSenderService auditSenderService) {
+    public UserServiceImpl(IUserRepository userRepository, ConversionService conversionService, ISenderInfoService senderInfoService) {
         this.userRepository = userRepository;
         this.conversionService = conversionService;
-        this.auditSenderService = auditSenderService;
+        this.senderInfoService = senderInfoService;
     }
 
     @Override
@@ -59,7 +65,7 @@ public class UserServiceImpl implements IUserService {
 
 
         try {
-            User save = userRepository.save(toRegister);
+            userRepository.save(toRegister);
         } catch (Exception e) {
 
             StructuredException structuredException = new StructuredException();
@@ -71,20 +77,7 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
-
-        try {
-
-            ResponseEntity<?> someText = auditSenderService.createAudit(new AuditCreateDTO(
-                    this.dummyUser, "user was created", Type.USER
-            ));
-
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-        }
-
-
+        senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_CREATED_MESSAGE, Type.USER);
 
     }
 

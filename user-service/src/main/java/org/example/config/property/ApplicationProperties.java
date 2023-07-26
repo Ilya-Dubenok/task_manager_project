@@ -69,9 +69,19 @@ public class ApplicationProperties {
 
         public static class AuditService{
 
+            private String address;
+
             private String host;
 
             private String appendix;
+
+            public String getAddress() {
+                return address;
+            }
+
+            public void setAddress(String address) {
+                this.address = address;
+            }
 
             public String getHost() {
                 return host;
