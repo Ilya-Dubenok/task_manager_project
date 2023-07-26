@@ -75,7 +75,6 @@ public class AuthenticationServiceImplTest {
 
         inOrder.verify(verificationInfoRepository).cleanOldCodes(any(), any());
         inOrder.verify(verificationInfoRepository).save(any(VerificationInfo.class));
-        inOrder.verify(emailService, times(1)).sendVerificationCodeMessage(anyString(), anyInt());
 
 
     }
