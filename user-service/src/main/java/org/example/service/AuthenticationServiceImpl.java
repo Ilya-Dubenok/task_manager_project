@@ -10,7 +10,7 @@ import org.example.dao.api.IVerificationInfoRepository;
 import org.example.dao.entities.verification.EmailStatus;
 import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IAuthenticationService;
-import org.example.service.api.IEmailService;
+import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
@@ -26,18 +26,29 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     private IUserService userService;
 
-    private IEmailService emailService;
 
     private IVerificationInfoRepository verificationInfoRepository;
 
     private ConversionService conversionService;
 
+    private final ISenderInfoService senderInfoService;
 
-    public AuthenticationServiceImpl(IUserService userService, IEmailService emailService, IVerificationInfoRepository verificationInfoRepository, ConversionService conversionService) {
+    private final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT =
+            "Добрый день! Для завершения регистрации перейдите по ссылке ниже\n" +
+                    "http://%s/user_service/api/v1/users/verification?code=%s&mail=%s";
+
+    private static final String DEFAULT_VERIFICATION_SUBJECT = "Подтверждение регистрации в приложении TaskManager";
+
+
+    public AuthenticationServiceImpl(IUserService userService,
+                                     IVerificationInfoRepository verificationInfoRepository,
+                                     ConversionService conversionService,
+                                     ISenderInfoService senderInfoService
+                                     ) {
         this.userService = userService;
-        this.emailService = emailService;
         this.verificationInfoRepository = verificationInfoRepository;
         this.conversionService = conversionService;
+        this.senderInfoService = senderInfoService;
     }
 
     @Override
@@ -68,16 +79,12 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
+        //TODO REPLACE
+        String message = "SOME DUM MESSAGE";
 
-        // TODO CHANGE EXCEPTION HANDLING
-        try {
+        senderInfoService.sendEmailAssignment(message, mail);
 
-            emailService.sendVerificationCodeMessage(mail, verificationCode);
             return verificationCode;
-
-        } catch (Exception e) {
-            throw new GeneralException(GeneralException.DEFAULT_SEND_VERIFICATION_EMAIL_EXCEPTION, e);
-        }
 
     }
 

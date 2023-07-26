@@ -9,6 +9,10 @@ public interface ISenderInfoService {
     @Async
     void sendAudit(User author, String text, Type type);
 
+    @Async
+    void sendEmailAssignment(String mail, String message);
+
+
     class AuditMessages {
 
         public static String USER_CREATED_MESSAGE = "New user was created";

@@ -51,6 +51,8 @@ public class ApplicationProperties {
 
         private AuditService auditService;
 
+        private NotificationService notificationService;
+
         public String getHost() {
             return host;
         }
@@ -61,6 +63,14 @@ public class ApplicationProperties {
 
         public AuditService getAuditService() {
             return auditService;
+        }
+
+        public NotificationService getNotificationService() {
+            return notificationService;
+        }
+
+        public void setNotificationService(NotificationService notificationService) {
+            this.notificationService = notificationService;
         }
 
         public void setAuditService(AuditService auditService) {
@@ -98,6 +108,40 @@ public class ApplicationProperties {
             public void setAppendix(String appendix) {
                 this.appendix = appendix;
             }
+        }
+
+        public static class NotificationService{
+
+            private String address;
+
+            private String host;
+
+            private String appendix;
+
+            public String getAddress() {
+                return address;
+            }
+
+            public void setAddress(String address) {
+                this.address = address;
+            }
+
+            public String getHost() {
+                return host;
+            }
+
+            public void setHost(String host) {
+                this.host = host;
+            }
+
+            public String getAppendix() {
+                return appendix;
+            }
+
+            public void setAppendix(String appendix) {
+                this.appendix = appendix;
+            }
+
         }
 
     }

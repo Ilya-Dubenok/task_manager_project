@@ -7,7 +7,10 @@ import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.audit.Type;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IAuditServiceFeignClient;
+import org.example.service.api.INotificationServiceFeignClient;
 import org.example.service.api.ISenderInfoService;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -17,9 +20,16 @@ import java.net.URI;
 @Service
 public class SenderInfoServiceImpl implements ISenderInfoService {
 
-    private final URI AUDIT_URL;
+
+    private final String prefix = "http://";
+
+    private final URI AUDIT_SERVICE_URL;
+
+    private final URI NOTIFICATION_SERVICE_URL;
 
     private IAuditServiceFeignClient auditServiceFeignClient;
+
+    private INotificationServiceFeignClient notificationServiceFeignClient;
 
     private ApplicationProperties properties;
 
@@ -29,12 +39,14 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
 
     public SenderInfoServiceImpl(IAuditServiceFeignClient auditServiceFeignClient,
-                                 ApplicationProperties properties,
+                                 INotificationServiceFeignClient notificationServiceFeignClient, ApplicationProperties properties,
                                  ConversionService conversionService) {
         this.auditServiceFeignClient = auditServiceFeignClient;
+        this.notificationServiceFeignClient = notificationServiceFeignClient;
         this.properties = properties;
         this.conversionService = conversionService;
-        AUDIT_URL = getAuditUrl(properties);
+        AUDIT_SERVICE_URL = getAuditUrl(properties);
+        NOTIFICATION_SERVICE_URL = getNotificationUrl(properties);
 
 
     }
@@ -49,7 +61,7 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
         AuditCreateDTO auditCreateDTO = new AuditCreateDTO(auditUserDTO, text, type);
 
         try {
-            auditServiceFeignClient.createAudit(AUDIT_URL, auditCreateDTO);
+            auditServiceFeignClient.createAudit(AUDIT_SERVICE_URL, auditCreateDTO);
         } catch (Exception e) {
             //TODO TRY LOGGING?
             e.printStackTrace();
@@ -58,11 +70,26 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
     }
 
+    @Async
+    @Override
+    public void sendEmailAssignment(String mail, String message) {
+        JSONObject object = new JSONObject();
+        try {
+            object.put("mail", mail);
+            object.put("message", message);
+            //TODO TEST IT!
+            notificationServiceFeignClient.sendEmail(NOTIFICATION_SERVICE_URL, object);
+
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     private URI getAuditUrl(ApplicationProperties properties) {
         final URI AUDIT_URL;
         ApplicationProperties.NetworkProp.AuditService auditService = properties.getNetwork().getAuditService();
-
-        String prefix = "http://";
 
         if (auditService.getAddress() == null || auditService.getAddress().isBlank()) {
 
@@ -78,4 +105,23 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
         return AUDIT_URL;
     }
 
+
+    private URI getNotificationUrl(ApplicationProperties properties) {
+        final URI NOTIFICATION_URL;
+        ApplicationProperties.NetworkProp.NotificationService notificationService = properties.getNetwork().getNotificationService();
+
+        if (notificationService.getAddress() == null || notificationService.getAddress().isBlank()) {
+
+            NOTIFICATION_URL = URI.create(
+
+                    prefix + notificationService.getHost() + notificationService.getAppendix());
+        } else {
+
+            NOTIFICATION_URL = URI.create(
+                    prefix + notificationService.getAddress() + notificationService.getAppendix()
+            );
+        }
+        return NOTIFICATION_URL;
+
+    }
 }

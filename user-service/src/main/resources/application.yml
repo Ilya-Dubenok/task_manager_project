@@ -41,6 +41,10 @@ app:
       address: localhost:81
       host: localhost:81
       appendix: /audit_service/api/v1/audit
+    notification_service:
+      address: localhost:82
+      host: localhost:82
+      appendix: /notification_service/api/v1/email
 
 
 
