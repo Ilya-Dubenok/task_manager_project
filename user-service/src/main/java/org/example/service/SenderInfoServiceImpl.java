@@ -2,6 +2,7 @@ package org.example.service;
 
 
 import org.example.config.property.ApplicationProperties;
+import org.example.core.dto.email.EmailDTO;
 import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.audit.Type;
@@ -9,8 +10,6 @@ import org.example.dao.entities.user.User;
 import org.example.service.api.IAuditServiceFeignClient;
 import org.example.service.api.INotificationServiceFeignClient;
 import org.example.service.api.ISenderInfoService;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -72,17 +71,16 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
     @Async
     @Override
-    public void sendEmailAssignment(String mail, String message) {
-        JSONObject object = new JSONObject();
+    public void sendEmailAssignment(String to, String subject, String message) {
         try {
-            object.put("mail", mail);
-            object.put("message", message);
             //TODO TEST IT!
-            notificationServiceFeignClient.sendEmail(NOTIFICATION_SERVICE_URL, object);
+            notificationServiceFeignClient.sendEmail(NOTIFICATION_SERVICE_URL, new EmailDTO(
+                    to, subject, message
+            ));
 
+        } catch (Exception e) {
 
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
     }

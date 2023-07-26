@@ -1,6 +1,6 @@
 package org.example.service.api;
 
-import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.example.core.dto.email.EmailDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.net.URI;
 
-@FeignClient(value = "notificationservice", url = "${app.network.audit_service.host}${app.network.audit_service.appendix}")
+@FeignClient(value = "notificationservice", url = "http://url.placeholder")
 public interface INotificationServiceFeignClient {
 
     @RequestMapping(method = RequestMethod.POST, produces = "application/json")
-    ResponseEntity<?> sendEmail(URI baseUrl, @RequestBody JSONObject object);
+    ResponseEntity<?> sendEmail(URI baseUrl, @RequestBody EmailDTO object);
 
 }

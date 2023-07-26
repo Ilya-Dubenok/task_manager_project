@@ -82,7 +82,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         //TODO REPLACE
         String message = "SOME DUM MESSAGE";
 
-        senderInfoService.sendEmailAssignment(message, mail);
+        String subject = "DUM SUBJECT";
+
+        senderInfoService.sendEmailAssignment(mail, subject,  message);
 
             return verificationCode;
 

@@ -4,7 +4,6 @@ import org.example.config.property.ApplicationProperties;
 import org.example.dao.api.IVerificationInfoRepository;
 import org.example.dao.entities.verification.EmailStatus;
 import org.example.dao.entities.verification.VerificationInfo;
-import org.example.service.api.IEmailService;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,7 +18,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
-public class EmailServiceImpl implements IEmailService {
+public class EmailServiceImpl {
 
     private JavaMailSender javaMailSender;
 
@@ -51,7 +50,6 @@ public class EmailServiceImpl implements IEmailService {
         this.repository = repository;
     }
 
-    @Override
     public void sendMessage(String to, String text, String subject) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(emailFrom);
@@ -62,7 +60,6 @@ public class EmailServiceImpl implements IEmailService {
 
     }
 
-    @Override
     @Async
     public void sendVerificationCodeMessage(String mail, Integer verificationCode) {
 

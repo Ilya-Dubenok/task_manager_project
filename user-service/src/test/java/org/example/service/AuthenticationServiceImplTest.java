@@ -8,7 +8,6 @@ import org.example.dao.api.IVerificationInfoRepository;
 import org.example.dao.entities.verification.EmailStatus;
 import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IAuthenticationService;
-import org.example.service.api.IEmailService;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.junit.jupiter.api.*;
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -42,10 +42,10 @@ public class AuthenticationServiceImplTest {
     private IUserService userService;
 
     @SpyBean
-    IUserRepository userRepository;
+    private IUserRepository userRepository;
 
     @SpyBean
-    IVerificationInfoRepository verificationInfoRepository;
+    private IVerificationInfoRepository verificationInfoRepository;
 
     @Autowired
     private DataSource dataSource;
@@ -54,13 +54,13 @@ public class AuthenticationServiceImplTest {
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @MockBean
-    IEmailService emailService;
+    EmailServiceImpl emailService;
 
-    @MockBean
+    @Autowired
     private ISenderInfoService senderInfoService;
 
     @Autowired
-    IAuthenticationService authenticationService;
+    private IAuthenticationService authenticationService;
 
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
@@ -76,6 +76,16 @@ public class AuthenticationServiceImplTest {
         inOrder.verify(verificationInfoRepository).cleanOldCodes(any(), any());
         inOrder.verify(verificationInfoRepository).save(any(VerificationInfo.class));
 
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void sendingEmail() {
+
+        authenticationService.registerUser(
+                new UserRegistrationDTO("dubenokilya@gmail.com", "fio", "12334")
+        );
 
     }
 

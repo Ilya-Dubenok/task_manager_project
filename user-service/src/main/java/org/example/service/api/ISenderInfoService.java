@@ -10,7 +10,7 @@ public interface ISenderInfoService {
     void sendAudit(User author, String text, Type type);
 
     @Async
-    void sendEmailAssignment(String mail, String message);
+    void sendEmailAssignment(String to, String subject, String message);
 
 
     class AuditMessages {
