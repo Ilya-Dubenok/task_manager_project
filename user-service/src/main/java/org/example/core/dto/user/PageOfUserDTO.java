@@ -1,4 +1,4 @@
-package org.example.core.dto;
+package org.example.core.dto.user;
 
 import java.util.List;
 

@@ -1,8 +1,13 @@
 package org.example.utils.converters;
 
-import org.example.core.dto.PageOfUserDTO;
-import org.example.core.dto.UserDTO;
+import org.example.core.dto.audit.AuditUserDTO;
+import org.example.core.dto.user.PageOfUserDTO;
+import org.example.core.dto.user.UserCreateDTO;
+import org.example.core.dto.user.UserDTO;
+import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.dao.entities.user.User;
+import org.example.dao.entities.user.UserRole;
+import org.example.dao.entities.user.UserStatus;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.domain.Page;
@@ -22,14 +27,21 @@ public class ToUserDTOsConverter<IN, OUT> implements
     public Set<ConvertiblePair> getConvertibleTypes() {
         return Set.of(
                 new ConvertiblePair(Page.class, PageOfUserDTO.class),
-                new ConvertiblePair(User.class, UserDTO.class)
+                new ConvertiblePair(User.class, UserDTO.class),
+                new ConvertiblePair(User.class, AuditUserDTO.class),
+                new ConvertiblePair(UserRegistrationDTO.class, UserCreateDTO.class)
         );
 
     }
 
     @Override
     public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-        if (sourceType.getType().equals(PageImpl.class)) {
+        Class<?> extractedSourceType = sourceType.getType();
+
+        Class<?> extractedTargetType = targetType.getType();
+
+
+        if (extractedSourceType.equals(PageImpl.class)) {
             PageOfUserDTO res = new PageOfUserDTO();
             Page<User> info = (Page<User>) source;
             res.setNumber(info.getNumber());
@@ -50,21 +62,60 @@ public class ToUserDTOsConverter<IN, OUT> implements
             return res;
 
 
-        } else if (sourceType.getType().equals(User.class) && targetType.getType().equals(UserDTO.class)) {
-            UserDTO res = new UserDTO();
+        }
+
+        if (extractedSourceType.equals(User.class)) {
+
             User user = (User) source;
-            res.setUuid(user.getUuid());
-            res.setStatus(user.getStatus());
-            res.setRole(user.getRole());
-            res.setFio(user.getFio());
-            res.setMail(user.getMail());
-            res.setDtCreate(
-                    ZonedDateTime.of(user.getDtCreate(), ZoneId.systemDefault()).toInstant().toEpochMilli()
-            );
-            res.setDtUpdate(
-                    ZonedDateTime.of(user.getDtUpdate(), ZoneId.systemDefault()).toInstant().toEpochMilli()
-            );
+
+
+            if (extractedTargetType.equals(UserDTO.class)) {
+
+
+                UserDTO res = new UserDTO();
+                res.setUuid(user.getUuid());
+                res.setStatus(user.getStatus());
+                res.setRole(user.getRole());
+                res.setFio(user.getFio());
+                res.setMail(user.getMail());
+                res.setDtCreate(
+                        ZonedDateTime.of(user.getDtCreate(), ZoneId.systemDefault()).toInstant().toEpochMilli()
+                );
+                res.setDtUpdate(
+                        ZonedDateTime.of(user.getDtUpdate(), ZoneId.systemDefault()).toInstant().toEpochMilli()
+                );
+                return res;
+            }
+
+            if (extractedTargetType.equals(AuditUserDTO.class)){
+
+                AuditUserDTO res = new AuditUserDTO();
+                res.setUuid(user.getUuid());
+                res.setFio(user.getFio());
+                res.setMail(user.getMail());
+                res.setRole(user.getRole());
+
+                return res;
+
+
+            }
+
+        }
+
+        if (extractedSourceType.equals(UserRegistrationDTO.class)) {
+
+            UserRegistrationDTO userRegistrationDTO = (UserRegistrationDTO) source;
+
+            UserCreateDTO res = new UserCreateDTO();
+
+            res.setFio(userRegistrationDTO.getFio());
+            res.setPassword(userRegistrationDTO.getPassword());
+            res.setMail(userRegistrationDTO.getMail());
+            res.setRole(UserRole.USER);
+            res.setStatus(UserStatus.WAITING_ACTIVATION);
+
             return res;
+
         }
 
 

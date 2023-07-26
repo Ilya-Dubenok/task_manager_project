@@ -1,7 +1,8 @@
 package org.example.service;
 
 import jakarta.validation.Valid;
-import org.example.core.dto.UserCreateDTO;
+import org.example.core.dto.audit.Type;
+import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;
@@ -9,9 +10,9 @@ import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
+import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -31,10 +32,19 @@ public class UserServiceImpl implements IUserService {
 
     private ConversionService conversionService;
 
+    private ISenderInfoService senderInfoService;
 
-    public UserServiceImpl(IUserRepository userRepository, ConversionService conversionService) {
+
+    //TODO replace when real author is determined
+    private User dummyUser = new User(
+            UUID.randomUUID(), "mail@mail.ru", "some_not_real_fio", UserRole.ADMIN, UserStatus.ACTIVATED, "****"
+    );
+
+
+    public UserServiceImpl(IUserRepository userRepository, ConversionService conversionService, ISenderInfoService senderInfoService) {
         this.userRepository = userRepository;
         this.conversionService = conversionService;
+        this.senderInfoService = senderInfoService;
     }
 
     @Override
@@ -45,6 +55,7 @@ public class UserServiceImpl implements IUserService {
                 userCreateDTO, User.class
         );
         toRegister.setUuid(UUID.randomUUID());
+
 
         try {
             userRepository.save(toRegister);
@@ -59,6 +70,7 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
+        senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_CREATED_MESSAGE, Type.USER);
 
     }
 
@@ -110,6 +122,8 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
+        senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_UPDATED_MESSAGE, Type.USER);
+
 
     }
 
@@ -149,7 +163,19 @@ public class UserServiceImpl implements IUserService {
     public int setUserActiveByEmail(String email) {
         try {
 
-            return userRepository.setUserActiveByEmail(email);
+            int i = userRepository.setUserActiveByEmail(email);
+
+            User user = userRepository.findByMailAndStatusEquals(email, UserStatus.ACTIVATED);
+
+            if (user != null) {
+
+                senderInfoService.sendAudit(
+                        user, ISenderInfoService.AuditMessages.USER_REGISTERED_MESSAGE, Type.USER
+                );
+            }
+
+            return i;
+
         } catch (Exception e) {
             StructuredException structuredException = new StructuredException();
             if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {

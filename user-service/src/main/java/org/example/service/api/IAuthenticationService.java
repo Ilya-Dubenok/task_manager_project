@@ -1,7 +1,7 @@
 package org.example.service.api;
 
 import jakarta.validation.Valid;
-import org.example.core.dto.UserRegistrationDTO;
+import org.example.core.dto.user.UserRegistrationDTO;
 
 public interface IAuthenticationService {
 

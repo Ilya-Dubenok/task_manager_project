@@ -1,11 +1,10 @@
 package org.example.endpoint.web;
 
-import org.example.core.dto.PageOfUserDTO;
-import org.example.core.dto.UserCreateDTO;
-import org.example.core.dto.UserDTO;
+import org.example.core.dto.user.PageOfUserDTO;
+import org.example.core.dto.user.UserCreateDTO;
+import org.example.core.dto.user.UserDTO;
 import org.example.dao.entities.user.User;
 import org.example.service.UserServiceImpl;
-import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;

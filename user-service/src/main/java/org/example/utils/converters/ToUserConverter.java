@@ -1,6 +1,6 @@
 package org.example.utils.converters;
 
-import org.example.core.dto.UserCreateDTO;
+import org.example.core.dto.user.UserCreateDTO;
 import org.example.dao.entities.user.User;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;

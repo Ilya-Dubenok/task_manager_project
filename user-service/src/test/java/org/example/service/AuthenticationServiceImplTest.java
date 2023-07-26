@@ -1,7 +1,7 @@
 package org.example.service;
 
 import jakarta.validation.ConstraintViolationException;
-import org.example.core.dto.UserRegistrationDTO;
+import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.api.IVerificationInfoRepository;
@@ -9,6 +9,7 @@ import org.example.dao.entities.verification.EmailStatus;
 import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IAuthenticationService;
 import org.example.service.api.IEmailService;
+import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.junit.jupiter.api.*;
 import org.mockito.InOrder;
@@ -53,7 +54,10 @@ public class AuthenticationServiceImplTest {
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @MockBean
-    IEmailService spyEmailService;
+    IEmailService emailService;
+
+    @MockBean
+    private ISenderInfoService senderInfoService;
 
     @Autowired
     IAuthenticationService authenticationService;
@@ -67,11 +71,11 @@ public class AuthenticationServiceImplTest {
                 new UserRegistrationDTO("fake2@mail.com", "fio", "12334")
         ));
 
-        InOrder inOrder = inOrder(verificationInfoRepository, spyEmailService);
+        InOrder inOrder = inOrder(verificationInfoRepository, emailService);
 
         inOrder.verify(verificationInfoRepository).cleanOldCodes(any(), any());
         inOrder.verify(verificationInfoRepository).save(any(VerificationInfo.class));
-        inOrder.verify(spyEmailService, times(1)).sendVerificationCodeMessage(anyString(), anyInt());
+        inOrder.verify(emailService, times(1)).sendVerificationCodeMessage(anyString(), anyInt());
 
 
     }
@@ -106,6 +110,12 @@ public class AuthenticationServiceImplTest {
         Assertions.assertEquals(3, exception3.getConstraintViolations().size());
         Assertions.assertEquals(2, exception2.getConstraintViolations().size());
         Assertions.assertEquals(1, exception1.getConstraintViolations().size());
+
+        userRegistrationDTO.setPassword("123456");
+
+        Assertions.assertDoesNotThrow(() -> {
+            authenticationService.registerUser(userRegistrationDTO);
+        });
 
 
     }

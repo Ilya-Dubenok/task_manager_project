@@ -49,6 +49,8 @@ public class ApplicationProperties {
 
         private String host;
 
+        private AuditService auditService;
+
         public String getHost() {
             return host;
         }
@@ -56,6 +58,48 @@ public class ApplicationProperties {
         public void setHost(String host) {
             this.host = host;
         }
+
+        public AuditService getAuditService() {
+            return auditService;
+        }
+
+        public void setAuditService(AuditService auditService) {
+            this.auditService = auditService;
+        }
+
+        public static class AuditService{
+
+            private String address;
+
+            private String host;
+
+            private String appendix;
+
+            public String getAddress() {
+                return address;
+            }
+
+            public void setAddress(String address) {
+                this.address = address;
+            }
+
+            public String getHost() {
+                return host;
+            }
+
+            public void setHost(String host) {
+                this.host = host;
+            }
+
+            public String getAppendix() {
+                return appendix;
+            }
+
+            public void setAppendix(String appendix) {
+                this.appendix = appendix;
+            }
+        }
+
     }
 
 }
