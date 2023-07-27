@@ -1,5 +1,5 @@
 FROM eclipse-temurin:19-jre-focal
-MAINTAINER ITAcademy
+
 
 ADD ./target/user_service.jar /app/
 

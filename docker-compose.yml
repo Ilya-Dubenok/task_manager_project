@@ -55,6 +55,13 @@ services:
       spring.datasource.username: root
       spring.datasource.password: root
 
+  notification-service:
+    build: notification-service
+    image: taskmanager_notification-service:1.0.0
+    networks:
+      - taskmanager_ntwrk
+
+
   proxy:
     build: proxy
     image: taskmanager_proxy:1.0.0
