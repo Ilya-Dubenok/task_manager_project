@@ -29,10 +29,20 @@ services:
       - taskmanager_ntwrk
 
   user-service:
+    depends_on:
+    - db
     build: user-service
     image: taskmanager_user-service:1.0.0
     networks:
       - taskmanager_ntwrk
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/user_service?ApplicationName=User_Service
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      app.network.user_service.address: user_service
+      app.network.audit_service.address: audit_service
+      app.network.notification_service.address: notification_service
+
 
   proxy:
     build: proxy

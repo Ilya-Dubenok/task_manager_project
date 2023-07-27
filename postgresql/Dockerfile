@@ -1,2 +1,3 @@
 FROM postgres:15.3-alpine3.18
-MAINTAINER ITAcademy
+COPY ./user-service/ddl/ /docker-entrypoint-initdb.d/
+COPY ./audit-service/ddl/ /docker-entrypoint-initdb.d/
