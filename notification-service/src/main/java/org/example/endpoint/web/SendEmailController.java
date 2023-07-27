@@ -23,7 +23,13 @@ public class SendEmailController {
     @PostMapping
     public ResponseEntity<?> postUsualEmail(@RequestBody SimpleEmailTemplateDTO simpleEmailTemplateDTO) {
 
-        this.emailService.sendMessage(simpleEmailTemplateDTO);
+        if (null == simpleEmailTemplateDTO.getReplyTo()) {
+            this.emailService.sendMessage(simpleEmailTemplateDTO);
+
+        } else {
+
+            this.emailService.sendEmailWithFeedbackMessage(simpleEmailTemplateDTO);
+        }
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

@@ -7,7 +7,7 @@ spring:
 server:
   port: 82
   servlet:
-    context-path: /nitification_service
+    context-path: /notification_service
     encoding:
       charset: UTF-8
       force: true
