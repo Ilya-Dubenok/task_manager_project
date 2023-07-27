@@ -29,10 +29,38 @@ services:
       - taskmanager_ntwrk
 
   user-service:
+    depends_on:
+    - db
     build: user-service
     image: taskmanager_user-service:1.0.0
     networks:
       - taskmanager_ntwrk
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/user_service?ApplicationName=User_Service
+      spring.datasource.username: root
+      spring.datasource.password: root
+      app.network.user_service.address: user-service:8080
+      app.network.audit_service.address: audit-service:8080
+      app.network.notification_service.address: notification-service:8080
+
+  audit-service:
+    depends_on:
+      - db
+    build: audit-service
+    image: taskmanager_audit-service:1.0.0
+    networks:
+      - taskmanager_ntwrk
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/audit_service?ApplicationName=Audit_Service
+      spring.datasource.username: root
+      spring.datasource.password: root
+
+  notification-service:
+    build: notification-service
+    image: taskmanager_notification-service:1.0.0
+    networks:
+      - taskmanager_ntwrk
+
 
   proxy:
     build: proxy
