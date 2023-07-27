@@ -75,14 +75,28 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
         try {
             //TODO TEST IT!
             notificationServiceFeignClient.sendEmail(NOTIFICATION_SERVICE_URL, new EmailDTO(
-                    to, subject, message
-            ));
+                    to, subject, message,
+                    null));
 
         } catch (Exception e) {
 
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void sendEmailAssignmentWithReply(String to, String subject, String message, URI replyTo) {
+        try {
+            //TODO TEST IT!
+            notificationServiceFeignClient.sendEmail(NOTIFICATION_SERVICE_URL, new EmailDTO(
+                    to, subject, message,
+                    replyTo));
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
     }
 
     private URI getAuditUrl(ApplicationProperties properties) {

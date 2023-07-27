@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/users")
 public class AuthenticationServlet {
@@ -30,6 +32,17 @@ public class AuthenticationServlet {
     public ResponseEntity<?> verifyUserWithCode(@RequestParam("code") Integer code, @RequestParam("mail") String mail) {
 
         service.verifyUserWithCode(code, mail);
+        return new ResponseEntity<>(HttpStatus.OK);
+
+    }
+
+    @PostMapping("/notification")
+    public ResponseEntity<?> setEmailIsDeliveredOnNotToUser(@RequestBody Map<String, Object> body) {
+        if (body.get("mail") != null && body.get("status") != null) {
+            String mail = (String) body.get("mail");
+            Boolean status = (Boolean) body.get("status");
+
+        }
         return new ResponseEntity<>(HttpStatus.OK);
 
     }

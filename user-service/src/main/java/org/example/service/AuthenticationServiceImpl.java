@@ -1,6 +1,7 @@
 package org.example.service;
 
 import jakarta.validation.Valid;
+import org.example.config.property.ApplicationProperties;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
@@ -16,6 +17,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -24,14 +26,18 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 public class AuthenticationServiceImpl implements IAuthenticationService {
 
-    private IUserService userService;
+    private final IUserService userService;
 
 
-    private IVerificationInfoRepository verificationInfoRepository;
+    private final IVerificationInfoRepository verificationInfoRepository;
 
-    private ConversionService conversionService;
+    private final ConversionService conversionService;
 
     private final ISenderInfoService senderInfoService;
+
+    private final ApplicationProperties properties;
+
+    private final URI DEFAULT_REPLY_TO_URL;
 
     private final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT =
             "Добрый день! Для завершения регистрации перейдите по ссылке ниже\n" +
@@ -43,12 +49,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public AuthenticationServiceImpl(IUserService userService,
                                      IVerificationInfoRepository verificationInfoRepository,
                                      ConversionService conversionService,
-                                     ISenderInfoService senderInfoService
-                                     ) {
+                                     ISenderInfoService senderInfoService,
+                                     ApplicationProperties properties) {
         this.userService = userService;
         this.verificationInfoRepository = verificationInfoRepository;
         this.conversionService = conversionService;
         this.senderInfoService = senderInfoService;
+        this.properties = properties;
+        this.DEFAULT_REPLY_TO_URL = URI.create("http://localhost/user_service/api/v1/users/notification");
+
     }
 
     @Override
@@ -84,7 +93,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         String subject = "DUM SUBJECT";
 
-        senderInfoService.sendEmailAssignment(mail, subject,  message);
+        senderInfoService.sendEmailAssignmentWithReply(mail, subject,  message, DEFAULT_REPLY_TO_URL);
 
             return verificationCode;
 

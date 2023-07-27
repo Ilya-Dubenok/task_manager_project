@@ -1,5 +1,7 @@
 package org.example.core.dto.email;
 
+import java.net.URI;
+
 public class EmailDTO {
 
     private String to;
@@ -8,13 +10,16 @@ public class EmailDTO {
 
     private String text;
 
+    private URI replyTo;
+
     public EmailDTO() {
     }
 
-    public EmailDTO(String to, String subject, String text) {
+    public EmailDTO(String to, String subject, String text, URI replyTo) {
         this.to = to;
         this.subject = subject;
         this.text = text;
+        this.replyTo = replyTo;
     }
 
     public String getTo() {
@@ -39,5 +44,13 @@ public class EmailDTO {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public URI getReplyTo() {
+        return replyTo;
+    }
+
+    public void setReplyTo(URI replyTo) {
+        this.replyTo = replyTo;
     }
 }
