@@ -11,15 +11,6 @@ server:
     encoding:
       charset: UTF-8
       force: true
-app:
-  network:
-    user_service:
-      address: localhost
-      host: localhost
-      appendix: /user_service/api/v1/users
-    audit_service:
-      address: localhost:81
-      host: localhost:81
-      appendix: /audit_service/api/v1/audit
+
 
 

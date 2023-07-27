@@ -5,7 +5,6 @@ public class ApplicationProperties {
 
     private MailProp mail;
 
-    private NetworkProp network;
 
     public MailProp getMail() {
         return mail;
@@ -15,13 +14,6 @@ public class ApplicationProperties {
         this.mail = mail;
     }
 
-    public NetworkProp getNetwork() {
-        return network;
-    }
-
-    public void setNetwork(NetworkProp network) {
-        this.network = network;
-    }
 
     public static class MailProp {
         private String email;
@@ -45,99 +37,6 @@ public class ApplicationProperties {
         }
     }
 
-    public static class NetworkProp {
 
-
-        private AuditService auditService;
-
-        private UsersService userService;
-
-
-
-        public AuditService getAuditService() {
-            return auditService;
-        }
-
-        public void setAuditService(AuditService auditService) {
-            this.auditService = auditService;
-        }
-
-        public UsersService getUserService() {
-            return userService;
-        }
-
-        public void setUserService(UsersService userService) {
-            this.userService = userService;
-        }
-
-        public static class AuditService{
-
-            private String address;
-
-            private String host;
-
-            private String appendix;
-
-            public String getAddress() {
-                return address;
-            }
-
-            public void setAddress(String address) {
-                this.address = address;
-            }
-
-            public String getHost() {
-                return host;
-            }
-
-            public void setHost(String host) {
-                this.host = host;
-            }
-
-            public String getAppendix() {
-                return appendix;
-            }
-
-            public void setAppendix(String appendix) {
-                this.appendix = appendix;
-            }
-        }
-
-        public static class UsersService{
-
-            private String address;
-
-            private String host;
-
-            private String appendix;
-
-            public String getAddress() {
-                return address;
-            }
-
-            public void setAddress(String address) {
-                this.address = address;
-            }
-
-            public String getHost() {
-                return host;
-            }
-
-            public void setHost(String host) {
-                this.host = host;
-            }
-
-            public String getAppendix() {
-                return appendix;
-            }
-
-            public void setAppendix(String appendix) {
-                this.appendix = appendix;
-            }
-
-
-        }
-
-    }
 
 }
