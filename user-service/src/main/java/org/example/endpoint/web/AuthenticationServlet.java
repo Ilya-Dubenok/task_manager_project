@@ -38,16 +38,15 @@ public class AuthenticationServlet {
 
     @PostMapping("/notification")
     public ResponseEntity<?> setEmailIsDeliveredOnNotToUser(@RequestBody Map<String, Object> body) {
+
         if (body.get("mail") != null && body.get("status") != null) {
             String mail = (String) body.get("mail");
             Boolean status = (Boolean) body.get("status");
+            service.setEmailDeliveryStatus(mail, status);
 
         }
         return new ResponseEntity<>(HttpStatus.OK);
 
     }
-
-    //TODO SPLIT TO NOTIFICATIONSERVICE
-
 
 }

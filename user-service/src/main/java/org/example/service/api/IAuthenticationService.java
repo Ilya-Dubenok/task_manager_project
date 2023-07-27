@@ -9,4 +9,6 @@ public interface IAuthenticationService {
 
     void verifyUserWithCode(Integer code, String mail);
 
+    void setEmailDeliveryStatus(String mail, Boolean status);
+
 }

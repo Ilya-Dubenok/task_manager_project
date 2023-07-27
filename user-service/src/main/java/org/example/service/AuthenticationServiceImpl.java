@@ -39,9 +39,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     private final URI DEFAULT_REPLY_TO_URL;
 
+
+    //TODO replace with props
     private final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT =
             "Добрый день! Для завершения регистрации перейдите по ссылке ниже\n" +
-                    "http://%s/user_service/api/v1/users/verification?code=%s&mail=%s";
+                    "http://localhost/user_service/api/v1/users/verification?code=%s&mail=%s";
 
     private static final String DEFAULT_VERIFICATION_SUBJECT = "Подтверждение регистрации в приложении TaskManager";
 
@@ -138,6 +140,20 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         }
 
 
+    }
+
+    @Override
+    public void setEmailDeliveryStatus(String mail, Boolean status) {
+        if (status.equals(true)) {
+            verificationInfoRepository.setEmailStatus(
+                    EmailStatus.SUCCESSFULLY_SENT.name(), mail
+            );
+        } else {
+            verificationInfoRepository.setEmailStatus(
+                    EmailStatus.FAILURE_ON_SENT.name(), mail
+            );
+
+        }
     }
 
     private static VerificationInfo formVerificationInfo(String mail, Integer verificationCode) {
