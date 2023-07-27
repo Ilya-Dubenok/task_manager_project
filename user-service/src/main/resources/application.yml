@@ -12,8 +12,6 @@ spring:
       schema: app
   jackson:
     property-naming-strategy: SNAKE_CASE
-  config:
-    import: confidential.yml
 
 
 logging:

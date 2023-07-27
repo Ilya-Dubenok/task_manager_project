@@ -14,9 +14,7 @@ import org.junit.jupiter.api.*;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -53,9 +51,6 @@ public class AuthenticationServiceImplTest {
     @Autowired
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
-    @MockBean
-    EmailServiceImpl emailService;
-
     @Autowired
     private ISenderInfoService senderInfoService;
 
@@ -71,7 +66,7 @@ public class AuthenticationServiceImplTest {
                 new UserRegistrationDTO("fake2@mail.com", "fio", "12334")
         ));
 
-        InOrder inOrder = inOrder(verificationInfoRepository, emailService);
+        InOrder inOrder = inOrder(verificationInfoRepository);
 
         inOrder.verify(verificationInfoRepository).cleanOldCodes(any(), any());
         inOrder.verify(verificationInfoRepository).save(any(VerificationInfo.class));
@@ -79,15 +74,6 @@ public class AuthenticationServiceImplTest {
 
     }
 
-    @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
-    public void sendingEmail() {
-
-        authenticationService.registerUser(
-                new UserRegistrationDTO("dubenokilya@gmail.com", "fio", "12334")
-        );
-
-    }
 
 
     @Test

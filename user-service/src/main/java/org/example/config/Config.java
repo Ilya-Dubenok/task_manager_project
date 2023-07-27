@@ -22,24 +22,6 @@ public class Config implements WebMvcConfigurer {
     }
 
     @Bean
-    public JavaMailSender getJavaMailSender(ApplicationProperties property) {
-        ApplicationProperties.MailProp mailProp = property.getMail();
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.mail.ru");
-        mailSender.setPort(587);
-        mailSender.setUsername(mailProp.getEmail());
-        mailSender.setPassword(mailProp.getPassword());
-
-        Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
-        props.put("mail.sender", mailProp.getEmail());
-        return mailSender;
-    }
-
-    @Bean
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setThreadNamePrefix("Async-");
