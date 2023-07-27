@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS app;
+
 CREATE TABLE IF NOT EXISTS app.users
 (
     uuid uuid NOT NULL,
