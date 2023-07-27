@@ -28,7 +28,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     private final IUserService userService;
 
-
     private final IVerificationInfoRepository verificationInfoRepository;
 
     private final ConversionService conversionService;
@@ -39,11 +38,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     private final URI DEFAULT_REPLY_TO_URL;
 
+    private static final String prefix = "http://";
 
-    //TODO replace with props
     private final String DEFAULT_VERIFICATION_CODE_TEXT_FORMAT =
             "Добрый день! Для завершения регистрации перейдите по ссылке ниже\n" +
-                    "http://localhost/user_service/api/v1/users/verification?code=%s&mail=%s";
+                    "http://%s/verification?code=%s&mail=%s";
 
     private static final String DEFAULT_VERIFICATION_SUBJECT = "Подтверждение регистрации в приложении TaskManager";
 
@@ -58,7 +57,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         this.conversionService = conversionService;
         this.senderInfoService = senderInfoService;
         this.properties = properties;
-        this.DEFAULT_REPLY_TO_URL = URI.create("http://localhost/user_service/api/v1/users/notification");
+        this.DEFAULT_REPLY_TO_URL = getDefaultReplyToUrl(properties);
 
     }
 
@@ -90,14 +89,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
-        //TODO REPLACE
-        String message = "SOME DUM MESSAGE";
+        String message = formMessageForVerification(verificationCode, mail);
 
-        String subject = "DUM SUBJECT";
+        senderInfoService.sendEmailAssignmentWithReply(mail,
+                DEFAULT_VERIFICATION_SUBJECT,
+                message,
+                DEFAULT_REPLY_TO_URL);
 
-        senderInfoService.sendEmailAssignmentWithReply(mail, subject,  message, DEFAULT_REPLY_TO_URL);
-
-            return verificationCode;
+        return verificationCode;
 
     }
 
@@ -156,6 +155,19 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         }
     }
 
+    private String formMessageForVerification(Integer verificationCode, String mail) {
+
+        ApplicationProperties.NetworkProp.UserService serviceProp = properties.getNetwork().getUserService();
+
+        String host = serviceProp.getHost();
+        String appendix = serviceProp.getAppendix();
+
+        return String.format(
+                DEFAULT_VERIFICATION_CODE_TEXT_FORMAT, host.concat(appendix), verificationCode, mail);
+
+
+    }
+
     private static VerificationInfo formVerificationInfo(String mail, Integer verificationCode) {
         VerificationInfo info = new VerificationInfo();
         info.setUuid(UUID.randomUUID());
@@ -166,6 +178,27 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         info.setCountOfAttempts(1);
 
         return info;
+    }
+
+    private static URI getDefaultReplyToUrl(ApplicationProperties properties) {
+        final URI USER_SERVICE_URL;
+
+        ApplicationProperties.NetworkProp.UserService userServiceProp = properties.getNetwork().getUserService();
+
+        if (userServiceProp.getAddress() == null || userServiceProp.getAddress().isBlank()) {
+
+            USER_SERVICE_URL = URI.create(
+
+                    prefix + userServiceProp.getHost() + userServiceProp.getAppendix() + "/notification"
+            );
+        } else {
+
+            USER_SERVICE_URL = URI.create(
+                    prefix + userServiceProp.getAddress() + userServiceProp.getAppendix() + "/notification"
+            );
+        }
+        return USER_SERVICE_URL;
+
     }
 
 

@@ -36,7 +36,10 @@ server:
       force: true
 app:
   network:
-    host: localhost
+    user_service:
+      address: localhost
+      host: localhost
+      appendix: /user_service/api/v1/users
     audit_service:
       address: localhost:81
       host: localhost:81
