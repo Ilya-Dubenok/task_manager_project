@@ -8,8 +8,9 @@ import java.net.URI;
 
 public interface ISenderInfoService {
 
+
     @Async
-    void sendAudit(User author, String text, Type type);
+    void sendAudit(User author, String text, Type type, String id);
 
     @Async
     void sendEmailAssignment(String to, String subject, String message);

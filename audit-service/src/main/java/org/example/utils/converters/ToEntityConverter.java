@@ -2,8 +2,6 @@ package org.example.utils.converters;
 
 import org.example.core.dto.AuditCreateDTO;
 import org.example.dao.entities.audit.Audit;
-import org.example.dao.entities.audit.Type;
-import org.example.dao.entities.user.User;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.stereotype.Component;
@@ -30,9 +28,8 @@ public class ToEntityConverter implements
 
             Audit res = new Audit();
             res.setUuid(UUID.randomUUID());
-            Type type = auditCreateDTO.getType();
-            res.setType(type);
-            res.setId(type.getId());
+            res.setType(auditCreateDTO.getType());
+            res.setId(auditCreateDTO.getId());
             res.setUser(auditCreateDTO.getUser());
             res.setText(auditCreateDTO.getText());
 

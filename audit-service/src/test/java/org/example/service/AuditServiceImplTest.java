@@ -67,7 +67,7 @@ public class AuditServiceImplTest {
         );
 
         Assertions.assertEquals(
-                2, exception.getConstraintViolations().size()
+                3, exception.getConstraintViolations().size()
         );
     }
 
@@ -85,6 +85,8 @@ public class AuditServiceImplTest {
         );
 
         createDTO.setType(Type.USER);
+
+        createDTO.setId(UUID.randomUUID().toString());
 
         Assertions.assertDoesNotThrow(
                 () -> auditService.save(createDTO)
@@ -186,7 +188,7 @@ public class AuditServiceImplTest {
                 )
                 .map(
                         x -> new Audit(
-                                UUID.randomUUID(), x, "some text", Type.USER, Type.USER.getId()
+                                UUID.randomUUID(), x, "some text", Type.USER, x.getUuid().toString()
                         ))
                 .forEach(repository::save);
 

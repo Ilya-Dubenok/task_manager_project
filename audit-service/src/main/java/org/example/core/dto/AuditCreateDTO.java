@@ -16,13 +16,17 @@ public class AuditCreateDTO {
     @NotNull(message = "type не должен быть пустым")
     private Type type;
 
+    @NotBlank(message = "id не должен быть пустым")
+    private String id;
+
     public AuditCreateDTO() {
     }
 
-    public AuditCreateDTO(User user, String text, Type type) {
+    public AuditCreateDTO(User user, String text, Type type, String id) {
         this.user = user;
         this.text = text;
         this.type = type;
+        this.id = id;
     }
 
     public User getUser() {
@@ -47,5 +51,13 @@ public class AuditCreateDTO {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

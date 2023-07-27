@@ -56,9 +56,11 @@ public class UserServiceImpl implements IUserService {
         );
         toRegister.setUuid(UUID.randomUUID());
 
+        User save;
+
 
         try {
-            userRepository.save(toRegister);
+            save = userRepository.save(toRegister);
         } catch (Exception e) {
 
             StructuredException structuredException = new StructuredException();
@@ -70,7 +72,7 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
-        senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_CREATED_MESSAGE, Type.USER);
+        senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_CREATED_MESSAGE, Type.USER, save.getUuid().toString());
 
     }
 
@@ -106,13 +108,15 @@ public class UserServiceImpl implements IUserService {
 
         }
 
+        User copyBeforeSaving = copyUserBeforeSupposedChanges(toUpdate);
+
         toUpdate = updateUserParamsFromUserCreateDTO(toUpdate, userCreateDTO);
 
 
         try {
 
             //TODO CHECK FOR SPLIT OF EXCEPTION
-            userRepository.save(toUpdate);
+            toUpdate = userRepository.save(toUpdate);
         } catch (Exception e) {
             StructuredException structuredException = new StructuredException();
             if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
@@ -122,7 +126,11 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
-        senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_UPDATED_MESSAGE, Type.USER);
+        if (!toUpdate.equals(copyBeforeSaving)) {
+
+            senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_UPDATED_MESSAGE, Type.USER,
+                    toUpdate.getUuid().toString());
+        }
 
 
     }
@@ -167,10 +175,10 @@ public class UserServiceImpl implements IUserService {
 
             User user = userRepository.findByMailAndStatusEquals(email, UserStatus.ACTIVATED);
 
-            if (user != null) {
+            if (user != null && i != 0) {
 
                 senderInfoService.sendAudit(
-                        user, ISenderInfoService.AuditMessages.USER_REGISTERED_MESSAGE, Type.USER
+                        user, ISenderInfoService.AuditMessages.USER_REGISTERED_MESSAGE, Type.USER, user.getUuid().toString()
                 );
             }
 
@@ -205,4 +213,19 @@ public class UserServiceImpl implements IUserService {
     }
 
 
+
+    private static User copyUserBeforeSupposedChanges(User toUpdate) {
+        User copyBeforeSaving = new User(
+                toUpdate.getUuid(),
+                toUpdate.getMail(),
+                toUpdate.getFio(),
+                toUpdate.getRole(),
+                toUpdate.getStatus(),
+                toUpdate.getPassword()
+        );
+
+        copyBeforeSaving.setDtCreate(toUpdate.getDtUpdate());
+        copyBeforeSaving.setDtUpdate(toUpdate.getDtUpdate());
+        return copyBeforeSaving;
+    }
 }

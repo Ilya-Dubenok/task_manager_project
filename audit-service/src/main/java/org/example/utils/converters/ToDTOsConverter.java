@@ -68,9 +68,8 @@ public class ToDTOsConverter<IN, OUT> implements
                     ZonedDateTime.of(audit.getDtCreate(), ZoneId.systemDefault()).toInstant().toEpochMilli()
             );
             res.setText(audit.getText());
-            Type type = audit.getType();
-            res.setType(type);
-            res.setId(type.getId());
+            res.setType(audit.getType());
+            res.setId(audit.getId());
             res.setUser(audit.getUser());
 
             return res;

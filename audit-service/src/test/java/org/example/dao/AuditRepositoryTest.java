@@ -175,7 +175,7 @@ public class AuditRepositoryTest {
                 )
                 .map(
                         x -> new Audit(
-                                UUID.randomUUID(), x, "some text", Type.USER, Type.USER.getId()
+                                UUID.randomUUID(), x, "some text", Type.USER, x.getUuid().toString()
                         ))
                 .forEach(repository::save);
 

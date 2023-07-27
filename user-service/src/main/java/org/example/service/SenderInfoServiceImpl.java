@@ -53,11 +53,11 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
     @Async
     @Override
-    public void sendAudit(User author, String text, Type type) {
+    public void sendAudit(User author, String text, Type type, String id) {
         AuditUserDTO auditUserDTO = conversionService.convert(author, AuditUserDTO.class);
 
 
-        AuditCreateDTO auditCreateDTO = new AuditCreateDTO(auditUserDTO, text, type);
+        AuditCreateDTO auditCreateDTO = new AuditCreateDTO(auditUserDTO, text, type, id);
 
         try {
             auditServiceFeignClient.createAudit(AUDIT_SERVICE_URL, auditCreateDTO);
