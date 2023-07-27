@@ -36,13 +36,24 @@ services:
     networks:
       - taskmanager_ntwrk
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/user_service?ApplicationName=User_Service
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      app.network.user_service.address: user_service
-      app.network.audit_service.address: audit_service
-      app.network.notification_service.address: notification_service
+      spring.datasource.url: jdbc:postgresql://db:5432/user_service?ApplicationName=User_Service
+      spring.datasource.username: root
+      spring.datasource.password: root
+      app.network.user_service.address: user-service:8080
+      app.network.audit_service.address: audit-service:8080
+      app.network.notification_service.address: notification-service:8080
 
+  audit-service:
+    depends_on:
+      - db
+    build: audit-service
+    image: taskmanager_audit-service:1.0.0
+    networks:
+      - taskmanager_ntwrk
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/audit_service?ApplicationName=Audit_Service
+      spring.datasource.username: root
+      spring.datasource.password: root
 
   proxy:
     build: proxy

@@ -27,7 +27,7 @@ logging:
               Trace
 
 server:
-  port: 81
+  port: 8080
   servlet:
     context-path: /audit_service
     encoding:
