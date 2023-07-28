@@ -3,6 +3,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  kafka:
+    consumer:
+      group-id: group-1
+      auto-offset-reset: earliest
+      bootstrap-servers: kafka:9092
+
+
+
   datasource:
     url: jdbc:postgresql://localhost:5432/user_service?ApplicationName=User_Service
     username: postgres

@@ -14,10 +14,13 @@ import org.junit.jupiter.api.*;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
@@ -30,7 +33,9 @@ import java.util.UUID;
 import static org.mockito.BDDMockito.*;
 
 @SpringBootTest
+@DirtiesContext
 @ActiveProfiles("test")
+@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
 public class AuthenticationServiceImplTest {
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
@@ -51,7 +56,7 @@ public class AuthenticationServiceImplTest {
     @Autowired
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
-    @Autowired
+    @MockBean
     private ISenderInfoService senderInfoService;
 
     @Autowired

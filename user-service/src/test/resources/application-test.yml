@@ -3,6 +3,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/user_service_test?ApplicationName=User_Service
 
 
+  kafka:
+    producer:
+      bootstrap-servers: kafka:9092
+    consumer:
+
+      bootstrap-servers: localhost:9092
 
 
 

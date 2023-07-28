@@ -1,6 +1,7 @@
 package org.example.service;
 
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.example.config.property.ApplicationProperties;
 import org.example.core.dto.email.EmailDTO;
 import org.example.core.dto.audit.AuditCreateDTO;
@@ -11,6 +12,9 @@ import org.example.service.api.IAuditServiceFeignClient;
 import org.example.service.api.INotificationServiceFeignClient;
 import org.example.service.api.ISenderInfoService;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +34,8 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
     private INotificationServiceFeignClient notificationServiceFeignClient;
 
+    private KafkaTemplate kafkaTemplate;
+
     private ApplicationProperties properties;
 
     private ConversionService conversionService;
@@ -38,10 +44,12 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
 
     public SenderInfoServiceImpl(IAuditServiceFeignClient auditServiceFeignClient,
-                                 INotificationServiceFeignClient notificationServiceFeignClient, ApplicationProperties properties,
+                                 INotificationServiceFeignClient notificationServiceFeignClient,
+                                 KafkaTemplate kafkaTemplate, ApplicationProperties properties,
                                  ConversionService conversionService) {
         this.auditServiceFeignClient = auditServiceFeignClient;
         this.notificationServiceFeignClient = notificationServiceFeignClient;
+        this.kafkaTemplate = kafkaTemplate;
         this.properties = properties;
         this.conversionService = conversionService;
         AUDIT_SERVICE_URL = getAuditUrl(properties);
@@ -49,6 +57,17 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
 
     }
+//
+//    @KafkaListener(topics = "transaction-1")
+//    @Override
+//    public void listener(@Payload AuditCreateDTO auditCreateDTO,
+//                         ConsumerRecord<String,AuditCreateDTO> cr) {
+//
+//        System.out.println("Message received!");
+//
+//        System.out.println(cr.toString());
+//
+//    }
 
 
     @Async
@@ -61,6 +80,9 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
         try {
             auditServiceFeignClient.createAudit(AUDIT_SERVICE_URL, auditCreateDTO);
+            System.out.println("Creating kafka message");
+            kafkaTemplate.send("transaction-1", auditCreateDTO);
+
         } catch (Exception e) {
             //TODO TRY LOGGING?
             e.printStackTrace();
