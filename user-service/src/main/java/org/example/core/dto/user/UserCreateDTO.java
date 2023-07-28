@@ -9,8 +9,9 @@ import org.example.dao.entities.user.UserStatus;
 
 public class UserCreateDTO {
 
-    @Email(message = "должен быть валидным адресом")
-    @NotBlank(message = "должен быть валидным адресом")
+//    @Email(message = "должен быть валидным адресом")
+//    @NotBlank(message = "должен быть валидным адресом")
+    @StrongEmailValidation
     private String mail;
 
     @NotBlank(message = "не должен быть пустым")

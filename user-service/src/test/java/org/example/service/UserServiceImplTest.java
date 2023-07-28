@@ -111,7 +111,7 @@ public class UserServiceImplTest {
         ConstraintViolationException exception = Assertions.assertThrows(
                 ConstraintViolationException.class,
                 () -> userService.save(
-                        new UserCreateDTO("", "", null, null, "ps"))
+                        new UserCreateDTO("ilya@mail.ru", "", null, null, "ps"))
         );
 
         Assertions.assertEquals(5, exception.getConstraintViolations().size());
