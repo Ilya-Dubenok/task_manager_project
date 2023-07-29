@@ -13,6 +13,8 @@ spring:
       schema: app
   jackson:
     property-naming-strategy: SNAKE_CASE
+  kafka:
+    bootstrap-servers: kafka:9092
 
 
 logging:

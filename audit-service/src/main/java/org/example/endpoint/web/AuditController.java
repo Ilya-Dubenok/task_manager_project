@@ -1,6 +1,7 @@
 package org.example.endpoint.web;
 
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.example.core.dto.AuditCreateDTO;
 import org.example.core.dto.AuditDTO;
 import org.example.core.dto.PageOfTypeDTO;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -36,6 +39,15 @@ public class AuditController {
         auditService.save(auditCreateDTO);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
+
+    }
+
+    @KafkaListener(
+            topics = "transaction-1"
+    )
+    public void listener(AuditCreateDTO auditCreateDTO) {
+        System.out.println("\n\n\n\n\nFUCKING YEAH!!!!!!!\n\n\n\n\n");
+        System.out.println(auditCreateDTO.getText());
 
     }
 
