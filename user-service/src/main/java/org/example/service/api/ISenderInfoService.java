@@ -17,7 +17,7 @@ public interface ISenderInfoService {
 //    void listener(@Payload AuditCreateDTO auditCreateDTO,
 //                  ConsumerRecord<String, AuditCreateDTO> cr);
 
-    @Async
+//    @Async
     void sendAudit(User author, String text, Type type, String id);
 
     @Async

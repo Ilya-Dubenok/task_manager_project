@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.net.URI;
 
 @FeignClient(value = "auditservice", url = "${app.network.audit_service.host}${app.network.audit_service.appendix}")
-public interface IAuditServiceFeignClient {
+public interface IAuditSenderFeignClient {
 
 
 

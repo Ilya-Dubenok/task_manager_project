@@ -1,21 +1,17 @@
 package org.example.service;
 
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.example.config.property.ApplicationProperties;
 import org.example.core.dto.email.EmailDTO;
 import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.audit.Type;
 import org.example.dao.entities.user.User;
-import org.example.service.api.IAuditServiceFeignClient;
+import org.example.service.api.IAuditSenderFeignClient;
+import org.example.service.api.IAuditSenderKafkaClient;
 import org.example.service.api.INotificationServiceFeignClient;
 import org.example.service.api.ISenderInfoService;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.kafka.annotation.KafkaHandler;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +27,11 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
     private final URI NOTIFICATION_SERVICE_URL;
 
-    private IAuditServiceFeignClient auditServiceFeignClient;
+    private IAuditSenderFeignClient auditServiceFeignClient;
 
     private INotificationServiceFeignClient notificationServiceFeignClient;
 
-    private KafkaTemplate kafkaTemplate;
+    private IAuditSenderKafkaClient<String,Object> auditSenderKafkaClient;
 
     private ApplicationProperties properties;
 
@@ -44,13 +40,14 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
     public static final String USER_CREATED_MESSAGE = "New user was created";
 
 
-    public SenderInfoServiceImpl(IAuditServiceFeignClient auditServiceFeignClient,
+    public SenderInfoServiceImpl(IAuditSenderFeignClient auditServiceFeignClient,
                                  INotificationServiceFeignClient notificationServiceFeignClient,
-                                 KafkaTemplate kafkaTemplate, ApplicationProperties properties,
+                                 IAuditSenderKafkaClient<String,Object> auditSenderKafkaClient,
+                                 ApplicationProperties properties,
                                  ConversionService conversionService) {
         this.auditServiceFeignClient = auditServiceFeignClient;
         this.notificationServiceFeignClient = notificationServiceFeignClient;
-        this.kafkaTemplate = kafkaTemplate;
+        this.auditSenderKafkaClient = auditSenderKafkaClient;
         this.properties = properties;
         this.conversionService = conversionService;
         AUDIT_SERVICE_URL = getAuditUrl(properties);
@@ -71,7 +68,7 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 //    }
 
 
-    @Async
+
     @Override
     public void sendAudit(User author, String text, Type type, String id) {
         AuditUserDTO auditUserDTO = conversionService.convert(author, AuditUserDTO.class);
@@ -82,7 +79,7 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
         try {
             auditServiceFeignClient.createAudit(AUDIT_SERVICE_URL, auditCreateDTO);
             System.out.println("Creating kafka message");
-            kafkaTemplate.send("audit_info", auditCreateDTO);
+            auditSenderKafkaClient.send("audit_info", auditCreateDTO);
 
         } catch (Exception e) {
             //TODO TRY LOGGING?
