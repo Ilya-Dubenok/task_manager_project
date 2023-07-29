@@ -5,10 +5,7 @@ spring:
         format_sql: true
 
   kafka:
-    consumer:
-      group-id: group-1
-      auto-offset-reset: earliest
-      bootstrap-servers: kafka:9092
+    bootstrap-servers: localhost:9092
 
 
 

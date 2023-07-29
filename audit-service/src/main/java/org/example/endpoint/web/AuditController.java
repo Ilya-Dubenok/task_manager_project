@@ -43,7 +43,7 @@ public class AuditController {
     }
 
     @KafkaListener(
-            topics = "transaction-1"
+            topics = "audit_info"
     )
     public void listener(AuditCreateDTO auditCreateDTO) {
         System.out.println("\n\n\n\n\nFUCKING YEAH!!!!!!!\n\n\n\n\n");

@@ -12,6 +12,7 @@ import org.example.service.api.IAuditServiceFeignClient;
 import org.example.service.api.INotificationServiceFeignClient;
 import org.example.service.api.ISenderInfoService;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -81,7 +82,7 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
         try {
             auditServiceFeignClient.createAudit(AUDIT_SERVICE_URL, auditCreateDTO);
             System.out.println("Creating kafka message");
-            kafkaTemplate.send("transaction-1", auditCreateDTO);
+            kafkaTemplate.send("audit_info", auditCreateDTO);
 
         } catch (Exception e) {
             //TODO TRY LOGGING?

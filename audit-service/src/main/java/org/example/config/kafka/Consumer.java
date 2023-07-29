@@ -63,9 +63,5 @@ public class Consumer {
         return new KafkaAdmin(configs);
     }
 
-    @Bean
-    public NewTopic topic1() {
-        return new NewTopic("transaction-1", 2, (short) 1);
-    }
 
 }

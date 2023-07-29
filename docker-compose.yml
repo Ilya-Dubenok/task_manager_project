@@ -35,6 +35,8 @@ services:
     networks:
       - taskmanager_ntwrk
   kafka:
+    depends_on:
+      - zookeeper
     image: wurstmeister/kafka
     ports:
       - "9092:9092"
@@ -59,6 +61,7 @@ services:
       spring.datasource.url: jdbc:postgresql://db:5432/user_service?ApplicationName=User_Service
       spring.datasource.username: root
       spring.datasource.password: root
+      spring.kafka.bootstrap-servers: kafka:9092
       app.network.user_service.address: user-service:8080
       app.network.audit_service.address: audit-service:8080
       app.network.notification_service.address: notification-service:8080

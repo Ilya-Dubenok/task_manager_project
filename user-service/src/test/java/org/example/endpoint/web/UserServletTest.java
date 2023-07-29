@@ -1,7 +1,9 @@
 package org.example.endpoint.web;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.JsonPath;
+import org.example.core.dto.user.UserCreateDTO;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
@@ -314,6 +316,23 @@ public class UserServletTest {
 
         Assertions.assertEquals(100, finalContent.size());
 
+
+    }
+
+    @Test
+    public void putTest() throws Exception {
+
+        String string = springMvcJacksonConverter.getObjectMapper().writeValueAsString(
+                new UserCreateDTO("dubenokilya@gmail.com", "fio", UserRole.USER, UserStatus.WAITING_ACTIVATION,
+                        "12345")
+        );
+
+        this.mockMvc.perform(
+                put("/api/v1/users/".concat(UUID.randomUUID().toString())+"/dt_update/"+659563531L)
+                        .contentType("application/json")
+                        .content(string)
+
+        ).andExpect(status().is4xxClientError());
 
     }
 
