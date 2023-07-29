@@ -32,9 +32,6 @@ public class UserServlet {
 
 
         service.save(userCreateDTO);
-        //TODO WRITE GENERAL METHOD TO HANDLE EXCEPTIONS AND GIVE EXCEPTION_DTO
-
-
         return new ResponseEntity<>(HttpStatus.CREATED);
 
 

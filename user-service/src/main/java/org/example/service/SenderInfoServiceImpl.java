@@ -55,20 +55,9 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
 
     }
-//
-//    @KafkaListener(topics = "transaction-1")
-//    @Override
-//    public void listener(@Payload AuditCreateDTO auditCreateDTO,
-//                         ConsumerRecord<String,AuditCreateDTO> cr) {
-//
-//        System.out.println("Message received!");
-//
-//        System.out.println(cr.toString());
-//
-//    }
 
 
-
+    @Async
     @Override
     public void sendAudit(User author, String text, Type type, String id) {
         AuditUserDTO auditUserDTO = conversionService.convert(author, AuditUserDTO.class);
@@ -77,8 +66,6 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
         AuditCreateDTO auditCreateDTO = new AuditCreateDTO(auditUserDTO, text, type, id);
 
         try {
-            auditServiceFeignClient.createAudit(AUDIT_SERVICE_URL, auditCreateDTO);
-            System.out.println("Creating kafka message");
             auditSenderKafkaClient.send("audit_info", auditCreateDTO);
 
         } catch (Exception e) {

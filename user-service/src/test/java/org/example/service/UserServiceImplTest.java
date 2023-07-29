@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 @SpringBootTest
 @ActiveProfiles("test")
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
+//@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
 public class UserServiceImplTest {
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
@@ -47,7 +47,7 @@ public class UserServiceImplTest {
     private IUserService userService;
 
     @Autowired
-    IUserRepository repository;
+    private IUserRepository repository;
 
     @Autowired
     private DataSource dataSource;

@@ -13,11 +13,8 @@ import java.net.URI;
 public interface ISenderInfoService {
 
 
-//    @KafkaListener(topics = "transaction-1")
-//    void listener(@Payload AuditCreateDTO auditCreateDTO,
-//                  ConsumerRecord<String, AuditCreateDTO> cr);
 
-//    @Async
+    @Async
     void sendAudit(User author, String text, Type type, String id);
 
     @Async
