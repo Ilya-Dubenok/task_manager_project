@@ -77,6 +77,8 @@ services:
       spring.datasource.url: jdbc:postgresql://db:5432/audit_service?ApplicationName=Audit_Service
       spring.datasource.username: root
       spring.datasource.password: root
+      spring.kafka.bootstrap-servers: kafka:9092
+
 
   notification-service:
     build: notification-service
