@@ -10,18 +10,14 @@ import org.example.dao.entities.audit.Type;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.service.api.IAuditService;
-import org.example.utils.config.ConsumerConf;
-import org.example.utils.config.Producer;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -32,8 +28,6 @@ import java.util.stream.Stream;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
-@Import({ConsumerConf.class, Producer.class})
 public class AuditServiceImplTest {
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
