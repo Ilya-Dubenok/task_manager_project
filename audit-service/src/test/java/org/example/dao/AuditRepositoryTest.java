@@ -11,6 +11,7 @@ import org.example.dao.entities.audit.Audit;
 import org.example.dao.entities.audit.Type;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
+import org.example.endpoint.kafka.KafkaListenerEndpoint;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,11 +40,12 @@ public class AuditRepositoryTest {
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
 
-    @Autowired
-    DataSource dataSource;
 
     @Autowired
-    IAuditRepository repository;
+    private DataSource dataSource;
+
+    @Autowired
+    private IAuditRepository repository;
 
     @Autowired
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;

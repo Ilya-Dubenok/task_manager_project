@@ -2,11 +2,14 @@ package org.example.endpoint.web;
 
 
 import com.jayway.jsonpath.JsonPath;
+import org.example.core.dto.audit.AuditCreateDTO;
+import org.example.core.dto.user.UserCreateDTO;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
-import org.example.service.api.ISenderInfoService;
+import org.example.service.api.IAuditSenderKafkaClient;
+import org.example.service.api.INotificationServiceFeignClient;
 import org.example.service.api.IUserService;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,9 +24,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -37,10 +38,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+
 @SpringBootTest
 @AutoConfigureMockMvc
-@DirtiesContext
-@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
 @ActiveProfiles("test")
 public class UserServletTest {
 
@@ -62,11 +62,16 @@ public class UserServletTest {
     private MappingJackson2HttpMessageConverter springMvcJacksonConverter;
 
     @SpyBean
-    IUserRepository userRepository;
+    private IUserRepository userRepository;
 
     @SpyBean
-    IUserService userService;
+    private IUserService userService;
 
+    @MockBean
+    private IAuditSenderKafkaClient<String, AuditCreateDTO> iAuditSenderKafkaClient;
+
+    @MockBean
+    private INotificationServiceFeignClient notificationServiceFeignClient;
 
     @Test
     public void getPagesOfUsersWithDefaultValues() throws Exception {
@@ -314,6 +319,23 @@ public class UserServletTest {
 
         Assertions.assertEquals(100, finalContent.size());
 
+
+    }
+
+    @Test
+    public void putTest() throws Exception {
+
+        String string = springMvcJacksonConverter.getObjectMapper().writeValueAsString(
+                new UserCreateDTO("dubenokilya@gmail.com", "fio", UserRole.USER, UserStatus.WAITING_ACTIVATION,
+                        "12345")
+        );
+
+        this.mockMvc.perform(
+                put("/api/v1/users/".concat(UUID.randomUUID().toString())+"/dt_update/"+659563531L)
+                        .contentType("application/json")
+                        .content(string)
+
+        ).andExpect(status().is4xxClientError());
 
     }
 

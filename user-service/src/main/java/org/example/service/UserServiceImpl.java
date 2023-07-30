@@ -115,7 +115,6 @@ public class UserServiceImpl implements IUserService {
 
         try {
 
-            //TODO CHECK FOR SPLIT OF EXCEPTION
             toUpdate = userRepository.save(toUpdate);
         } catch (Exception e) {
             StructuredException structuredException = new StructuredException();

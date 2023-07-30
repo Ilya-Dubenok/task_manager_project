@@ -13,6 +13,10 @@ spring:
       schema: app
   jackson:
     property-naming-strategy: SNAKE_CASE
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: group-1
 
 
 logging:
@@ -36,6 +40,8 @@ server:
 app:
   network:
     host: localhost
+
+
 
 
 

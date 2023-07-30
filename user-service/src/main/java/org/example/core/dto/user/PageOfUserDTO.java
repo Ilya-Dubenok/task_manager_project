@@ -2,7 +2,6 @@ package org.example.core.dto.user;
 
 import java.util.List;
 
-//TODO THINK ABOUT GENERICS
 public class PageOfUserDTO {
 
     private Integer number;

@@ -62,7 +62,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        //TODO ADD ALL NECESSARY CHECKS
         status = HttpStatus.BAD_REQUEST;
         String propertyName = ex.getPropertyName();
         StructuredException structuredException = new StructuredException();
