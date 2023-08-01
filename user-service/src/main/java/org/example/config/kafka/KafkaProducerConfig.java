@@ -4,6 +4,7 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.example.service.AuditSenderKafkaClientImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@Profile("!test")
+@Profile({"!(test | kafka_not_needed)"})
 public class KafkaProducerConfig {
 
 
@@ -63,6 +64,19 @@ public class KafkaProducerConfig {
 
         return new NewTopic("audit_info", 1, (short) 1);
     }
+
+    @Configuration
+    @Profile("kafka_not_needed")
+    static class NoKafkaConfiguration{
+
+        @Bean
+        public AuditSenderKafkaClientImpl auditSenderKafkaClient() {
+            return new AuditSenderKafkaClientImpl(null);
+        }
+
+
+    }
+
 
 
 
