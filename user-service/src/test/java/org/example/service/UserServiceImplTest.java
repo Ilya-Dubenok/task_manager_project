@@ -134,6 +134,8 @@ public class UserServiceImplTest {
 
         LocalDateTime dt_update = conversionService.convert(dt_update_in_long, LocalDateTime.class);
 
+        String oldPassword = user.getPassword();
+
         UserCreateDTO userCreateDTO = new UserCreateDTO(
                 "new_mail@gmail.com", "new fio", UserRole.ADMIN, UserStatus.DEACTIVATED, "new password"
         );
@@ -157,7 +159,7 @@ public class UserServiceImplTest {
         Assertions.assertEquals("new fio", updatedUser.getFio());
         Assertions.assertEquals(UserRole.ADMIN, updatedUser.getRole());
         Assertions.assertEquals(UserStatus.DEACTIVATED, updatedUser.getStatus());
-        Assertions.assertEquals("new password", updatedUser.getPassword());
+        Assertions.assertNotEquals(oldPassword, updatedUser.getPassword());
         Assertions.assertNotEquals(dt_update, updatedUser.getDtUpdate());
 
     }

@@ -15,6 +15,7 @@ import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -34,6 +35,8 @@ public class UserServiceImpl implements IUserService {
 
     private ISenderInfoService senderInfoService;
 
+    private final PasswordEncoder passwordEncoder;
+
 
     //TODO replace when real author is determined
     private User dummyUser = new User(
@@ -41,15 +44,20 @@ public class UserServiceImpl implements IUserService {
     );
 
 
-    public UserServiceImpl(IUserRepository userRepository, ConversionService conversionService, ISenderInfoService senderInfoService) {
+    public UserServiceImpl(IUserRepository userRepository,
+                           ConversionService conversionService,
+                           ISenderInfoService senderInfoService,
+                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.conversionService = conversionService;
         this.senderInfoService = senderInfoService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void save(@Valid UserCreateDTO userCreateDTO) {
 
+        encryptUserCreateDTOPassword(userCreateDTO);
 
         User toRegister = conversionService.convert(
                 userCreateDTO, User.class
@@ -195,8 +203,19 @@ public class UserServiceImpl implements IUserService {
 
     }
 
+    private void encryptUserCreateDTOPassword(UserCreateDTO userCreateDTO) {
+        userCreateDTO.setPassword(
+                passwordEncoder.encode(userCreateDTO.getPassword())
+        );
 
-    private static User updateUserParamsFromUserCreateDTO(User user, UserCreateDTO userCreateDTO) {
+    }
+
+
+
+
+    private User updateUserParamsFromUserCreateDTO(User user, UserCreateDTO userCreateDTO) {
+
+        encryptUserCreateDTOPassword(userCreateDTO);
 
         user.setMail(userCreateDTO.getMail());
         user.setFio(userCreateDTO.getFio());
@@ -213,7 +232,7 @@ public class UserServiceImpl implements IUserService {
 
 
 
-    private static User copyUserBeforeSupposedChanges(User toUpdate) {
+    private User copyUserBeforeSupposedChanges(User toUpdate) {
         User copyBeforeSaving = new User(
                 toUpdate.getUuid(),
                 toUpdate.getMail(),

@@ -53,6 +53,10 @@ app:
       host: localhost:82
       appendix: /notification_service/api/v1/email
 
+jwt:
+  secret: ucHYIsBgrm/XpThkkMBk4uaEl/8Es4VXSM85QcopGhk=
+  issuer: Ilya
+
 
 
 
