@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.example.endpoint.web.filters.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -49,7 +48,7 @@ public class SecurityConfig {
                 // Our public endpoints
                 .requestMatchers("/api/v1/users/registration").permitAll()
                 .requestMatchers("/api/v1/users/verification").permitAll()
-                .requestMatchers("/api/v1/users/login").permitAll()
+                .requestMatchers("/api/v1/users/login/**").permitAll()
                 .requestMatchers("/api/v1/users/me").authenticated()
                 .requestMatchers("/api/v1/users/**").hasAnyRole("ADMIN")
                 .anyRequest().authenticated()
