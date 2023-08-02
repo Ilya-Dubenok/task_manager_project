@@ -2,14 +2,13 @@ package org.example.endpoint.web;
 
 
 import com.jayway.jsonpath.JsonPath;
-import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.core.dto.user.UserCreateDTO;
+import org.example.core.dto.user.UserLoginDTO;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
-import org.example.service.api.IAuditSenderKafkaClient;
-import org.example.service.api.INotificationServiceFeignClient;
+import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,9 +24,11 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import javax.sql.DataSource;
 import java.util.*;
@@ -59,7 +60,11 @@ public class UserServletTest {
     ConversionService conversionService;
 
     @Autowired
-    private MappingJackson2HttpMessageConverter springMvcJacksonConverter;
+    private MappingJackson2HttpMessageConverter converter;
+
+    @Autowired
+    private PasswordEncoder encoder;
+
 
     @SpyBean
     private IUserRepository userRepository;
@@ -68,15 +73,14 @@ public class UserServletTest {
     private IUserService userService;
 
     @MockBean
-    private IAuditSenderKafkaClient<String, AuditCreateDTO> iAuditSenderKafkaClient;
+    private ISenderInfoService senderInfoService;
 
-    @MockBean
-    private INotificationServiceFeignClient notificationServiceFeignClient;
 
     @Test
     public void getPagesOfUsersWithDefaultValues() throws Exception {
 
-        ResultActions resultActions = this.mockMvc.perform(get("/api/v1/users")).andExpect(
+
+        ResultActions resultActions = this.mockMvc.perform(getMockRequestWithAdminAuthorization(get("/api/v1/users"))).andExpect(
                 status().isOk()
         );
 
@@ -103,7 +107,9 @@ public class UserServletTest {
     @Test
     public void getPagesOfUsersWithProvidedPage() throws Exception {
 
-        ResultActions resultActions = this.mockMvc.perform(get("/api/v1/users?page=1"))
+        ResultActions resultActions = this.mockMvc.perform(
+                getMockRequestWithAdminAuthorization(get("/api/v1/users?page=1"))
+                )
                 .andExpect(
                         status().isOk()
                 );
@@ -131,7 +137,9 @@ public class UserServletTest {
     @Test
     public void getPagesOfUsersWithProvidedPageAndSize() throws Exception {
 
-        ResultActions resultActions = this.mockMvc.perform(get("/api/v1/users?page=6&size=15"))
+        ResultActions resultActions = this.mockMvc.perform(
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=6&size=15"))
+                )
                 .andExpect(
                         status().isOk()
                 );
@@ -158,7 +166,9 @@ public class UserServletTest {
     @Test
     public void getPagesOfUsersWithUnparsablePage() throws Exception {
 
-        ResultActions resultActions = this.mockMvc.perform(get("/api/v1/users?page=blablabla&size=15").characterEncoding("UTF-8"))
+        ResultActions resultActions = this.mockMvc.perform(
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=blablabla&size=15"))
+                        .characterEncoding("UTF-8"))
                 .andDo(print())
                 .andExpect(
                         status().is(400)
@@ -188,7 +198,10 @@ public class UserServletTest {
     @Test
     public void getPagesOfUsersWithUnparsableSize() throws Exception {
 
-        ResultActions resultActions = this.mockMvc.perform(get("/api/v1/users?page=0&size=blablabla").characterEncoding("UTF-8"))
+        ResultActions resultActions = this.mockMvc.perform(
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=0&size=blablabla"))
+                                .characterEncoding("UTF-8")
+                )
                 .andDo(print())
                 .andExpect(
                         status().is(400)
@@ -217,12 +230,16 @@ public class UserServletTest {
     @Test
     public void getPageOfUsersIsDetermined() throws Exception {
 
-        String firstRequest = this.mockMvc.perform(get("/api/v1/users?page=3&size=15"))
+        String firstRequest = this.mockMvc.perform(
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=3&size=15"))
+                )
                 .andExpect(
                         status().isOk()
                 ).andReturn().getResponse().getContentAsString();
 
-        String secondRequest = this.mockMvc.perform(get("/api/v1/users?page=3&size=15"))
+        String secondRequest = this.mockMvc.perform(
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=3&size=15"))
+                )
                 .andExpect(
                         status().isOk()
                 ).andReturn().getResponse().getContentAsString();
@@ -246,12 +263,16 @@ public class UserServletTest {
     @Test
     public void getPageOfUsersDoesNotOverlap() throws Exception {
 
-        String firstRequest = this.mockMvc.perform(get("/api/v1/users?page=3&size=15"))
+        String firstRequest = this.mockMvc.perform(
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=3&size=15"))
+                )
                 .andExpect(
                         status().isOk()
                 ).andReturn().getResponse().getContentAsString();
 
-        String secondRequest = this.mockMvc.perform(get("/api/v1/users?page=4&size=15"))
+        String secondRequest = this.mockMvc.perform(
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=4&size=15"))
+                )
                 .andExpect(
                         status().isOk()
                 ).andReturn().getResponse().getContentAsString();
@@ -286,7 +307,9 @@ public class UserServletTest {
                 .map(
                         x -> {
                             try {
-                                return this.mockMvc.perform(get(x))
+                                return this.mockMvc.perform(
+                                                getMockRequestWithAdminAuthorization(get(x))
+                                        )
                                         .andExpect(
                                                 status().isOk()
                                         ).andReturn().getResponse().getContentAsString();
@@ -325,35 +348,81 @@ public class UserServletTest {
     @Test
     public void putTest() throws Exception {
 
-        String string = springMvcJacksonConverter.getObjectMapper().writeValueAsString(
+        String string = converter.getObjectMapper().writeValueAsString(
                 new UserCreateDTO("dubenokilya@gmail.com", "fio", UserRole.USER, UserStatus.WAITING_ACTIVATION,
                         "12345")
         );
 
         this.mockMvc.perform(
-                put("/api/v1/users/".concat(UUID.randomUUID().toString())+"/dt_update/"+659563531L)
+                getMockRequestWithAdminAuthorization(put("/api/v1/users/".concat(UUID.randomUUID().toString()) + "/dt_update/" + 659563531L))
                         .contentType("application/json")
                         .content(string)
 
-        ).andExpect(status().is4xxClientError());
+        ).andExpect(status().isBadRequest());
 
     }
 
 
     @BeforeAll
-    public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IUserRepository userRepository) {
+    public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IUserRepository userRepository, @Autowired PasswordEncoder passwordEncoder) {
         clearAndInitSchema(dataSource);
-        fillWithDefaultValues(userRepository);
+        fillWithDefaultValues(userRepository, passwordEncoder);
     }
 
     @AfterEach
     public void checkForClearance(TestInfo info) {
         Set<String> tags = info.getTags();
         if (tags.contains(RESTORE_BASE_VALUES_AFTER_TAG)) {
-            initWithDefaultValues(dataSource, userRepository);
-            fillWithDefaultValues(userRepository);
+            initWithDefaultValues(dataSource, userRepository, encoder);
+            fillWithDefaultValues(userRepository, encoder);
         }
 
+    }
+
+
+
+    private  MockHttpServletRequestBuilder getMockRequestWithAdminAuthorization(MockHttpServletRequestBuilder mockHttpServletRequestBuilder) throws Exception {
+        return mockHttpServletRequestBuilder.header(
+                "Authorization", "Bearer " + getAdminToken()
+        );
+    }
+
+    private  MockHttpServletRequestBuilder getMockRequestWithUserAuthorization(MockHttpServletRequestBuilder mockHttpServletRequestBuilder) throws Exception {
+        return mockHttpServletRequestBuilder.header(
+                "Authorization", "Bearer " + getUserToken()
+        );
+    }
+
+    private String getAdminToken() throws Exception {
+        String postAdminLogin = converter.getObjectMapper().writeValueAsString(
+                new UserLoginDTO(
+                        "admin@gmail.com",
+                        "admin123"
+                )
+        );
+
+        ResultActions perform = this.mockMvc.perform(post("/api/v1/users/login/token")
+                .contentType("application/json").content(
+                        postAdminLogin
+                ));
+
+        return perform.andReturn().getResponse().getHeader("Bearer ");
+    }
+
+    private String getUserToken() throws Exception {
+        String postAdminLogin = converter.getObjectMapper().writeValueAsString(
+                new UserLoginDTO(
+                        "dummy1@gmail.com",
+                        "password"
+                )
+        );
+
+        ResultActions perform = this.mockMvc.perform(post("/api/v1/users/login/token")
+                .contentType("application/json").content(
+                        postAdminLogin
+                ));
+
+        return perform.andReturn().getResponse().getHeader("Bearer ");
     }
 
 
@@ -368,8 +437,10 @@ public class UserServletTest {
     }
 
 
-    private static void fillWithDefaultValues(IUserRepository userRepository) {
-        Stream.iterate(1, x -> x + 1).limit(100)
+
+
+    private static void fillWithDefaultValues(IUserRepository userRepository, PasswordEncoder encoder) {
+        Stream.iterate(1, x -> x + 1).limit(99)
                 .map(
                         x -> new User(
                                 UUID.randomUUID(),
@@ -377,9 +448,21 @@ public class UserServletTest {
                                 "dummyFio",
                                 UserRole.USER,
                                 UserStatus.ACTIVATED,
-                                "password"
-                        ))
+                                encoder.encode("password")
+                        )
+                )
                 .forEach(userRepository::save);
+
+        userRepository.save(
+                new User(
+                        UUID.randomUUID(),
+                        "admin@gmail.com",
+                        "admin",
+                        UserRole.ADMIN,
+                        UserStatus.ACTIVATED,
+                        encoder.encode("admin123")
+                )
+        );
 
     }
 
