@@ -3,6 +3,7 @@ package org.example.service;
 import jakarta.validation.Valid;
 import org.example.core.dto.audit.Type;
 import org.example.core.dto.user.UserCreateDTO;
+import org.example.core.dto.user.UserLoginDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;
@@ -12,9 +13,11 @@ import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
+import org.example.utils.jwt.JwtTokenHandler;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -27,12 +30,16 @@ import java.util.UUID;
 public class UserServiceImpl implements IUserService {
 
 
-    private IUserRepository userRepository;
+    private final IUserRepository userRepository;
 
 
-    private ConversionService conversionService;
+    private final ConversionService conversionService;
 
-    private ISenderInfoService senderInfoService;
+    private final ISenderInfoService senderInfoService;
+
+    private final PasswordEncoder passwordEncoder;
+
+    private final JwtTokenHandler jwtTokenHandler;
 
 
     //TODO replace when real author is determined
@@ -41,15 +48,22 @@ public class UserServiceImpl implements IUserService {
     );
 
 
-    public UserServiceImpl(IUserRepository userRepository, ConversionService conversionService, ISenderInfoService senderInfoService) {
+    public UserServiceImpl(IUserRepository userRepository,
+                           ConversionService conversionService,
+                           ISenderInfoService senderInfoService,
+                           PasswordEncoder passwordEncoder,
+                           JwtTokenHandler jwtTokenHandler) {
         this.userRepository = userRepository;
         this.conversionService = conversionService;
         this.senderInfoService = senderInfoService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtTokenHandler = jwtTokenHandler;
     }
 
     @Override
     public void save(@Valid UserCreateDTO userCreateDTO) {
 
+        encryptUserCreateDTOPassword(userCreateDTO);
 
         User toRegister = conversionService.convert(
                 userCreateDTO, User.class
@@ -195,8 +209,59 @@ public class UserServiceImpl implements IUserService {
 
     }
 
+    @Override
+    public User login(@Valid UserLoginDTO userLoginDTO) {
 
-    private static User updateUserParamsFromUserCreateDTO(User user, UserCreateDTO userCreateDTO) {
+        String mail = userLoginDTO.getMail();
+
+        User user;
+
+        try {
+
+            user = userRepository.findByMail(mail);
+
+        } catch (Exception e) {
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+
+        }
+
+        if (user == null) {
+            throw new StructuredException("mail", "Пользователь не найден");
+        }
+
+        if (!passwordEncoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
+            throw new StructuredException("password", "Пароль неверный");
+        }
+
+        return user;
+
+    }
+
+    @Override
+    public String loginAndReceiveToken(@Valid UserLoginDTO userLoginDTO) {
+
+        User find = login(userLoginDTO);
+
+        String uuid = find.getUuid().toString();
+
+        return jwtTokenHandler.generateAccessToken(uuid);
+
+
+    }
+
+    private void encryptUserCreateDTOPassword(UserCreateDTO userCreateDTO) {
+        userCreateDTO.setPassword(
+                passwordEncoder.encode(userCreateDTO.getPassword())
+        );
+
+    }
+
+
+
+
+    private User updateUserParamsFromUserCreateDTO(User user, UserCreateDTO userCreateDTO) {
+
+        encryptUserCreateDTOPassword(userCreateDTO);
 
         user.setMail(userCreateDTO.getMail());
         user.setFio(userCreateDTO.getFio());
@@ -213,7 +278,7 @@ public class UserServiceImpl implements IUserService {
 
 
 
-    private static User copyUserBeforeSupposedChanges(User toUpdate) {
+    private User copyUserBeforeSupposedChanges(User toUpdate) {
         User copyBeforeSaving = new User(
                 toUpdate.getUuid(),
                 toUpdate.getMail(),

@@ -3,8 +3,11 @@ package org.example.endpoint.web;
 import org.example.core.dto.user.PageOfUserDTO;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserDTO;
+import org.example.core.dto.user.UserLoginDTO;
 import org.example.dao.entities.user.User;
+import org.example.service.UserHolder;
 import org.example.service.UserServiceImpl;
+import org.example.utils.jwt.JwtTokenHandler;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -18,13 +21,17 @@ import java.util.UUID;
 @RequestMapping("/api/v1/users")
 public class UserServlet {
 
-    private UserServiceImpl service;
+    private final UserServiceImpl service;
 
-    private ConversionService conversionService;
+    private final ConversionService conversionService;
 
-    public UserServlet(UserServiceImpl service, ConversionService conversionService) {
+
+    private final UserHolder userHolder;
+
+    public UserServlet(UserServiceImpl service, ConversionService conversionService, UserHolder userHolder) {
         this.service = service;
         this.conversionService = conversionService;
+        this.userHolder = userHolder;
     }
 
     @PostMapping
@@ -62,6 +69,34 @@ public class UserServlet {
                 conversionService.convert(pageOfUsers, PageOfUserDTO.class),
                 HttpStatus.OK
         );
+    }
+
+    @PostMapping(value = "/login")
+    public ResponseEntity<?> login(@RequestBody UserLoginDTO userLoginDTO) {
+
+        service.login(userLoginDTO);
+        return new ResponseEntity<>(HttpStatus.OK);
+
+    }
+
+    //TODO remove?
+    @PostMapping(value = "/login/token")
+    public ResponseEntity<?> loginToken(@RequestBody UserLoginDTO userLoginDTO) {
+
+        String token = service.loginAndReceiveToken(userLoginDTO);
+
+        return ResponseEntity.status(HttpStatus.OK).header("Bearer ", token).build();
+
+    }
+
+    @GetMapping(value = "/me")
+    public ResponseEntity<UserDTO> getMe() {
+
+
+        User userById = service.getUserById(UUID.fromString(userHolder.getUser().getUsername()));
+        UserDTO dto = conversionService.convert(userById, UserDTO.class);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+
     }
 
 

@@ -24,6 +24,7 @@ public interface IUserRepository extends CrudRepository<User, UUID> {
 
     Page<User> findAllByOrderByUuid(Pageable pageable);
 
+    User findByMail(String email);
 
     User findByMailAndStatusEquals(String email, UserStatus status);
 

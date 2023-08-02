@@ -2,6 +2,7 @@ package org.example.service.api;
 
 import jakarta.validation.Valid;
 import org.example.core.dto.user.UserCreateDTO;
+import org.example.core.dto.user.UserLoginDTO;
 import org.example.dao.entities.user.User;
 import org.springframework.data.domain.Page;
 
@@ -21,4 +22,8 @@ public interface IUserService {
     Page<User> getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage);
 
     int setUserActiveByEmail(String email);
+
+    User login(@Valid UserLoginDTO userLoginDTO);
+
+    String loginAndReceiveToken(@Valid UserLoginDTO userLoginDTO);
 }
