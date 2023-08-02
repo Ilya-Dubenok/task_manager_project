@@ -5,6 +5,7 @@ import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserLoginDTO;
 import org.example.dao.entities.user.User;
+import org.example.service.UserHolder;
 import org.example.service.UserServiceImpl;
 import org.example.utils.jwt.JwtTokenHandler;
 import org.springframework.core.convert.ConversionService;
@@ -20,16 +21,17 @@ import java.util.UUID;
 @RequestMapping("/api/v1/users")
 public class UserServlet {
 
-    private UserServiceImpl service;
+    private final UserServiceImpl service;
 
-    private ConversionService conversionService;
+    private final ConversionService conversionService;
 
-    private JwtTokenHandler jwtTokenHandler;
 
-    public UserServlet(UserServiceImpl service, ConversionService conversionService, JwtTokenHandler jwtTokenHandler) {
+    private final UserHolder userHolder;
+
+    public UserServlet(UserServiceImpl service, ConversionService conversionService, UserHolder userHolder) {
         this.service = service;
         this.conversionService = conversionService;
-        this.jwtTokenHandler = jwtTokenHandler;
+        this.userHolder = userHolder;
     }
 
     @PostMapping
@@ -84,6 +86,16 @@ public class UserServlet {
         String token = service.loginAndReceiveToken(userLoginDTO);
 
         return ResponseEntity.status(HttpStatus.OK).header("Bearer ", token).build();
+
+    }
+
+    @GetMapping(value = "/me")
+    public ResponseEntity<UserDTO> getMe() {
+
+
+        User userById = service.getUserById(UUID.fromString(userHolder.getUser().getUsername()));
+        UserDTO dto = conversionService.convert(userById, UserDTO.class);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
 
     }
 
