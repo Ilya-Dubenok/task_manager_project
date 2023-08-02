@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.example.core.dto.audit.Type;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserLoginDTO;
+import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;
@@ -14,9 +15,12 @@ import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.example.utils.jwt.JwtTokenHandler;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -27,6 +31,7 @@ import java.util.UUID;
 
 @Validated
 @Service
+@Primary
 public class UserServiceImpl implements IUserService {
 
 
@@ -39,24 +44,23 @@ public class UserServiceImpl implements IUserService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final UserHolder userHolder;
+
     private final JwtTokenHandler jwtTokenHandler;
 
 
-    //TODO replace when real author is determined
-    private User dummyUser = new User(
-            UUID.randomUUID(), "mail@mail.ru", "some_not_real_fio", UserRole.ADMIN, UserStatus.ACTIVATED, "****"
-    );
 
 
     public UserServiceImpl(IUserRepository userRepository,
                            ConversionService conversionService,
                            ISenderInfoService senderInfoService,
                            PasswordEncoder passwordEncoder,
-                           JwtTokenHandler jwtTokenHandler) {
+                           UserHolder userHolder, JwtTokenHandler jwtTokenHandler) {
         this.userRepository = userRepository;
         this.conversionService = conversionService;
         this.senderInfoService = senderInfoService;
         this.passwordEncoder = passwordEncoder;
+        this.userHolder = userHolder;
         this.jwtTokenHandler = jwtTokenHandler;
     }
 
@@ -65,16 +69,16 @@ public class UserServiceImpl implements IUserService {
 
         encryptUserCreateDTOPassword(userCreateDTO);
 
-        User toRegister = conversionService.convert(
+        User toSave = conversionService.convert(
                 userCreateDTO, User.class
         );
-        toRegister.setUuid(UUID.randomUUID());
+        toSave.setUuid(UUID.randomUUID());
 
         User save;
 
 
         try {
-            save = userRepository.save(toRegister);
+            save = userRepository.save(toSave);
         } catch (Exception e) {
 
             StructuredException structuredException = new StructuredException();
@@ -86,8 +90,51 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
-        senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_CREATED_MESSAGE, Type.USER, save.getUuid().toString());
+        try {
 
+            senderInfoService.sendAudit(
+                    getUserFromCurrentSecurityContext()
+                    , ISenderInfoService.AuditMessages.USER_CREATED_MESSAGE, Type.USER, save.getUuid().toString());
+        } catch (UsernameNotFoundException ignored) {
+
+        }
+
+
+    }
+
+    @Override
+    public void save(@Valid UserRegistrationDTO userRegistrationDTO) {
+        User toSave = conversionService.convert(userRegistrationDTO, User.class);
+        toSave.setPassword(
+                passwordEncoder.encode(
+                        userRegistrationDTO.getPassword()
+                )
+        );
+        toSave.setRole(UserRole.USER);
+        toSave.setStatus(UserStatus.WAITING_ACTIVATION);
+        toSave.setUuid(UUID.randomUUID());
+
+        try {
+            toSave = userRepository.save(toSave);
+        } catch (Exception e) {
+
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+        }
+
+
+    }
+
+    @Override
+    public User getUserFromCurrentSecurityContext() {
+        return getUserById(
+                UUID.fromString(userHolder.getUser().getUsername())
+        );
     }
 
 
@@ -141,7 +188,10 @@ public class UserServiceImpl implements IUserService {
 
         if (!toUpdate.equals(copyBeforeSaving)) {
 
-            senderInfoService.sendAudit(dummyUser, ISenderInfoService.AuditMessages.USER_UPDATED_MESSAGE, Type.USER,
+
+            senderInfoService.sendAudit(
+                    getUserFromCurrentSecurityContext()
+                    , ISenderInfoService.AuditMessages.USER_UPDATED_MESSAGE, Type.USER,
                     toUpdate.getUuid().toString());
         }
 

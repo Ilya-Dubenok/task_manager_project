@@ -40,7 +40,7 @@ public class AuthenticationServiceImplTest {
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
 
-    @Autowired
+    @SpyBean
     private IUserService userService;
 
     @SpyBean
@@ -64,6 +64,9 @@ public class AuthenticationServiceImplTest {
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void justPractice() {
+
+
+        doReturn(null).when(userService).getUserFromCurrentSecurityContext();
 
 
         Assertions.assertDoesNotThrow(() -> authenticationService.registerUser(
@@ -112,6 +115,8 @@ public class AuthenticationServiceImplTest {
 
         userRegistrationDTO.setPassword("123456");
 
+        doReturn(null).when(userService).getUserFromCurrentSecurityContext();
+
         Assertions.assertDoesNotThrow(() -> {
             authenticationService.registerUser(userRegistrationDTO);
         });
@@ -125,6 +130,9 @@ public class AuthenticationServiceImplTest {
         UserRegistrationDTO userRegistrationDTO = new UserRegistrationDTO(
                 "first@gmail.com", "fio", "password"
         );
+
+        doReturn(null).when(userService).getUserFromCurrentSecurityContext();
+
 
         Assertions.assertDoesNotThrow(
                 () -> authenticationService.registerUser(

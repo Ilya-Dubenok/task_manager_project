@@ -2,7 +2,6 @@ package org.example.service;
 
 import jakarta.validation.Valid;
 import org.example.config.property.ApplicationProperties;
-import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
@@ -13,7 +12,6 @@ import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IAuthenticationService;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -29,8 +27,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     private final IUserService userService;
 
     private final IVerificationInfoRepository verificationInfoRepository;
-
-    private final ConversionService conversionService;
 
     private final ISenderInfoService senderInfoService;
 
@@ -49,12 +45,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     public AuthenticationServiceImpl(IUserService userService,
                                      IVerificationInfoRepository verificationInfoRepository,
-                                     ConversionService conversionService,
                                      ISenderInfoService senderInfoService,
                                      ApplicationProperties properties) {
         this.userService = userService;
         this.verificationInfoRepository = verificationInfoRepository;
-        this.conversionService = conversionService;
         this.senderInfoService = senderInfoService;
         this.properties = properties;
         this.DEFAULT_REPLY_TO_URL = getDefaultReplyToUrl(properties);
@@ -66,12 +60,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         String mail = userRegistrationDTO.getMail();
 
-
-        UserCreateDTO dto = conversionService.convert(userRegistrationDTO, UserCreateDTO.class);
-
         Integer verificationCode;
 
-        userService.save(dto);
+        userService.save(userRegistrationDTO);
+
         try {
             verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 10);
 

@@ -53,6 +53,7 @@ services:
   user-service:
     depends_on:
     - db
+    - kafka
     build: user-service
     image: taskmanager_user-service:1.0.0
     networks:
@@ -69,6 +70,7 @@ services:
   audit-service:
     depends_on:
       - db
+      - kafka
     build: audit-service
     image: taskmanager_audit-service:1.0.0
     networks:
