@@ -7,7 +7,6 @@ import org.example.core.dto.user.UserLoginDTO;
 import org.example.dao.entities.user.User;
 import org.example.service.UserHolder;
 import org.example.service.UserServiceImpl;
-import org.example.utils.jwt.JwtTokenHandler;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -85,7 +84,7 @@ public class UserServlet {
 
         String token = service.loginAndReceiveToken(userLoginDTO);
 
-        return ResponseEntity.status(HttpStatus.OK).header("Bearer ", token).build();
+        return ResponseEntity.status(HttpStatus.OK).header("Bearer", token).build();
 
     }
 

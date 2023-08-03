@@ -16,16 +16,18 @@ import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
@@ -33,6 +35,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -43,7 +47,7 @@ public class UserServiceImplTest {
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
 
-    @Autowired
+    @SpyBean
     private IUserService userService;
 
     @Autowired
@@ -62,7 +66,8 @@ public class UserServiceImplTest {
     private ISenderInfoService senderInfoService;
 
     @BeforeAll
-    public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IUserService userService) {
+    public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired @Qualifier("testWithoutContext")
+                                                                                IUserService userService) {
         clearAndInitSchema(dataSource);
         fillUserTableWithDefaultValues(userService);
     }
@@ -70,6 +75,7 @@ public class UserServiceImplTest {
     @AfterEach
     public void checkForClearance(TestInfo info) {
         Set<String> tags = info.getTags();
+        doReturn(null).when(userService).getUserFromCurrentSecurityContext();
         if (tags.contains(RESTORE_BASE_VALUES_AFTER_TAG)) {
             initWithDefaultValues(dataSource, userService);
         }
@@ -112,6 +118,7 @@ public class UserServiceImplTest {
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void exceptionOnRoleAndStatusIsHandled() {
 
+
         ConstraintViolationException exception = Assertions.assertThrows(
                 ConstraintViolationException.class,
                 () -> userService.save(
@@ -139,6 +146,8 @@ public class UserServiceImplTest {
         UserCreateDTO userCreateDTO = new UserCreateDTO(
                 "new_mail@gmail.com", "new fio", UserRole.ADMIN, UserStatus.DEACTIVATED, "new password"
         );
+
+        doReturn(null).when(userService).getUserFromCurrentSecurityContext();
 
         userService.updateUser(uuid, dt_update, userCreateDTO);
 
@@ -197,8 +206,10 @@ public class UserServiceImplTest {
 
         String mail = "test@mail.ru";
         UserCreateDTO userCreateDTO = new UserCreateDTO(
-                mail,"test",UserRole.USER, UserStatus.WAITING_ACTIVATION,"test1"
+                mail, "test", UserRole.USER, UserStatus.WAITING_ACTIVATION, "test1"
         );
+
+        doReturn(null).when(userService).getUserFromCurrentSecurityContext();
 
         userService.save(userCreateDTO);
 

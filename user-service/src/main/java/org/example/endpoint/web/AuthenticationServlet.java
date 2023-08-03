@@ -36,8 +36,9 @@ public class AuthenticationServlet {
 
     }
 
+    //TODO MOVE TO INTERNAL!
     @PostMapping("/notification")
-    public ResponseEntity<?> setEmailIsDeliveredOnNotToUser(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> setEmailIsDeliveredOrNotToUser(@RequestBody Map<String, Object> body) {
 
         if (body.get("mail") != null && body.get("status") != null) {
             String mail = (String) body.get("mail");

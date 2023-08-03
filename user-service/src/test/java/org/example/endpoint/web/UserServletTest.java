@@ -57,7 +57,7 @@ public class UserServletTest {
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Autowired
-    ConversionService conversionService;
+    private ConversionService conversionService;
 
     @Autowired
     private MappingJackson2HttpMessageConverter converter;
@@ -86,8 +86,8 @@ public class UserServletTest {
 
         resultActions.andExpect(jsonPath("$.number").value(0))
                 .andExpect(jsonPath("$.size").value(20))
-                .andExpect(jsonPath("$.total_pages").value(5))
-                .andExpect(jsonPath("$.total_elements").value(100))
+                .andExpect(jsonPath("$.total_pages").value(2))
+                .andExpect(jsonPath("$.total_elements").value(30))
                 .andExpect(jsonPath("$.first").value(true))
                 .andExpect(jsonPath("$.number_of_elements").value(20))
                 .andExpect(jsonPath("$.last").value(false));
@@ -116,38 +116,8 @@ public class UserServletTest {
 
         resultActions.andExpect(jsonPath("$.number").value(1))
                 .andExpect(jsonPath("$.size").value(20))
-                .andExpect(jsonPath("$.total_pages").value(5))
-                .andExpect(jsonPath("$.total_elements").value(100))
-                .andExpect(jsonPath("$.first").value(false))
-                .andExpect(jsonPath("$.number_of_elements").value(20))
-                .andExpect(jsonPath("$.last").value(false));
-
-        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
-
-        JSONObject object = new JSONObject(contentAsString);
-
-        JSONArray content = object.getJSONArray("content");
-
-        Assertions.assertEquals(20, content.length());
-
-
-    }
-
-
-    @Test
-    public void getPagesOfUsersWithProvidedPageAndSize() throws Exception {
-
-        ResultActions resultActions = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=6&size=15"))
-                )
-                .andExpect(
-                        status().isOk()
-                );
-
-        resultActions.andExpect(jsonPath("$.number").value(6))
-                .andExpect(jsonPath("$.size").value(15))
-                .andExpect(jsonPath("$.total_pages").value(7))
-                .andExpect(jsonPath("$.total_elements").value(100))
+                .andExpect(jsonPath("$.total_pages").value(2))
+                .andExpect(jsonPath("$.total_elements").value(30))
                 .andExpect(jsonPath("$.first").value(false))
                 .andExpect(jsonPath("$.number_of_elements").value(10))
                 .andExpect(jsonPath("$.last").value(true));
@@ -159,6 +129,36 @@ public class UserServletTest {
         JSONArray content = object.getJSONArray("content");
 
         Assertions.assertEquals(10, content.length());
+
+
+    }
+
+
+    @Test
+    public void getPagesOfUsersWithProvidedPageAndSize() throws Exception {
+
+        ResultActions resultActions = this.mockMvc.perform(
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=1&size=15"))
+                )
+                .andExpect(
+                        status().isOk()
+                );
+
+        resultActions.andExpect(jsonPath("$.number").value(1))
+                .andExpect(jsonPath("$.size").value(15))
+                .andExpect(jsonPath("$.total_pages").value(2))
+                .andExpect(jsonPath("$.total_elements").value(30))
+                .andExpect(jsonPath("$.first").value(false))
+                .andExpect(jsonPath("$.number_of_elements").value(15))
+                .andExpect(jsonPath("$.last").value(true));
+
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+
+        JSONObject object = new JSONObject(contentAsString);
+
+        JSONArray content = object.getJSONArray("content");
+
+        Assertions.assertEquals(15, content.length());
 
     }
 
@@ -340,7 +340,7 @@ public class UserServletTest {
                 )
                 .collect(Collectors.toSet());
 
-        Assertions.assertEquals(100, finalContent.size());
+        Assertions.assertEquals(30, finalContent.size());
 
 
     }
@@ -406,7 +406,7 @@ public class UserServletTest {
                         postAdminLogin
                 ));
 
-        return perform.andReturn().getResponse().getHeader("Bearer ");
+        return perform.andReturn().getResponse().getHeader("Bearer");
     }
 
     private String getUserToken() throws Exception {
@@ -422,7 +422,7 @@ public class UserServletTest {
                         postAdminLogin
                 ));
 
-        return perform.andReturn().getResponse().getHeader("Bearer ");
+        return perform.andReturn().getResponse().getHeader("Bearer");
     }
 
 
@@ -440,7 +440,7 @@ public class UserServletTest {
 
 
     private static void fillWithDefaultValues(IUserRepository userRepository, PasswordEncoder encoder) {
-        Stream.iterate(1, x -> x + 1).limit(99)
+        Stream.iterate(1, x -> x + 1).limit(29)
                 .map(
                         x -> new User(
                                 UUID.randomUUID(),
