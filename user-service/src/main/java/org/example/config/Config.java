@@ -3,7 +3,6 @@ package org.example.config;
 
 import org.example.config.property.ApplicationProperties;
 import org.example.config.property.JWTProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.core.task.TaskExecutor;

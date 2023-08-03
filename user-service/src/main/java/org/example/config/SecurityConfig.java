@@ -46,6 +46,7 @@ public class SecurityConfig {
         // Set permissions on endpoints
         http.authorizeHttpRequests(requests -> requests
                 // Our public endpoints
+                .requestMatchers("/internal/**").permitAll()
                 .requestMatchers("/api/v1/users/registration").permitAll()
                 .requestMatchers("/api/v1/users/verification").permitAll()
                 .requestMatchers("/api/v1/users/login/**").permitAll()

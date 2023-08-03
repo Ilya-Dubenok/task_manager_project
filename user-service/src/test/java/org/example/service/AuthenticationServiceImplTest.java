@@ -191,7 +191,6 @@ public class AuthenticationServiceImplTest {
         Set<String> tags = info.getTags();
         if (tags.contains(RESTORE_BASE_VALUES_AFTER_TAG)) {
             initWithDefaultValues(dataSource);
-            fillWithDefaultValues();
         }
 
     }

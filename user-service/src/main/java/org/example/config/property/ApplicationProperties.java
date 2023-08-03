@@ -57,6 +57,8 @@ public class ApplicationProperties {
 
             private String appendix;
 
+            private String internalAppendix;
+
             public String getAddress() {
                 return address;
             }
@@ -81,6 +83,13 @@ public class ApplicationProperties {
                 this.appendix = appendix;
             }
 
+            public String getInternalAppendix() {
+                return internalAppendix;
+            }
+
+            public void setInternalAppendix(String internalAppendix) {
+                this.internalAppendix = internalAppendix;
+            }
         }
 
         public static class AuditService{

@@ -3,8 +3,6 @@ package org.example.utils.converters;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.dao.entities.user.User;
-import org.example.dao.entities.user.UserRole;
-import org.example.dao.entities.user.UserStatus;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.stereotype.Component;
