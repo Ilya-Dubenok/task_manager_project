@@ -1,6 +1,5 @@
 package org.example.service;
 
-import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.service.api.IAuditSenderKafkaClient;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;

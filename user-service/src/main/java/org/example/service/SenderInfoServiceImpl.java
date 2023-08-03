@@ -80,7 +80,6 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
     @Override
     public void sendEmailAssignment(String to, String subject, String message) {
         try {
-            //TODO TEST IT!
             notificationServiceFeignClient.sendEmail(NOTIFICATION_SERVICE_URL, new EmailDTO(
                     to, subject, message,
                     null));
@@ -95,7 +94,6 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
     @Override
     public void sendEmailAssignmentWithReply(String to, String subject, String message, URI replyTo) {
         try {
-            //TODO TEST IT!
             notificationServiceFeignClient.sendEmail(NOTIFICATION_SERVICE_URL, new EmailDTO(
                     to, subject, message,
                     replyTo));

@@ -34,12 +34,6 @@ public class SendEmailController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping(value = "/from_user_service")
-    public ResponseEntity<?> postEmailWithFeedback(@RequestBody SimpleEmailTemplateDTO simpleEmailTemplateDTO) {
 
-//        this.emailService.sendMessage(simpleEmailTemplateDTO);
-
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
 
 }

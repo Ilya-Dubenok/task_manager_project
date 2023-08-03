@@ -44,6 +44,7 @@ app:
       address: localhost:8080
       host: localhost
       appendix: /user_service/api/v1/users
+      internal_appendix: /user_service/internal
     audit_service:
       address: localhost:81
       host: localhost:81

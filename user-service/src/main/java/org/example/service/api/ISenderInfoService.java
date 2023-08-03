@@ -1,11 +1,7 @@
 package org.example.service.api;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.core.dto.audit.Type;
 import org.example.dao.entities.user.User;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.scheduling.annotation.Async;
 
 import java.net.URI;

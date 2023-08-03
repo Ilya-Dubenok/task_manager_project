@@ -181,12 +181,12 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
             USER_SERVICE_URL = URI.create(
 
-                    prefix + userServiceProp.getHost() + userServiceProp.getAppendix() + "/notification"
+                    prefix + userServiceProp.getHost() + userServiceProp.getInternalAppendix() + "/notification"
             );
         } else {
 
             USER_SERVICE_URL = URI.create(
-                    prefix + userServiceProp.getAddress() + userServiceProp.getAppendix() + "/notification"
+                    prefix + userServiceProp.getAddress() + userServiceProp.getInternalAppendix() + "/notification"
             );
         }
         return USER_SERVICE_URL;
