@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @ControllerAdvice
@@ -47,7 +48,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleConflict(ConstraintViolationException e, WebRequest request) {
 
 
-       StructuredExceptionDTO structuredExceptionDTO = parseConstraintViolationException(e);
+        StructuredExceptionDTO structuredExceptionDTO = parseConstraintViolationException(e);
 
         return new ResponseEntity<>(structuredExceptionDTO, HttpStatus.BAD_REQUEST);
     }
@@ -60,10 +61,16 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    //TODO write for "code"/"mail" missing params in users/verification request
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        return super.handleMissingServletRequestParameter(ex, headers, status, request);
+        String parameterName = ex.getParameterName();
+
+        return new ResponseEntity<>(
+                new StructuredExceptionDTO(
+                        new StructuredException(parameterName, "не указан в качестве параметра")
+                ), HttpStatus.BAD_REQUEST
+        );
+
     }
 
     @Override
@@ -74,7 +81,9 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         if (Objects.equals(propertyName, "uuid") ||
                 Objects.equals(propertyName, "page") ||
                 Objects.equals(propertyName, "size") ||
-                Objects.equals(propertyName, "dt_update")
+                Objects.equals(propertyName, "dt_update") ||
+                Objects.equals(propertyName, "code") ||
+                Objects.equals(propertyName, "mail")
         ) {
             structuredException.put(
                     propertyName, String.format(MESSAGE_FOR_INVALID_PROPERTY, propertyName)
@@ -127,7 +136,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
         }
 
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,node.getName());
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, node.getName());
 
 
     }

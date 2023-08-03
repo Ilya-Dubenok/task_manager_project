@@ -362,6 +362,43 @@ public class UserServletTest {
 
     }
 
+    @Test
+    public void missingRequestParamCodeVerificationRequestTest() throws Exception {
+
+        this.mockMvc.perform(
+                get("/api/v1/users/verification")
+        ).andDo(print())
+                .andExpect(jsonPath("$.logref").value("structured_error"))
+                .andExpect(jsonPath("$.errors[0].field").value("code"));
+
+    }
+
+    @Test
+    public void missingRequestParamMailVerificationRequestTest() throws Exception {
+
+        this.mockMvc.perform(
+                get("/api/v1/users/verification").param("code","555333")
+        ).andDo(print())
+                .andExpect(jsonPath("$.logref").value("structured_error"))
+                .andExpect(jsonPath("$.errors[0].field").value("mail"));
+
+    }
+
+    @Test
+    public void malformedCodeVerificationRequestTest() throws Exception {
+
+        this.mockMvc.perform(
+                get("/api/v1/users/verification")
+                        .param("code", "4564ff2")
+                )
+                .andDo(print())
+                .andExpect(jsonPath("$.logref").value("structured_error"))
+                .andExpect(jsonPath("$.errors[0].field").value("code"));
+
+
+    }
+
+
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IUserRepository userRepository, @Autowired PasswordEncoder passwordEncoder) {
@@ -374,7 +411,6 @@ public class UserServletTest {
         Set<String> tags = info.getTags();
         if (tags.contains(RESTORE_BASE_VALUES_AFTER_TAG)) {
             initWithDefaultValues(dataSource, userRepository, encoder);
-            fillWithDefaultValues(userRepository, encoder);
         }
 
     }

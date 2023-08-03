@@ -115,7 +115,6 @@ public class UserServiceImplTest {
     }
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void exceptionOnRoleAndStatusIsHandled() {
 
 
