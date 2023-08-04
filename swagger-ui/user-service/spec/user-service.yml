@@ -159,8 +159,6 @@ paths:
           description: "Пользователь зарегистрирован"
         '400':
           $ref: '#/components/responses/Bad_Request'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/Internal_Server_Error'
   /api/v1/users/verification:
@@ -186,8 +184,6 @@ paths:
           description: "Пользователь верифицирован"
         '400':
           $ref: '#/components/responses/Bad_Request'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/Internal_Server_Error'
   /api/v1/users/login:
@@ -202,8 +198,6 @@ paths:
           description: "Вход выполнен"
         '400':
           $ref: '#/components/responses/Bad_Request'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/Internal_Server_Error'
   /api/v1/users/me:
