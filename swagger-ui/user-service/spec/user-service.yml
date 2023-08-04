@@ -138,7 +138,7 @@ paths:
         $ref: "#/components/requestBodies/CreateUser"
       responses:
         '200':
-          description: "Счёт обновлён"
+          description: "Пользователь обновлён"
         '400':
           $ref: '#/components/responses/Bad_Request'
         '401':
