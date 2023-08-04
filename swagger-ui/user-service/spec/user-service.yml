@@ -30,7 +30,7 @@ paths:
         - "Пользователи"
       summary: "Добавление нового пользователя"
       security:
-        - bearerAuth: [ROLE_ADMIN]
+        - bearerAuth: [ADMIN]
       requestBody:
         $ref: "#/components/requestBodies/CreateUser"
       responses:
@@ -49,7 +49,7 @@ paths:
         - "Пользователи"
       summary: "Получить страницу пользователей"
       security:
-        - bearerAuth: [ROLE_ADMIN]
+        - bearerAuth: [ADMIN]
       parameters:
         - in: query
           name: page
@@ -88,7 +88,7 @@ paths:
         - "Пользователи"
       summary: "Получить информацию о пользователе"
       security:
-        - bearerAuth: [ROLE_ADMIN]
+        - bearerAuth: [ADMIN]
       parameters:
         - in: path
           name: uuid
@@ -118,7 +118,7 @@ paths:
         - "Пользователи"
       summary: "Редактировать информацию о пользователе"
       security:
-        - bearerAuth: [ROLE_ADMIN]
+        - bearerAuth: [ADMIN]
       parameters:
         - in: path
           name: uuid
