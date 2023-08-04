@@ -296,9 +296,11 @@ components:
         Роль пользователя:
           * `ADMIN` - Администратор
           * `USER` - Пользователь
+          * `MANAGER` - Менеджер
       enum:
         - "ADMIN"
         - "USER"
+        - "MANAGER"
     UserStatus:
       type: string
       description: |
