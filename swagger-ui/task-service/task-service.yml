@@ -330,8 +330,6 @@ paths:
           schema:
             $ref: '#/components/schemas/TaskStatus'
           description: "На какой статус изменить"
-      requestBody:
-        $ref: "#/components/requestBodies/CreateTask"
       responses:
         '200':
           description: "Задача обновлена"
