@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -131,14 +132,14 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public User getUserFromCurrentSecurityContext() {
-        return getUserById(
+        return getByUUID(
                 UUID.fromString(userHolder.getUser().getUsername())
         );
     }
 
 
     @Override
-    public User getUserById(UUID uuid) {
+    public User getByUUID(UUID uuid) {
         return userRepository.findById(
                 uuid
         ).orElseThrow(
@@ -146,9 +147,26 @@ public class UserServiceImpl implements IUserService {
         );
     }
 
+    @Override
+    public List<User> getList(List<UUID> uuids) {
+
+        if (uuids == null || uuids.contains(null)) {
+            throw new GeneralException("Переданы неверные данные для поиска");
+        }
+
+        try {
+
+             return userRepository.findAllById(uuids);
+
+        } catch (Exception e) {
+            throw new GeneralException("Произошла ошибка при поиске");
+        }
+
+
+    }
 
     @Override
-    public void updateUser(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO) {
+    public void update(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO) {
 
         User toUpdate = userRepository.findById(uuid).orElseThrow(
                 () -> new GeneralException(
@@ -199,7 +217,7 @@ public class UserServiceImpl implements IUserService {
 
 
     @Override
-    public Page<User> getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage) {
+    public Page<User> getPage(Integer currentRequestedPage, Integer rowsPerPage) {
 
         StructuredException exception = new StructuredException();
 

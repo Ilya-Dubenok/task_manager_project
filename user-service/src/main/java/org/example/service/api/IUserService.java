@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public interface IUserService {
@@ -19,11 +20,14 @@ public interface IUserService {
     void save(@Valid UserRegistrationDTO userRegistrationDTO);
 
 
-    User getUserById(UUID uuid);
+    User getByUUID(UUID uuid);
 
-    void updateUser(UUID uuid, LocalDateTime dt_update,@Valid UserCreateDTO userCreateDTO);
+    List<User> getList(List<UUID> uuids);
 
-    Page<User> getPageOfUsers(Integer currentRequestedPage, Integer rowsPerPage);
+
+    void update(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO);
+
+    Page<User> getPage(Integer currentRequestedPage, Integer rowsPerPage);
 
     int setUserActiveByEmail(String email);
 

@@ -1,8 +1,10 @@
 package org.example.endpoint.web;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.example.core.dto.user.UserCreateDTO;
+import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserLoginDTO;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
@@ -108,7 +110,7 @@ public class UserServletTest {
     public void getPagesOfUsersWithProvidedPage() throws Exception {
 
         ResultActions resultActions = this.mockMvc.perform(
-                getMockRequestWithAdminAuthorization(get("/api/v1/users?page=1"))
+                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=1"))
                 )
                 .andExpect(
                         status().isOk()
@@ -168,7 +170,7 @@ public class UserServletTest {
 
         ResultActions resultActions = this.mockMvc.perform(
                         getMockRequestWithAdminAuthorization(get("/api/v1/users?page=blablabla&size=15"))
-                        .characterEncoding("UTF-8"))
+                                .characterEncoding("UTF-8"))
                 .andDo(print())
                 .andExpect(
                         status().is(400)
@@ -366,8 +368,8 @@ public class UserServletTest {
     public void missingRequestParamCodeVerificationRequestTest() throws Exception {
 
         this.mockMvc.perform(
-                get("/api/v1/users/verification")
-        ).andDo(print())
+                        get("/api/v1/users/verification")
+                ).andDo(print())
                 .andExpect(jsonPath("$.logref").value("structured_error"))
                 .andExpect(jsonPath("$.errors[0].field").value("code"));
 
@@ -377,8 +379,8 @@ public class UserServletTest {
     public void missingRequestParamMailVerificationRequestTest() throws Exception {
 
         this.mockMvc.perform(
-                get("/api/v1/users/verification").param("code","555333")
-        ).andDo(print())
+                        get("/api/v1/users/verification").param("code", "555333")
+                ).andDo(print())
                 .andExpect(jsonPath("$.logref").value("structured_error"))
                 .andExpect(jsonPath("$.errors[0].field").value("mail"));
 
@@ -388,8 +390,8 @@ public class UserServletTest {
     public void malformedCodeVerificationRequestTest() throws Exception {
 
         this.mockMvc.perform(
-                get("/api/v1/users/verification")
-                        .param("code", "4564ff2")
+                        get("/api/v1/users/verification")
+                                .param("code", "4564ff2")
                 )
                 .andDo(print())
                 .andExpect(jsonPath("$.logref").value("structured_error"))
@@ -398,6 +400,84 @@ public class UserServletTest {
 
     }
 
+    @Test
+    public void getUserByInternalRequestWithRandomUuidThrows400() throws Exception {
+        this.mockMvc.perform(
+                        get("/internal/user/" + UUID.randomUUID())
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.logref").value("error"));
+
+    }
+
+    @Test
+    public void getUserByInternalRequestWithExistingUuidReturns() throws Exception {
+        User byMail = this.userRepository.findByMail("admin@gmail.com");
+
+        UUID uuid = byMail.getUuid();
+
+
+        String contentAsString = this.mockMvc.perform(
+                        get("/internal/user/" + uuid)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        UserDTO userDTO = converter.getObjectMapper().readValue(
+                contentAsString, UserDTO.class
+        );
+
+        Assertions.assertEquals(
+                uuid, userDTO.getUuid()
+        );
+
+    }
+
+
+    @Test
+    public void getListOfUsersReturns() throws Exception {
+
+        List<User> users = userRepository.findAll();
+
+        User user0 = users.get(0);
+        User user1 = users.get(1);
+        User user2 = users.get(2);
+
+        List<UUID> uuids = List.of(
+                user0.getUuid(),
+                user1.getUuid(),
+                user2.getUuid()
+        );
+
+        ObjectMapper objectMapper = converter.getObjectMapper();
+        String contentAsString = this.mockMvc.perform(
+                        get("/internal/user")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(uuids)
+                                )
+
+                )
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<UserDTO> resultList = objectMapper.readValue(
+                contentAsString, objectMapper.getTypeFactory().constructCollectionType(List.class, UserDTO.class)
+        );
+
+        Assertions.assertEquals(3, resultList.size());
+
+        long countOfNotMatchingElements = resultList.stream()
+                .map(UserDTO::getUuid)
+                .filter(uuid -> !uuids.contains(uuid))
+                .count();
+
+        Assertions.assertEquals(0, countOfNotMatchingElements);
+
+
+    }
 
 
     @BeforeAll
@@ -416,14 +496,13 @@ public class UserServletTest {
     }
 
 
-
-    private  MockHttpServletRequestBuilder getMockRequestWithAdminAuthorization(MockHttpServletRequestBuilder mockHttpServletRequestBuilder) throws Exception {
+    private MockHttpServletRequestBuilder getMockRequestWithAdminAuthorization(MockHttpServletRequestBuilder mockHttpServletRequestBuilder) throws Exception {
         return mockHttpServletRequestBuilder.header(
                 "Authorization", "Bearer " + getAdminToken()
         );
     }
 
-    private  MockHttpServletRequestBuilder getMockRequestWithUserAuthorization(MockHttpServletRequestBuilder mockHttpServletRequestBuilder) throws Exception {
+    private MockHttpServletRequestBuilder getMockRequestWithUserAuthorization(MockHttpServletRequestBuilder mockHttpServletRequestBuilder) throws Exception {
         return mockHttpServletRequestBuilder.header(
                 "Authorization", "Bearer " + getUserToken()
         );
@@ -471,8 +550,6 @@ public class UserServletTest {
         );
         databasePopulator.execute(dataSource);
     }
-
-
 
 
     private static void fillWithDefaultValues(IUserRepository userRepository, PasswordEncoder encoder) {
