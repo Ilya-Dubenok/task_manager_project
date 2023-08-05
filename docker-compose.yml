@@ -80,6 +80,8 @@ services:
       spring.datasource.username: root
       spring.datasource.password: root
       spring.kafka.bootstrap-servers: kafka:9092
+      app.network.user_service.address: user-service:8080
+
 
 
   notification-service:

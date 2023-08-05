@@ -31,16 +31,9 @@ public class AuditController {
         this.conversionService = conversionService;
     }
 
-    @PostMapping
-    public ResponseEntity<?> createAudit(@RequestBody AuditCreateDTO auditCreateDTO) {
-        auditService.save(auditCreateDTO);
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
-
-    }
 
     @GetMapping(value = "/{uuid}")
-    public ResponseEntity<AuditDTO> getUserByUuid(@PathVariable UUID uuid) {
+    public ResponseEntity<AuditDTO> getAuditByUuid(@PathVariable UUID uuid) {
 
         Audit audit = auditService.getAuditById(uuid);
         AuditDTO dto = conversionService.convert(audit, AuditDTO.class);
