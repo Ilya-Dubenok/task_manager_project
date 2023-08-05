@@ -39,8 +39,6 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-//@DirtiesContext
-//@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
 public class UserServiceImplTest {
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
