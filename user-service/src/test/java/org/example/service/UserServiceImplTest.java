@@ -129,9 +129,33 @@ public class UserServiceImplTest {
     }
 
     @Test
+    public void findAll() {
+
+        List<User> all = repository.findAll();
+
+        List<UUID> uuidList = all.stream()
+                .map(User::getUuid)
+                .toList();
+
+        List<User> users = userService.getList(uuidList);
+
+        Assertions.assertEquals(
+                all.size(), users.size()
+        );
+
+        long notMatchingUsersCount = all.stream().filter(
+                x -> !users.contains(x)
+        ).count();
+
+        Assertions.assertEquals(0, notMatchingUsersCount);
+
+
+    }
+
+    @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void updateUser() {
-        User user = repository.findAll().iterator().next();
+        User user = repository.findAll().get(0);
         UserDTO userDTO = conversionService.convert(user, UserDTO.class);
 
         UUID uuid = userDTO.getUuid();
@@ -147,7 +171,7 @@ public class UserServiceImplTest {
 
         doReturn(null).when(userService).getUserFromCurrentSecurityContext();
 
-        userService.updateUser(uuid, dt_update, userCreateDTO);
+        userService.update(uuid, dt_update, userCreateDTO);
 
         List<User> resultList;
 
@@ -194,7 +218,7 @@ public class UserServiceImplTest {
         UUID uuid = user.getUuid();
 
         Assertions.assertThrows(StructuredException.class,
-                () -> userService.updateUser(uuid, user.getDtUpdate(), userCreateDTO));
+                () -> userService.update(uuid, user.getDtUpdate(), userCreateDTO));
 
     }
 

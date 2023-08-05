@@ -27,7 +27,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         } catch (Exception e) {
             throw new UsernameNotFoundException("passed uuid is malformed");
         }
-        User userById = userService.getUserById(
+        User userById = userService.getByUUID(
                 parsedUUID
         );
 
