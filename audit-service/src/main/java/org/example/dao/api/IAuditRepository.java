@@ -1,7 +1,7 @@
 package org.example.dao.api;
 
 import org.example.dao.entities.audit.Audit;
-import org.example.dao.entities.user.UserRole;
+import org.example.core.dto.user.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;

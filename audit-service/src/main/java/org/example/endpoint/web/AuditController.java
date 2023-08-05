@@ -1,9 +1,9 @@
 package org.example.endpoint.web;
 
 
-import org.example.core.dto.AuditCreateDTO;
-import org.example.core.dto.AuditDTO;
-import org.example.core.dto.PageOfTypeDTO;
+import org.example.core.dto.audit.AuditCreateDTO;
+import org.example.core.dto.audit.AuditDTO;
+import org.example.core.dto.audit.PageOfTypeDTO;
 import org.example.dao.entities.audit.Audit;
 import org.example.service.api.IAuditService;
 import org.springframework.core.ResolvableType;

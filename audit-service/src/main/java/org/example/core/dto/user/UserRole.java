@@ -1,4 +1,4 @@
-package org.example.dao.entities.user;
+package org.example.core.dto.user;
 
 public enum UserRole {
 

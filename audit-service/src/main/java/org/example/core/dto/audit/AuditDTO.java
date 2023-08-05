@@ -1,7 +1,7 @@
-package org.example.core.dto;
+package org.example.core.dto.audit;
 
 import org.example.dao.entities.audit.Type;
-import org.example.dao.entities.user.User;
+import org.example.core.dto.user.UserAuditDTO;
 
 import java.util.UUID;
 
@@ -11,7 +11,7 @@ public class AuditDTO {
 
     private Long dtCreate;
 
-    private User user;
+    private UserAuditDTO user;
 
     private String text;
 
@@ -22,7 +22,7 @@ public class AuditDTO {
     public AuditDTO() {
     }
 
-    public AuditDTO(UUID uuid, Long dtCreate, User user, String text, Type type, String id) {
+    public AuditDTO(UUID uuid, Long dtCreate, UserAuditDTO user, String text, Type type, String id) {
         this.uuid = uuid;
         this.dtCreate = dtCreate;
         this.user = user;
@@ -47,11 +47,11 @@ public class AuditDTO {
         this.dtCreate = dtCreate;
     }
 
-    public User getUser() {
+    public UserAuditDTO getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(UserAuditDTO user) {
         this.user = user;
     }
 

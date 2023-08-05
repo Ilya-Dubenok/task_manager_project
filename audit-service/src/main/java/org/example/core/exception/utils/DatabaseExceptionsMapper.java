@@ -2,7 +2,6 @@ package org.example.core.exception.utils;
 
 import org.example.core.exception.StructuredException;
 import org.example.dao.entities.audit.Audit;
-import org.example.dao.entities.user.User;
 import org.hibernate.PropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
 

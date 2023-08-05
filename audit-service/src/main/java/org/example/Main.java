@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaAuditing
 @EnableConfigurationProperties
 @SpringBootApplication
+@EnableFeignClients
 public class Main {
 
     public static void main(String[] args) throws JsonProcessingException, InterruptedException {
