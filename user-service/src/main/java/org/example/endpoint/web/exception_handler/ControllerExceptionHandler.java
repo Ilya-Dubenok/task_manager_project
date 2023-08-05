@@ -22,7 +22,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @ControllerAdvice
@@ -30,22 +29,26 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final String MESSAGE_FOR_INVALID_PROPERTY =
             "%s не может быть распознан";
+    private static final String MESSAGE_FOR_UNDEFINED_EXCEPTION = "Внутренняя ошибка сервера. Сервер не смог корректно обработать запрос";
+
+    private static final String MESSAGE_FOR_INVALID_INPUT_DATA = "Запрос содержит некорректные данные " +
+            "или необходимые данные отсутствуют. Измените запрос и отправьте его снова";
 
     @ExceptionHandler(value = StructuredException.class)
-    protected ResponseEntity<Object> handleConflict(StructuredException e, WebRequest request) {
+    protected ResponseEntity<Object> handleStructuredException(StructuredException e, WebRequest request) {
         StructuredExceptionDTO dto = new StructuredExceptionDTO(e);
         return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = GeneralException.class)
-    protected ResponseEntity<Object> handleConflict(GeneralException e, WebRequest request) {
-        GeneralExceptionDTO dto = new GeneralExceptionDTO();
-        dto.setMessage(e.getMessage());
-        return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
+    protected ResponseEntity<Object> handleGeneralException(GeneralException e, WebRequest request) {
+        GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO();
+        generalExceptionDTO.setMessage(e.getMessage());
+        return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = ConstraintViolationException.class)
-    protected ResponseEntity<Object> handleConflict(ConstraintViolationException e, WebRequest request) {
+    protected ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException e, WebRequest request) {
 
 
         StructuredExceptionDTO structuredExceptionDTO = parseConstraintViolationException(e);
@@ -54,9 +57,10 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = Exception.class)
-    protected ResponseEntity<Object> handleConflict(Exception e, WebRequest request) {
+    public ResponseEntity<Object> handleUndefinedException(Exception e, WebRequest request) {
+
         GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(
-                new GeneralException("Внутренняя ошибка сервера. Сервер не смог корректно обработать запрос", e)
+                new GeneralException(MESSAGE_FOR_UNDEFINED_EXCEPTION, e)
         );
         return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -94,15 +98,14 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
         }
 
-        return new ResponseEntity<>(List.of(new GeneralExceptionDTO("При обработке входных параметров произошла ошибка")),
+        return new ResponseEntity<>(List.of(new GeneralExceptionDTO(MESSAGE_FOR_INVALID_INPUT_DATA)),
                 status);
     }
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
-        GeneralExceptionDTO dto = new GeneralExceptionDTO("Запрос содержит некорректные данные " +
-                "или необходимые данные отсутствуют. Измените запрос и отправьте его снова");
+        GeneralExceptionDTO dto = new GeneralExceptionDTO(MESSAGE_FOR_INVALID_INPUT_DATA);
         return new ResponseEntity<>(List.of(dto), HttpStatus.BAD_REQUEST);
 
     }
