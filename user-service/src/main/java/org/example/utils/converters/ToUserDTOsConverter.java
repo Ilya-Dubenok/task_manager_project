@@ -111,8 +111,6 @@ public class ToUserDTOsConverter<IN, OUT> implements
             res.setFio(userRegistrationDTO.getFio());
             res.setPassword(userRegistrationDTO.getPassword());
             res.setMail(userRegistrationDTO.getMail());
-            res.setRole(UserRole.USER);
-            res.setStatus(UserStatus.WAITING_ACTIVATION);
 
             return res;
 

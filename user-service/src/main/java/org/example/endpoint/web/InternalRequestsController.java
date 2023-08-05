@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/internal")
-public class InternalRequestsServlet {
+public class InternalRequestsController {
 
     private IAuthenticationService service;
 
@@ -26,7 +26,7 @@ public class InternalRequestsServlet {
 
 
 
-    public InternalRequestsServlet(IAuthenticationService service, IUserService userService, ConversionService conversionService) {
+    public InternalRequestsController(IAuthenticationService service, IUserService userService, ConversionService conversionService) {
         this.service = service;
         this.userService = userService;
         this.conversionService = conversionService;

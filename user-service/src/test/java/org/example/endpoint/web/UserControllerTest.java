@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class UserServletTest {
+public class UserControllerTest {
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "modifying";
 
@@ -407,7 +407,7 @@ public class UserServletTest {
                 )
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.logref").value("error"));
+                .andExpect(jsonPath("$[0].logref").value("error"));
 
     }
 

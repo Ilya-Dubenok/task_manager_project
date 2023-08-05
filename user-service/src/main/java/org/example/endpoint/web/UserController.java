@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
-public class UserServlet {
+public class UserController {
 
     private final IUserService userService;
 
@@ -27,7 +27,7 @@ public class UserServlet {
 
     private final UserHolder userHolder;
 
-    public UserServlet(IUserService userService, ConversionService conversionService, UserHolder userHolder) {
+    public UserController(IUserService userService, ConversionService conversionService, UserHolder userHolder) {
         this.userService = userService;
         this.conversionService = conversionService;
         this.userHolder = userHolder;
