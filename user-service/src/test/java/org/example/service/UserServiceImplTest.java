@@ -27,7 +27,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
@@ -66,8 +65,8 @@ public class UserServiceImplTest {
     private ISenderInfoService senderInfoService;
 
     @BeforeAll
-    public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired @Qualifier("testWithoutContext")
-                                                                                IUserService userService) {
+    public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired @Qualifier("testWithoutSecurityContext")
+    IUserService userService) {
         clearAndInitSchema(dataSource);
         fillUserTableWithDefaultValues(userService);
     }
@@ -132,7 +131,7 @@ public class UserServiceImplTest {
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void updateUser() {
-        User user = repository.findAll().get(0);
+        User user = repository.findAll().iterator().next();
         UserDTO userDTO = conversionService.convert(user, UserDTO.class);
 
         UUID uuid = userDTO.getUuid();

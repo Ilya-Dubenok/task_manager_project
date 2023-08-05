@@ -1,6 +1,5 @@
 package org.example.dao.api;
 
-import org.example.dao.entities.verification.EmailStatus;
 import org.example.dao.entities.verification.VerificationInfo;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -8,10 +7,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.UUID;
 
 
-public interface IVerificationInfoRepository extends CrudRepository<VerificationInfo, String> {
+public interface IVerificationInfoRepository extends CrudRepository<VerificationInfo, UUID> {
 
     VerificationInfo findByMail(String mail);
 
@@ -43,16 +42,5 @@ public interface IVerificationInfoRepository extends CrudRepository<Verification
     void setEmailStatus(String status, String mail);
 
 
-    List<VerificationInfo> findByEmailStatusIsAndCountOfAttemptsIsLessThan(EmailStatus status, Integer countOfAttempts);
-
-    @Query(
-            value = "UPDATE verification_info SET " +
-                    "count_of_attempts = count_of_attempts + 1 WHERE " +
-                    "mail = ?1"
-            , nativeQuery = true
-    )
-    @Modifying
-    @Transactional
-    void increaseCountOfFailedAttempts(String mail);
 
 }

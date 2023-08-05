@@ -139,7 +139,7 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public User getUserById(UUID uuid) {
-        return userRepository.findByUuid(
+        return userRepository.findById(
                 uuid
         ).orElseThrow(
                 () -> new GeneralException("Не найден пользователь по такому uuid")
@@ -150,7 +150,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public void updateUser(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO) {
 
-        User toUpdate = userRepository.findByUuid(uuid).orElseThrow(
+        User toUpdate = userRepository.findById(uuid).orElseThrow(
                 () -> new GeneralException(
                         "Не найден пользователь с таким uuid"
                 )

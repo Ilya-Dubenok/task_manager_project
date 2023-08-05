@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 
-@Service("testWithoutContext")
+@Service("testWithoutSecurityContext")
 public class UserServiceTestImpl extends UserServiceImpl{
     public UserServiceTestImpl(IUserRepository userRepository, ConversionService conversionService, ISenderInfoService senderInfoService, PasswordEncoder passwordEncoder, UserHolder userHolder, JwtTokenHandler jwtTokenHandler) {
         super(userRepository, conversionService, senderInfoService, passwordEncoder, userHolder, jwtTokenHandler);
