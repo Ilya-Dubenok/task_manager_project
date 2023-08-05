@@ -2,7 +2,7 @@ package org.example.service;
 
 
 import jakarta.validation.Valid;
-import org.example.core.dto.AuditCreateDTO;
+import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;

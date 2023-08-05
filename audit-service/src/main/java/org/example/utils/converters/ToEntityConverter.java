@@ -1,6 +1,6 @@
 package org.example.utils.converters;
 
-import org.example.core.dto.AuditCreateDTO;
+import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.dao.entities.audit.Audit;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;

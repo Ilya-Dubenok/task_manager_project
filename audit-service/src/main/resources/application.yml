@@ -39,7 +39,15 @@ server:
       force: true
 app:
   network:
-    host: localhost
+    user_service:
+      address: localhost:8080
+      host: localhost
+      appendix: /user_service/api/v1/users
+      internal_appendix: /user_service/internal
+
+jwt:
+  secret: ucHYIsBgrm/XpThkkMBk4uaEl/8Es4VXSM85QcopGhk=
+  issuer: Ilya
 
 
 

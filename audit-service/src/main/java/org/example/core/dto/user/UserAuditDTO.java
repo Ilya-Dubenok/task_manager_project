@@ -1,15 +1,11 @@
-package org.example.dao.entities.user;
+package org.example.core.dto.user;
 
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Embeddable
-public class User {
+public class UserAuditDTO {
     @Column(name = "user_uuid")
     private UUID uuid;
 
@@ -23,14 +19,14 @@ public class User {
     private UserRole role;
 
 
-    public User() {
+    public UserAuditDTO() {
     }
 
-    public User(UUID uuid) {
+    public UserAuditDTO(UUID uuid) {
         this.uuid = uuid;
     }
 
-    public User(UUID uuid, String mail, String fio, UserRole role) {
+    public UserAuditDTO(UUID uuid, String mail, String fio, UserRole role) {
         this.uuid = uuid;
         this.mail = mail;
         this.fio = fio;

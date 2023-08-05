@@ -2,7 +2,7 @@ package org.example.dao.entities.audit;
 
 
 import jakarta.persistence.*;
-import org.example.dao.entities.user.User;
+import org.example.core.dto.user.UserAuditDTO;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -21,7 +21,7 @@ public class Audit {
     private LocalDateTime dtCreate;
 
     @Embedded
-    private User user;
+    private UserAuditDTO user;
 
     private String text;
 
@@ -37,7 +37,7 @@ public class Audit {
         this.uuid = uuid;
     }
 
-    public Audit(UUID uuid, User user, String text, Type type, String id) {
+    public Audit(UUID uuid, UserAuditDTO user, String text, Type type, String id) {
         this.uuid = uuid;
         this.user = user;
         this.text = text;
@@ -62,11 +62,11 @@ public class Audit {
         this.dtCreate = dtCreate;
     }
 
-    public User getUser() {
+    public UserAuditDTO getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(UserAuditDTO user) {
         this.user = user;
     }
 

@@ -1,9 +1,8 @@
 package org.example.utils.converters;
 
-import org.example.core.dto.AuditDTO;
-import org.example.core.dto.PageOfTypeDTO;
+import org.example.core.dto.audit.AuditDTO;
+import org.example.core.dto.audit.PageOfTypeDTO;
 import org.example.dao.entities.audit.Audit;
-import org.example.dao.entities.audit.Type;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.domain.Page;

@@ -3,7 +3,7 @@ package org.example.config.kafka;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.example.core.dto.AuditCreateDTO;
+import org.example.core.dto.audit.AuditCreateDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,7 +43,7 @@ public class KafkaConsumerConfig {
                 JsonDeserializer.USE_TYPE_INFO_HEADERS, "false"
         );
         props.put(
-                JsonDeserializer.VALUE_DEFAULT_TYPE, "org.example.core.dto.AuditCreateDTO"
+                JsonDeserializer.VALUE_DEFAULT_TYPE, "org.example.core.dto.audit.AuditCreateDTO"
         );
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(AuditCreateDTO.class));
     }

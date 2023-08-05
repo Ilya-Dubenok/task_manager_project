@@ -1,6 +1,6 @@
 package org.example.endpoint.kafka;
 
-import org.example.core.dto.AuditCreateDTO;
+import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.service.api.IAuditService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;

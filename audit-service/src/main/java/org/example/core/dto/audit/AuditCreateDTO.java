@@ -1,14 +1,14 @@
-package org.example.core.dto;
+package org.example.core.dto.audit;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.example.dao.entities.audit.Type;
-import org.example.dao.entities.user.User;
+import org.example.core.dto.user.UserAuditDTO;
 
 public class AuditCreateDTO {
 
     @NotNull(message = "поле пользователя не должно быть null")
-    private User user;
+    private UserAuditDTO user;
 
     @NotBlank(message = "текст не должен быть пустым")
     private String text;
@@ -22,18 +22,18 @@ public class AuditCreateDTO {
     public AuditCreateDTO() {
     }
 
-    public AuditCreateDTO(User user, String text, Type type, String id) {
+    public AuditCreateDTO(UserAuditDTO user, String text, Type type, String id) {
         this.user = user;
         this.text = text;
         this.type = type;
         this.id = id;
     }
 
-    public User getUser() {
+    public UserAuditDTO getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(UserAuditDTO user) {
         this.user = user;
     }
 

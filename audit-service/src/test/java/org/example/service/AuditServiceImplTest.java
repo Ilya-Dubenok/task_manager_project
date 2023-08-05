@@ -1,14 +1,14 @@
 package org.example.service;
 
 import jakarta.validation.ConstraintViolationException;
-import org.example.core.dto.AuditCreateDTO;
+import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IAuditRepository;
 import org.example.dao.entities.audit.Audit;
 import org.example.dao.entities.audit.Type;
-import org.example.dao.entities.user.User;
-import org.example.dao.entities.user.UserRole;
+import org.example.core.dto.user.UserAuditDTO;
+import org.example.core.dto.user.UserRole;
 import org.example.service.api.IAuditService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +81,7 @@ public class AuditServiceImplTest {
         createDTO.setText("some");
 
         createDTO.setUser(
-                new User(UUID.randomUUID(), "mail", "fio", UserRole.USER)
+                new UserAuditDTO(UUID.randomUUID(), "mail", "fio", UserRole.USER)
         );
 
         createDTO.setType(Type.USER);
@@ -179,12 +179,12 @@ public class AuditServiceImplTest {
     private static void fillUserTableWithDefaultValues(IAuditRepository repository) {
 
         Stream.of(
-                        new User(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.ADMIN),
-                        new User(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.ADMIN),
-                        new User(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.USER),
-                        new User(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.USER),
-                        new User(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.USER),
-                        new User(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.USER)
+                        new UserAuditDTO(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.ADMIN),
+                        new UserAuditDTO(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.ADMIN),
+                        new UserAuditDTO(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.USER),
+                        new UserAuditDTO(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.USER),
+                        new UserAuditDTO(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.USER),
+                        new UserAuditDTO(UUID.randomUUID(), "fake_mail", "fake_fio", UserRole.USER)
                 )
                 .map(
                         x -> new Audit(

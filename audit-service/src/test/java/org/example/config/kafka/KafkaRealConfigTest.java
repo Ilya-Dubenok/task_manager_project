@@ -7,7 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.example.core.dto.AuditCreateDTO;
+import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.endpoint.kafka.KafkaListenerEndpoint;
 import org.example.service.api.IAuditService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class KafkaRealConfigTest {
                 JsonDeserializer.USE_TYPE_INFO_HEADERS, "false"
         );
         props.put(
-                JsonDeserializer.VALUE_DEFAULT_TYPE, "org.example.core.dto.AuditCreateDTO"
+                JsonDeserializer.VALUE_DEFAULT_TYPE, "org.example.core.dto.audit.AuditCreateDTO"
         );
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(AuditCreateDTO.class));
     }
