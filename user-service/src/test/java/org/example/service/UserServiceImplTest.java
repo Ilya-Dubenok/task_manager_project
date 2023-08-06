@@ -2,10 +2,12 @@ package org.example.service;
 
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import jakarta.validation.ConstraintViolationException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.dao.api.IUserRepository;
@@ -14,6 +16,8 @@ import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
+import org.example.service.utils.AuditMessagesFormer;
+import org.example.service.utils.ChangedFieldsOfEntitySearcher;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,13 +32,15 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
+import static org.reflections.ReflectionUtils.Fields;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -60,6 +66,12 @@ public class UserServiceImplTest {
 
     @MockBean
     private ISenderInfoService senderInfoService;
+
+    @Autowired
+    private ChangedFieldsOfEntitySearcher<User> searcher;
+
+    @Autowired
+    private AuditMessagesFormer auditMessagesFormer;
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired @Qualifier("testWithoutSecurityContext")
@@ -253,6 +265,62 @@ public class UserServiceImplTest {
         );
 
 
+    }
+
+
+    @Test
+    public void testBuilder() {
+        ChangedFieldsOfEntitySearcher<User> userAnalyzer = new ChangedFieldsOfEntitySearcher
+                .Builder<>(User.class)
+                .setNotToScanAnnotations(List.of(
+                        Id.class, CreatedDate.class
+                ))
+                .setFieldsWithNoValuesToDisclose(List.of("password"))
+                .build();
+
+        User user1 = new User(
+                UUID.randomUUID(), "initial@mail.ru", "initial.fio", UserRole.USER, UserStatus.WAITING_ACTIVATION,
+                "initial_pass"
+        );
+
+        User user2 = new User(
+                UUID.randomUUID(), "new@mail.ru", "initial.fio", UserRole.ADMIN, UserStatus.ACTIVATED,
+                "new_pass"
+        );
+
+        Map<String, Pair<String, String>> changes = userAnalyzer.getChanges(user1, user2);
+
+        System.out.println(parseUpdatesToAuditMessage(changes));
+        String fromAuditMessagesFormer = auditMessagesFormer.formUpdateAuditMessage(user1, user2);
+        System.out.println(fromAuditMessagesFormer);
+
+
+    }
+
+    private String parseUpdatesToAuditMessage(Map<String, Pair<String, String>> updates) {
+        StringBuilder stringBuilder = new StringBuilder(
+                "Запись была обновлена. Следующие изменения:"
+        );
+
+        updates.forEach((key, pair) -> {
+            stringBuilder
+                    .append(" ")
+                    .append(key);
+            if (pair == null) {
+                stringBuilder.append("(не отображается).");
+                return;
+            }
+            stringBuilder
+                    .append(", старое значение->")
+                    .append(pair.getKey())
+                    .append(", новое значение->")
+                    .append(pair.getValue())
+                    .append(".");
+
+
+        });
+
+        return stringBuilder.toString();
     }
 
     private static void clearAndInitSchema(DataSource dataSource) {

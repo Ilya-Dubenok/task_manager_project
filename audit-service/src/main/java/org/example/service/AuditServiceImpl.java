@@ -46,11 +46,10 @@ public class AuditServiceImpl implements IAuditService {
     @Override
     @Transactional(readOnly = true)
     public Audit getAuditById(UUID uuid) {
-        return auditRepository.findByUuid(
-                uuid
-        ).orElseThrow(
-                () -> new GeneralException("Не найдена запись по такому uuid")
-        );
+        return auditRepository.findByUuid(uuid)
+                .orElseThrow(
+                        () -> new GeneralException("Не найдена запись по такому uuid")
+                );
     }
 
     @Override

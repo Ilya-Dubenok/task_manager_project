@@ -5,6 +5,7 @@ import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
+import org.example.service.utils.AuditMessagesFormer;
 import org.example.utils.jwt.JwtTokenHandler;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,8 +16,16 @@ import java.util.UUID;
 
 @Service("testWithoutSecurityContext")
 public class UserServiceTestImpl extends UserServiceImpl{
-    public UserServiceTestImpl(IUserRepository userRepository, ConversionService conversionService, ISenderInfoService senderInfoService, PasswordEncoder passwordEncoder, UserHolder userHolder, JwtTokenHandler jwtTokenHandler) {
-        super(userRepository, conversionService, senderInfoService, passwordEncoder, userHolder, jwtTokenHandler);
+    public UserServiceTestImpl(
+            IUserRepository userRepository,
+            ConversionService conversionService,
+            ISenderInfoService senderInfoService,
+            PasswordEncoder passwordEncoder,
+            UserHolder userHolder,
+            JwtTokenHandler jwtTokenHandler,
+            AuditMessagesFormer auditMessagesFormer
+    ) {
+        super(userRepository, conversionService, senderInfoService, passwordEncoder, userHolder, jwtTokenHandler, auditMessagesFormer);
     }
 
     @Override
