@@ -8,7 +8,9 @@ import org.example.core.exception.GeneralException;
 import org.example.core.exception.GeneralExceptionDTO;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.StructuredExceptionDTO;
+import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -60,6 +62,22 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
     protected ResponseEntity<Object> handleUndefinedException(Exception e, WebRequest request) {
+        GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(
+                new GeneralException(MESSAGE_FOR_UNDEFINED_EXCEPTION, e)
+        );
+        return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException e, WebRequest request) {
+
+        StructuredException structuredException = new StructuredException();
+
+        if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+            StructuredExceptionDTO structuredExceptionDTO = new StructuredExceptionDTO(structuredException);
+            return new ResponseEntity<>(structuredExceptionDTO, HttpStatus.BAD_REQUEST);
+        }
+
         GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(
                 new GeneralException(MESSAGE_FOR_UNDEFINED_EXCEPTION, e)
         );
