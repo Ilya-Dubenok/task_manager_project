@@ -7,6 +7,7 @@ import org.example.core.dto.user.UserLoginDTO;
 import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
+import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
@@ -19,9 +20,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -35,9 +36,7 @@ import java.util.UUID;
 @Primary
 public class UserServiceImpl implements IUserService {
 
-
     private final IUserRepository userRepository;
-
 
     private final ConversionService conversionService;
 
@@ -74,12 +73,27 @@ public class UserServiceImpl implements IUserService {
 
         encryptUserCreateDTOPassword(userCreateDTO);
 
-        User toSave = conversionService.convert(
-                userCreateDTO, User.class
-        );
+        User toSave = conversionService.convert(userCreateDTO, User.class);
+
         toSave.setUuid(UUID.randomUUID());
 
-        User save = userRepository.save(toSave);
+        User save;
+
+        try {
+
+            save = userRepository.saveAndFlush(toSave);
+
+        } catch (Exception e) {
+
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+
+        }
 
         try {
 
@@ -89,26 +103,41 @@ public class UserServiceImpl implements IUserService {
                     Type.USER,
                     save.getUuid().toString()
             );
-        } catch (UsernameNotFoundException ignored) {
+
+        } catch (Exception ignored) {
 
         }
 
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void save(@Valid UserRegistrationDTO userRegistrationDTO) {
+
         User toSave = conversionService.convert(userRegistrationDTO, User.class);
+
         toSave.setPassword(
-                passwordEncoder.encode(
-                        userRegistrationDTO.getPassword()
-                )
+                passwordEncoder.encode(userRegistrationDTO.getPassword())
         );
         toSave.setRole(UserRole.USER);
         toSave.setStatus(UserStatus.WAITING_ACTIVATION);
         toSave.setUuid(UUID.randomUUID());
 
-        userRepository.save(toSave);
+        try {
+
+            userRepository.save(toSave);
+
+        } catch (Exception e) {
+
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+
+        }
 
 
     }
@@ -124,9 +153,8 @@ public class UserServiceImpl implements IUserService {
     @Override
     @Transactional(readOnly = true)
     public User getByUUID(UUID uuid) {
-        return userRepository.findById(
-                uuid
-        ).orElseThrow(
+
+        return userRepository.findById(uuid).orElseThrow(
                 () -> new GeneralException("Не найден пользователь по такому uuid")
         );
     }
@@ -144,7 +172,9 @@ public class UserServiceImpl implements IUserService {
             return userRepository.findAllById(uuids);
 
         } catch (Exception e) {
+
             throw new GeneralException("Произошла ошибка при поиске");
+
         }
 
     }
@@ -154,9 +184,7 @@ public class UserServiceImpl implements IUserService {
     public void update(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO) {
 
         User toUpdate = userRepository.findById(uuid).orElseThrow(
-                () -> new GeneralException(
-                        "Не найден пользователь с таким uuid"
-                )
+                () -> new GeneralException("Не найден пользователь с таким uuid")
         );
 
         if (
@@ -165,9 +193,8 @@ public class UserServiceImpl implements IUserService {
                         dt_update
                 )
         ) {
-            throw new GeneralException(
-                    "Версия пользователя уже была обновлена"
-            );
+
+            throw new GeneralException("Версия пользователя уже была обновлена");
 
         }
 
@@ -177,19 +204,32 @@ public class UserServiceImpl implements IUserService {
 
         try {
 
-            toUpdate = userRepository.save(toUpdate);
+            toUpdate = userRepository.saveAndFlush(toUpdate);
+
         } catch (Exception e) {
-            System.out.println(e);
+
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
         if (!toUpdate.equals(copyBeforeUpdate)) {
 
+            try {
+                senderInfoService.sendAudit(
+                        getUserFromCurrentSecurityContext(),
+                        auditMessagesFormer.formUpdateAuditMessage(copyBeforeUpdate, toUpdate),
+                        Type.USER,
+                        toUpdate.getUuid().toString());
 
-            senderInfoService.sendAudit(
-                    getUserFromCurrentSecurityContext(),
-                    auditMessagesFormer.formUpdateAuditMessage(copyBeforeUpdate, toUpdate),
-                    Type.USER,
-                    toUpdate.getUuid().toString());
+            } catch (Exception ignored) {
+
+            }
+
         }
 
     }
@@ -226,20 +266,38 @@ public class UserServiceImpl implements IUserService {
     @Transactional
     public int setUserActiveByEmail(String email) {
 
-            int i = userRepository.setUserActiveByEmail(email);
+        int i;
 
-            User user = userRepository.findByMailAndStatusEquals(email, UserStatus.ACTIVATED);
+        try {
 
-            if (user != null && i != 0) {
+            i = userRepository.setUserActiveByEmail(email);
+
+        } catch (Exception e) {
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+
+        }
+
+        User user = userRepository.findByMailAndStatusEquals(email, UserStatus.ACTIVATED);
+
+        if (user != null && i != 0) {
+
+            try {
 
                 senderInfoService.sendAudit(
-                        user, auditMessagesFormer.getAuditRegisteredMessage(),
+                        user,
+                        auditMessagesFormer.getAuditRegisteredMessage(),
                         Type.USER,
                         user.getUuid().toString()
                 );
+
+            } catch (Exception ignored) {
+
             }
 
-            return i;
+        }
+
+        return i;
 
     }
 
@@ -276,9 +334,9 @@ public class UserServiceImpl implements IUserService {
     @Transactional(readOnly = true)
     public String loginAndReceiveToken(@Valid UserLoginDTO userLoginDTO) {
 
-        User find = login(userLoginDTO);
+        User user = login(userLoginDTO);
 
-        String uuid = find.getUuid().toString();
+        String uuid = user.getUuid().toString();
 
         return jwtTokenHandler.generateAccessToken(uuid);
 
@@ -286,6 +344,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     private void encryptUserCreateDTOPassword(UserCreateDTO userCreateDTO) {
+
         userCreateDTO.setPassword(
                 passwordEncoder.encode(userCreateDTO.getPassword())
         );
@@ -299,11 +358,8 @@ public class UserServiceImpl implements IUserService {
 
         user.setMail(userCreateDTO.getMail());
         user.setFio(userCreateDTO.getFio());
-
         user.setRole(userCreateDTO.getRole());
-
         user.setStatus(userCreateDTO.getStatus());
-
         user.setPassword(userCreateDTO.getPassword());
 
         return user;

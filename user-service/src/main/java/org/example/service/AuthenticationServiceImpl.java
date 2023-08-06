@@ -70,17 +70,34 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 10);
 
         verificationCode = ThreadLocalRandom.current().nextInt(100000);
+
         VerificationInfo info = formVerificationInfo(mail, verificationCode);
 
-        verificationInfoRepository.save(info);
+        try {
+
+            verificationInfoRepository.saveAndFlush(info);
+
+        } catch (Exception e) {
+
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+
+        }
 
 
         String message = formMessageForVerification(verificationCode, mail);
 
-        senderInfoService.sendEmailAssignmentWithReply(mail,
+        senderInfoService.sendEmailAssignmentWithReply(
+                mail,
                 DEFAULT_VERIFICATION_SUBJECT,
                 message,
-                DEFAULT_REPLY_TO_URL);
+                DEFAULT_REPLY_TO_URL
+        );
 
         return verificationCode;
 
@@ -100,26 +117,36 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (exception.hasExceptions()) {
             throw exception;
         }
+
         verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 10);
+
         VerificationInfo verificationInfo = verificationInfoRepository.findByMail(email);
+
         if (verificationInfo == null) {
 
             throw new StructuredException(
                     "mail", "Не найден пользователь с такой почтой или код верификации истек"
             );
         }
+
         Integer savedCode = verificationInfo.getCode();
 
         if (!savedCode.equals(verificationCode)) {
-            throw new StructuredException(
-                    "code", "Введен неверный код верификации"
-            );
+            throw new StructuredException("code", "Введен неверный код верификации");
 
         }
 
         userService.setUserActiveByEmail(email);
 
-        verificationInfoRepository.cleanUsedCode(email);
+        try {
+
+            verificationInfoRepository.cleanUsedCode(email);
+
+        } catch (Exception ignored) {
+
+
+        }
+
 
 
     }

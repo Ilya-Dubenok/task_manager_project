@@ -8,6 +8,7 @@ import jakarta.persistence.criteria.Root;
 import jakarta.validation.ConstraintViolationException;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserDTO;
+import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
@@ -222,7 +223,7 @@ public class UserServiceImplTest {
 
         UUID uuid = user.getUuid();
 
-        Assertions.assertThrows(DataIntegrityViolationException.class,
+        Assertions.assertThrows(StructuredException.class,
                 () -> userService.update(uuid, user.getDtUpdate(), userCreateDTO));
 
     }

@@ -58,26 +58,6 @@ public class AuthenticationServiceImplTest {
     @Autowired
     private IAuthenticationService authenticationService;
 
-    @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
-    public void justPractice() {
-
-
-        doReturn(null).when(userService).getUserFromCurrentSecurityContext();
-
-
-        Assertions.assertDoesNotThrow(() -> authenticationService.registerUser(
-                new UserRegistrationDTO("fake2@mail.com", "fio", "12334")
-        ));
-
-        InOrder inOrder = inOrder(verificationInfoRepository);
-
-        inOrder.verify(verificationInfoRepository).cleanOldCodes(any(), any());
-        inOrder.verify(verificationInfoRepository).save(any(VerificationInfo.class));
-
-
-    }
-
 
 
     @Test
