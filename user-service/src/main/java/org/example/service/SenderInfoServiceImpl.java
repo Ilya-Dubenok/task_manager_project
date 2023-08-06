@@ -1,6 +1,7 @@
 package org.example.service;
 
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.example.config.property.ApplicationProperties;
 import org.example.core.dto.email.EmailDTO;
 import org.example.core.dto.audit.AuditCreateDTO;
@@ -14,6 +15,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.Map;
 
 @Service
 public class SenderInfoServiceImpl implements ISenderInfoService {
@@ -25,13 +27,13 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
     private INotificationServiceFeignClient notificationServiceFeignClient;
 
-    private IAuditSenderKafkaClient<String,Object> auditSenderKafkaClient;
+    private IAuditSenderKafkaClient<String, Object> auditSenderKafkaClient;
 
     private ConversionService conversionService;
 
 
     public SenderInfoServiceImpl(INotificationServiceFeignClient notificationServiceFeignClient,
-                                 IAuditSenderKafkaClient<String,Object> auditSenderKafkaClient,
+                                 IAuditSenderKafkaClient<String, Object> auditSenderKafkaClient,
                                  ApplicationProperties properties,
                                  ConversionService conversionService) {
         this.notificationServiceFeignClient = notificationServiceFeignClient;
@@ -58,6 +60,41 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
         }
 
+    }
+
+    @Override
+    public void sendAudit(User author, Map<String, Pair<String, String>> updates, Type type, String id) {
+
+        String text = parseUpdatesToAuditMessage(updates);
+
+    }
+
+    private String parseUpdatesToAuditMessage(Map<String, Pair<String, String>> updates) {
+        StringBuilder stringBuilder = new StringBuilder(
+                "Запись была обновлена. Следующие изменения:"
+        );
+
+        updates.entrySet().forEach(x -> {
+                    stringBuilder
+                            .append(" ")
+                            .append(x.getKey());
+                    Pair<String, String> pair = x.getValue();
+                    if (pair == null) {
+                        stringBuilder.append("(не отображается).");
+                        return;
+                    }
+                    stringBuilder
+                            .append(", старое значение->")
+                            .append(pair.getKey())
+                            .append(", новое значение->")
+                            .append(pair.getValue())
+                            .append(".");
+
+
+                }
+        );
+
+        return stringBuilder.toString();
     }
 
     @Override

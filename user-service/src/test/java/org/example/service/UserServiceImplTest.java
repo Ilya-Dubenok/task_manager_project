@@ -2,19 +2,22 @@ package org.example.service;
 
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import jakarta.validation.ConstraintViolationException;
+import org.apache.commons.lang3.tuple.Pair;
+import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserDTO;
-import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
+import org.example.utils.ChangedFieldOfEntitySearcher;
 import org.junit.jupiter.api.*;
 import org.reflections.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +35,15 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
+import static org.reflections.ReflectionUtils.Fields;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -64,6 +69,9 @@ public class UserServiceImplTest {
 
     @MockBean
     private ISenderInfoService senderInfoService;
+
+    @Autowired
+    private ChangedFieldOfEntitySearcher<User> searcher;
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired @Qualifier("testWithoutSecurityContext")
@@ -257,6 +265,145 @@ public class UserServiceImplTest {
         );
 
 
+    }
+
+    @Test
+    public void testGeneric() {
+        User user1 = new User(
+                UUID.randomUUID(), "initial@mail.ru", "initial.fio", UserRole.USER, UserStatus.WAITING_ACTIVATION,
+                "initial_pass"
+        );
+
+        User user2 = new User(
+                UUID.randomUUID(), "new@mail.ru", "initial.fio", UserRole.ADMIN, UserStatus.ACTIVATED,
+                "new_pass"
+        );
+
+        Set<Class<? extends Annotation>> notScannedAnnotationsClasses = new HashSet<>();
+
+        //take it
+        notScannedAnnotationsClasses.addAll(
+                List.of(Id.class, CreatedDate.class, LastModifiedDate.class)
+        );
+
+        //and it
+        Set<String> forbiddenNames = new HashSet<>();
+        forbiddenNames.add("password");
+
+        Set<Field> fields = ReflectionUtils.get(Fields.of(User.class),
+
+                field -> {
+                    Annotation[] annotations = field.getAnnotations();
+                    for (Annotation annotation : annotations) {
+                        if (
+                                notScannedAnnotationsClasses.contains(annotation.annotationType())
+                        )
+                            return false;
+                    }
+                    return true;
+                }
+        );
+
+        fields.forEach(
+                field ->
+                {
+                    if (forbiddenNames.contains(field.getName())) {
+                        System.out.println(field.getName());
+                        return;
+                    }
+
+                    if (!field.canAccess(user1)) {
+
+                        try {
+                            field.setAccessible(true);
+
+                            System.out.println(field.get(user1));
+
+
+                        } catch (InaccessibleObjectException | IllegalAccessException e) {
+
+
+                        } finally {
+                            field.setAccessible(false);
+
+                        }
+
+                    } else {
+                        try {
+                            System.out.println(field.get(user1));
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+    }
+
+    @Test
+    public void testBuilder() {
+        ChangedFieldOfEntitySearcher<User> userAnalyzer = new ChangedFieldOfEntitySearcher
+                .Builder<>(User.class)
+                .setNotToScanAnnotations(List.of(
+                        Id.class, CreatedDate.class
+                ))
+                .setFieldsWithNoValuesToDisclose(List.of("password"))
+                .build();
+
+        User user1 = new User(
+                UUID.randomUUID(), "initial@mail.ru", "initial.fio", UserRole.USER, UserStatus.WAITING_ACTIVATION,
+                "initial_pass"
+        );
+
+        User user2 = new User(
+                UUID.randomUUID(), "new@mail.ru", "initial.fio", UserRole.ADMIN, UserStatus.ACTIVATED,
+                "new_pass"
+        );
+
+        Map<String, Pair<String, String>> changes = userAnalyzer.getChanges(user1, user2);
+
+        changes.entrySet().forEach(
+                x->
+                {
+                    System.out.println(x.getKey());
+                    if (x.getValue() == null) {
+                        System.out.println("forbidden");
+                        return;
+                    }
+                    System.out.println(x.getValue().getKey());
+                    System.out.println(x.getValue().getValue());
+
+                }        );
+
+        System.out.println(parseUpdatesToAuditMessage(changes));
+
+
+    }
+
+    private String parseUpdatesToAuditMessage(Map<String, Pair<String, String>> updates) {
+        StringBuilder stringBuilder = new StringBuilder(
+                "Запись была обновлена. Следующие изменения:"
+        );
+
+        updates.entrySet().forEach(x -> {
+                    stringBuilder
+                            .append(" ")
+                            .append(x.getKey());
+                    Pair<String, String> pair = x.getValue();
+                    if (pair == null) {
+                        stringBuilder.append("(не отображается).");
+                        return;
+                    }
+                    stringBuilder
+                            .append(", старое значение->")
+                            .append(pair.getKey())
+                            .append(", новое значение->")
+                            .append(pair.getValue())
+                            .append(".");
+
+
+                }
+        );
+
+        return stringBuilder.toString();
     }
 
     private static void clearAndInitSchema(DataSource dataSource) {
