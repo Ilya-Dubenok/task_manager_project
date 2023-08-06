@@ -17,6 +17,10 @@ public class AuditMessagesFormer {
 
     private final String UPDATE_MESSAGE_OLD_NEW_VALUES_FORM = " %s, старое значение->%s, новое значение->%s;";
 
+    private final String USER_CREATED_MESSAGE = "Пользователь был создан";
+
+    private final String USER_REGISTERED_MESSAGE = "Пользователь был зарегистрирован";
+
 
     public AuditMessagesFormer(ChangedFieldsOfEntitySearcher<User> userChangedFieldsOfEntitySearcher) {
         this.userChangedFieldsOfEntitySearcher = userChangedFieldsOfEntitySearcher;
@@ -50,4 +54,11 @@ public class AuditMessagesFormer {
         return String.format(UPDATE_MESSAGE_FORM, stringBuilder);
     }
 
+    public String getUserCreatedAuditMessage() {
+        return USER_CREATED_MESSAGE;
+    }
+
+    public String getAuditRegisteredMessage() {
+        return USER_REGISTERED_MESSAGE;
+    }
 }

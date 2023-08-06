@@ -81,16 +81,17 @@ public class UserServiceImpl implements IUserService {
 
         User save = userRepository.save(toSave);
 
-
         try {
 
             senderInfoService.sendAudit(
-                    getUserFromCurrentSecurityContext()
-                    , ISenderInfoService.AuditMessages.USER_CREATED_MESSAGE, Type.USER, save.getUuid().toString());
+                    getUserFromCurrentSecurityContext(),
+                    auditMessagesFormer.getUserCreatedAuditMessage(),
+                    Type.USER,
+                    save.getUuid().toString()
+            );
         } catch (UsernameNotFoundException ignored) {
 
         }
-
 
     }
 
@@ -146,7 +147,6 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException("Произошла ошибка при поиске");
         }
 
-
     }
 
     @Override
@@ -186,11 +186,11 @@ public class UserServiceImpl implements IUserService {
 
 
             senderInfoService.sendAudit(
-                    getUserFromCurrentSecurityContext()
-                    , auditMessagesFormer.formUpdateAuditMessage(copyBeforeUpdate, toUpdate), Type.USER,
+                    getUserFromCurrentSecurityContext(),
+                    auditMessagesFormer.formUpdateAuditMessage(copyBeforeUpdate, toUpdate),
+                    Type.USER,
                     toUpdate.getUuid().toString());
         }
-
 
     }
 
@@ -220,7 +220,6 @@ public class UserServiceImpl implements IUserService {
 
         return page;
 
-
     }
 
     @Override
@@ -234,13 +233,13 @@ public class UserServiceImpl implements IUserService {
             if (user != null && i != 0) {
 
                 senderInfoService.sendAudit(
-                        user, ISenderInfoService.AuditMessages.USER_REGISTERED_MESSAGE, Type.USER, user.getUuid().toString()
+                        user, auditMessagesFormer.getAuditRegisteredMessage(),
+                        Type.USER,
+                        user.getUuid().toString()
                 );
             }
 
             return i;
-
-
 
     }
 
