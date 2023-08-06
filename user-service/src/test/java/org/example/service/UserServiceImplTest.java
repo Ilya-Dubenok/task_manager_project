@@ -8,7 +8,6 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import jakarta.validation.ConstraintViolationException;
 import org.apache.commons.lang3.tuple.Pair;
-import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.dao.api.IUserRepository;
@@ -17,7 +16,8 @@ import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
-import org.example.utils.ChangedFieldOfEntitySearcher;
+import org.example.service.utils.AuditMessagesFormer;
+import org.example.service.utils.ChangedFieldsOfEntitySearcher;
 import org.junit.jupiter.api.*;
 import org.reflections.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +71,10 @@ public class UserServiceImplTest {
     private ISenderInfoService senderInfoService;
 
     @Autowired
-    private ChangedFieldOfEntitySearcher<User> searcher;
+    private ChangedFieldsOfEntitySearcher<User> searcher;
+
+    @Autowired
+    private AuditMessagesFormer auditMessagesFormer;
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired @Qualifier("testWithoutSecurityContext")
@@ -267,80 +270,10 @@ public class UserServiceImplTest {
 
     }
 
-    @Test
-    public void testGeneric() {
-        User user1 = new User(
-                UUID.randomUUID(), "initial@mail.ru", "initial.fio", UserRole.USER, UserStatus.WAITING_ACTIVATION,
-                "initial_pass"
-        );
-
-        User user2 = new User(
-                UUID.randomUUID(), "new@mail.ru", "initial.fio", UserRole.ADMIN, UserStatus.ACTIVATED,
-                "new_pass"
-        );
-
-        Set<Class<? extends Annotation>> notScannedAnnotationsClasses = new HashSet<>();
-
-        //take it
-        notScannedAnnotationsClasses.addAll(
-                List.of(Id.class, CreatedDate.class, LastModifiedDate.class)
-        );
-
-        //and it
-        Set<String> forbiddenNames = new HashSet<>();
-        forbiddenNames.add("password");
-
-        Set<Field> fields = ReflectionUtils.get(Fields.of(User.class),
-
-                field -> {
-                    Annotation[] annotations = field.getAnnotations();
-                    for (Annotation annotation : annotations) {
-                        if (
-                                notScannedAnnotationsClasses.contains(annotation.annotationType())
-                        )
-                            return false;
-                    }
-                    return true;
-                }
-        );
-
-        fields.forEach(
-                field ->
-                {
-                    if (forbiddenNames.contains(field.getName())) {
-                        System.out.println(field.getName());
-                        return;
-                    }
-
-                    if (!field.canAccess(user1)) {
-
-                        try {
-                            field.setAccessible(true);
-
-                            System.out.println(field.get(user1));
-
-
-                        } catch (InaccessibleObjectException | IllegalAccessException e) {
-
-
-                        } finally {
-                            field.setAccessible(false);
-
-                        }
-
-                    } else {
-                        try {
-                            System.out.println(field.get(user1));
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                });
-    }
 
     @Test
     public void testBuilder() {
-        ChangedFieldOfEntitySearcher<User> userAnalyzer = new ChangedFieldOfEntitySearcher
+        ChangedFieldsOfEntitySearcher<User> userAnalyzer = new ChangedFieldsOfEntitySearcher
                 .Builder<>(User.class)
                 .setNotToScanAnnotations(List.of(
                         Id.class, CreatedDate.class
@@ -361,6 +294,8 @@ public class UserServiceImplTest {
         Map<String, Pair<String, String>> changes = userAnalyzer.getChanges(user1, user2);
 
         System.out.println(parseUpdatesToAuditMessage(changes));
+        String fromAuditMessagesFormer = auditMessagesFormer.formUpdateAuditMessage(user1, user2);
+        System.out.println(fromAuditMessagesFormer);
 
 
     }

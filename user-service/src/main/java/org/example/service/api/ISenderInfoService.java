@@ -13,8 +13,6 @@ public interface ISenderInfoService {
 
     void sendAudit(User author, String text, Type type, String id);
 
-    void sendAudit(User author, Map<String, Pair<String, String>> updates, Type type, String id);
-
     void sendEmailAssignment(String to, String subject, String message);
 
     void sendEmailAssignmentWithReply(String to, String subject, String message, URI replyTo);

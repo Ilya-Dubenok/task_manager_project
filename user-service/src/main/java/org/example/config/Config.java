@@ -5,7 +5,7 @@ import jakarta.persistence.Id;
 import org.example.config.property.ApplicationProperties;
 import org.example.config.property.JWTProperties;
 import org.example.dao.entities.user.User;
-import org.example.utils.ChangedFieldOfEntitySearcher;
+import org.example.service.utils.ChangedFieldsOfEntitySearcher;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -38,9 +38,9 @@ public class Config implements WebMvcConfigurer {
     }
 
     @Bean
-    public ChangedFieldOfEntitySearcher<User> changedFieldOfEntitySearcher() {
+    public ChangedFieldsOfEntitySearcher<User> changedFieldsOfEntitySearcher() {
 
-        return new ChangedFieldOfEntitySearcher
+        return new ChangedFieldsOfEntitySearcher
                 .Builder<>(User.class)
                 .setNotToScanAnnotations(List.of(
                         Id.class, CreatedDate.class

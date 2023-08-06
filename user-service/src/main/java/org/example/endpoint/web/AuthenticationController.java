@@ -9,11 +9,12 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+//TODO Убрать везде api...
 @RequestMapping("/api/v1/users")
 public class AuthenticationController {
 
 
-    IAuthenticationService service;
+    private IAuthenticationService service;
 
     public AuthenticationController(IAuthenticationService service) {
         this.service = service;

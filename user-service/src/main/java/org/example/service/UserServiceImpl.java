@@ -7,13 +7,13 @@ import org.example.core.dto.user.UserLoginDTO;
 import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
-import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
+import org.example.service.utils.AuditMessagesFormer;
 import org.example.utils.jwt.JwtTokenHandler;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
@@ -49,18 +49,23 @@ public class UserServiceImpl implements IUserService {
 
     private final JwtTokenHandler jwtTokenHandler;
 
+    private final AuditMessagesFormer auditMessagesFormer;
+
 
     public UserServiceImpl(IUserRepository userRepository,
                            ConversionService conversionService,
                            ISenderInfoService senderInfoService,
                            PasswordEncoder passwordEncoder,
-                           UserHolder userHolder, JwtTokenHandler jwtTokenHandler) {
+                           UserHolder userHolder,
+                           JwtTokenHandler jwtTokenHandler,
+                           AuditMessagesFormer auditMessagesFormer) {
         this.userRepository = userRepository;
         this.conversionService = conversionService;
         this.senderInfoService = senderInfoService;
         this.passwordEncoder = passwordEncoder;
         this.userHolder = userHolder;
         this.jwtTokenHandler = jwtTokenHandler;
+        this.auditMessagesFormer = auditMessagesFormer;
     }
 
     @Override
@@ -166,19 +171,23 @@ public class UserServiceImpl implements IUserService {
 
         }
 
-        User copyBeforeSaving = copyUserBeforeSupposedChanges(toUpdate);
+        User copyBeforeUpdate = copyUserBeforeSupposedChanges(toUpdate);
 
-        toUpdate = updateUserParamsFromUserCreateDTO(toUpdate, userCreateDTO);
+        updateUserParamsFromUserCreateDTO(toUpdate, userCreateDTO);
 
+        try {
 
-        toUpdate = userRepository.save(toUpdate);
+            toUpdate = userRepository.save(toUpdate);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
 
-        if (!toUpdate.equals(copyBeforeSaving)) {
+        if (!toUpdate.equals(copyBeforeUpdate)) {
 
 
             senderInfoService.sendAudit(
                     getUserFromCurrentSecurityContext()
-                    , ISenderInfoService.AuditMessages.USER_UPDATED_MESSAGE, Type.USER,
+                    , auditMessagesFormer.formUpdateAuditMessage(copyBeforeUpdate, toUpdate), Type.USER,
                     toUpdate.getUuid().toString());
         }
 

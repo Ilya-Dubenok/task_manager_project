@@ -62,38 +62,6 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
     }
 
-    @Override
-    public void sendAudit(User author, Map<String, Pair<String, String>> updates, Type type, String id) {
-
-        String text = parseUpdatesToAuditMessage(updates);
-
-    }
-
-    private String parseUpdatesToAuditMessage(Map<String, Pair<String, String>> updates) {
-        StringBuilder stringBuilder = new StringBuilder(
-                "Запись была обновлена. Следующие изменения:"
-        );
-
-        updates.forEach((key, pair) -> {
-            stringBuilder
-                    .append(" ")
-                    .append(key);
-            if (pair == null) {
-                stringBuilder.append("(не отображается).");
-                return;
-            }
-            stringBuilder
-                    .append(", старое значение->")
-                    .append(pair.getKey())
-                    .append(", новое значение->")
-                    .append(pair.getValue())
-                    .append(".");
-
-
-        });
-
-        return stringBuilder.toString();
-    }
 
     @Override
     public void sendEmailAssignment(String to, String subject, String message) {

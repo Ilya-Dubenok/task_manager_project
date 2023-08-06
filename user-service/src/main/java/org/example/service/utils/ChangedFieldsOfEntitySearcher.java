@@ -1,4 +1,4 @@
-package org.example.utils;
+package org.example.service.utils;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.ReflectionUtils;
@@ -9,7 +9,7 @@ import java.util.*;
 
 import static org.reflections.ReflectionUtils.Fields;
 
-public class ChangedFieldOfEntitySearcher<T> {
+public class ChangedFieldsOfEntitySearcher<T> {
 
     private Class<T> targetClass;
 
@@ -18,9 +18,9 @@ public class ChangedFieldOfEntitySearcher<T> {
     private Set<String> fieldsWithNoValuesToDisclose;
 
 
-    private ChangedFieldOfEntitySearcher(Class<T> targetClass,
-                                         Set<Class<? extends Annotation>> notToScanAnnotations,
-                                         Set<String> fieldsWithNoValuesToDisclose) {
+    private ChangedFieldsOfEntitySearcher(Class<T> targetClass,
+                                          Set<Class<? extends Annotation>> notToScanAnnotations,
+                                          Set<String> fieldsWithNoValuesToDisclose) {
         this.targetClass = targetClass;
         this.notToScanAnnotations = notToScanAnnotations;
         this.fieldsWithNoValuesToDisclose = fieldsWithNoValuesToDisclose;
@@ -168,8 +168,8 @@ public class ChangedFieldOfEntitySearcher<T> {
             return this;
         }
 
-        public ChangedFieldOfEntitySearcher<T> build() {
-            return new ChangedFieldOfEntitySearcher<T>(
+        public ChangedFieldsOfEntitySearcher<T> build() {
+            return new ChangedFieldsOfEntitySearcher<T>(
                     targetClass, notToScanAnnotations, fieldsWithNoValuesToDisclose
             );
         }
