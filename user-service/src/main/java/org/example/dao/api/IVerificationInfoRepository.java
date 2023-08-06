@@ -4,7 +4,6 @@ import org.example.dao.entities.verification.VerificationInfo;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -20,7 +19,6 @@ public interface IVerificationInfoRepository extends CrudRepository<Verification
             , nativeQuery = true
     )
     @Modifying
-    @Transactional
     int cleanOldCodes(LocalDateTime currentMoment, Integer diffInMinutes);
 
     @Query(
@@ -29,7 +27,6 @@ public interface IVerificationInfoRepository extends CrudRepository<Verification
             , nativeQuery = true
     )
     @Modifying
-    @Transactional
     int cleanUsedCode(String mail);
 
     @Query(
@@ -38,7 +35,6 @@ public interface IVerificationInfoRepository extends CrudRepository<Verification
             , nativeQuery = true
     )
     @Modifying
-    @Transactional
     void setEmailStatus(String status, String mail);
 
 

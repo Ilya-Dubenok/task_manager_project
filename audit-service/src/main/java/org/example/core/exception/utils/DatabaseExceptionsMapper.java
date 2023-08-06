@@ -17,7 +17,7 @@ public class DatabaseExceptionsMapper {
 
             if (constraint != null) {
                 exception.put(
-                        constraint.getUserFieldName(), constraint.getConstraintMessage()
+                        constraint.getFiledName(), constraint.getConstraintMessage()
                 );
                 return true;
 
@@ -30,7 +30,7 @@ public class DatabaseExceptionsMapper {
             String propertyName = ((PropertyValueException) cause).getPropertyName();
             PropertyLimit propertyLimit = findPropertyLimit(entityName, propertyName);
             if (propertyLimit != null) {
-                exception.put(propertyLimit.getUserFieldName(), propertyLimit.getMessage());
+                exception.put(propertyLimit.getAuditFieldName(), propertyLimit.getMessage());
                 return true;
 
             }
@@ -91,13 +91,13 @@ public class DatabaseExceptionsMapper {
 
         private final String constraintName;
 
-        private final String userFieldName;
+        private final String filedName;
 
         private final String constraintMessage;
 
-        Constraint(String constraintName, String userFieldName, String constraintMessage) {
+        Constraint(String constraintName, String filedName, String constraintMessage) {
             this.constraintName = constraintName;
-            this.userFieldName = userFieldName;
+            this.filedName = filedName;
             this.constraintMessage = constraintMessage;
         }
 
@@ -109,8 +109,8 @@ public class DatabaseExceptionsMapper {
             return constraintMessage;
         }
 
-        public String getUserFieldName() {
-            return userFieldName;
+        public String getFiledName() {
+            return filedName;
         }
     }
 
@@ -132,16 +132,16 @@ public class DatabaseExceptionsMapper {
 
         private final String propertyName;
 
-        private final String userFieldName;
+        private final String auditFieldName;
 
         private final String message;
 
 
-        PropertyLimit(Class<?> entity, String propertyName, String userFieldName, String propMessage) {
+        PropertyLimit(Class<?> entity, String propertyName, String auditFieldName, String propMessage) {
             this.entity = entity;
             this.className = entity.getName();
             this.propertyName = propertyName;
-            this.userFieldName = userFieldName;
+            this.auditFieldName = auditFieldName;
             this.message = propMessage;
         }
 
@@ -161,8 +161,8 @@ public class DatabaseExceptionsMapper {
             return entity;
         }
 
-        public String getUserFieldName() {
-            return userFieldName;
+        public String getAuditFieldName() {
+            return auditFieldName;
         }
     }
 

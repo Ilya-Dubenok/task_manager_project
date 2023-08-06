@@ -12,7 +12,9 @@ import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IAuthenticationService;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
@@ -56,6 +58,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     @Override
+    @Transactional
     public Integer registerUser(@Valid UserRegistrationDTO userRegistrationDTO) {
 
         String mail = userRegistrationDTO.getMail();
@@ -64,22 +67,13 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         userService.save(userRegistrationDTO);
 
-        try {
-            verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 10);
+        verificationInfoRepository.cleanOldCodes(LocalDateTime.now(), 10);
 
-            verificationCode = ThreadLocalRandom.current().nextInt(100000);
-            VerificationInfo info = formVerificationInfo(mail, verificationCode);
+        verificationCode = ThreadLocalRandom.current().nextInt(100000);
+        VerificationInfo info = formVerificationInfo(mail, verificationCode);
 
-            verificationInfoRepository.save(info);
+        verificationInfoRepository.save(info);
 
-        } catch (Exception e) {
-            StructuredException structuredException = new StructuredException();
-
-            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
-                throw structuredException;
-            }
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
 
         String message = formMessageForVerification(verificationCode, mail);
 
@@ -93,6 +87,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     @Override
+    @Transactional
     public void verifyUserWithCode(Integer verificationCode, String email) {
 
         StructuredException exception = new StructuredException();
@@ -123,17 +118,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         }
 
         userService.setUserActiveByEmail(email);
-        try {
-            verificationInfoRepository.cleanUsedCode(email);
 
-        } catch (Exception e) {
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
+        verificationInfoRepository.cleanUsedCode(email);
 
 
     }
 
     @Override
+    @Transactional
     public void setEmailDeliveryStatus(String mail, Boolean status) {
         if (status.equals(true)) {
             verificationInfoRepository.setEmailStatus(

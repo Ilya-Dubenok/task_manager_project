@@ -13,6 +13,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.UUID;
@@ -33,27 +34,17 @@ public class AuditServiceImpl implements IAuditService {
     }
 
 
-
     @Override
+    @Transactional
     public void save(@Valid AuditCreateDTO auditCreateDTO) {
         Audit toRegister = conversionService.convert(auditCreateDTO, Audit.class);
 
-        try {
-            auditRepository.save(toRegister);
-        } catch (Exception e) {
-            StructuredException structuredException = new StructuredException();
-
-            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
-                throw structuredException;
-            }
-
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
-
+        auditRepository.save(toRegister);
 
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Audit getAuditById(UUID uuid) {
         return auditRepository.findByUuid(
                 uuid
@@ -63,6 +54,7 @@ public class AuditServiceImpl implements IAuditService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<Audit> getPageOfAudit(Integer currentRequestedPage, Integer rowsPerPage) {
         StructuredException exception = new StructuredException();
 
@@ -80,15 +72,9 @@ public class AuditServiceImpl implements IAuditService {
             throw exception;
         }
 
-        try {
+        Page<Audit> page = auditRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
 
-            Page<Audit> page = auditRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
-
-            return page;
-
-        } catch (Exception e) {
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
+        return page;
 
     }
 }

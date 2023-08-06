@@ -8,7 +8,9 @@ import org.example.core.exception.GeneralException;
 import org.example.core.exception.GeneralExceptionDTO;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.StructuredExceptionDTO;
+import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -29,21 +31,28 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     private static final String MESSAGE_FOR_INVALID_PROPERTY =
             "%s не может быть распознан";
 
+    private static final String MESSAGE_FOR_UNDEFINED_EXCEPTION =
+            "Внутренняя ошибка сервера. Сервер не смог корректно обработать запрос";
+
+    private static final String MESSAGE_FOR_INVALID_INPUT_DATA = "Запрос содержит некорректные данные " +
+            "или необходимые данные отсутствуют. Измените запрос и отправьте его снова";
+
+
     @ExceptionHandler(value = StructuredException.class)
-    protected ResponseEntity<Object> handleConflict(StructuredException e, WebRequest request) {
-        StructuredExceptionDTO dto = new StructuredExceptionDTO(e);
-        return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
+    protected ResponseEntity<Object> handleStructuredException(StructuredException e, WebRequest request) {
+        StructuredExceptionDTO structuredExceptionDTO = new StructuredExceptionDTO(e);
+        return new ResponseEntity<>(structuredExceptionDTO, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = GeneralException.class)
-    protected ResponseEntity<Object> handleConflict(GeneralException e, WebRequest request) {
-        GeneralExceptionDTO dto = new GeneralExceptionDTO();
-        dto.setMessage(e.getMessage());
-        return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
+    protected ResponseEntity<Object> handleGeneralException(GeneralException e, WebRequest request) {
+        GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO();
+        generalExceptionDTO.setMessage(e.getMessage());
+        return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = ConstraintViolationException.class)
-    protected ResponseEntity<Object> handleConflict(ConstraintViolationException e, WebRequest request) {
+    protected ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException e, WebRequest request) {
 
 
         StructuredExceptionDTO structuredExceptionDTO = parseConstraintViolationException(e);
@@ -52,9 +61,25 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = Exception.class)
-    protected ResponseEntity<Object> handleConflict(Exception e, WebRequest request) {
+    protected ResponseEntity<Object> handleUndefinedException(Exception e, WebRequest request) {
         GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(
-                new GeneralException("Внутренняя ошибка сервера. Сервер не смог корректно обработать запрос", e)
+                new GeneralException(MESSAGE_FOR_UNDEFINED_EXCEPTION, e)
+        );
+        return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException e, WebRequest request) {
+
+        StructuredException structuredException = new StructuredException();
+
+        if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+            StructuredExceptionDTO structuredExceptionDTO = new StructuredExceptionDTO(structuredException);
+            return new ResponseEntity<>(structuredExceptionDTO, HttpStatus.BAD_REQUEST);
+        }
+
+        GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(
+                new GeneralException(MESSAGE_FOR_UNDEFINED_EXCEPTION, e)
         );
         return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -78,33 +103,32 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
         }
 
-        return new ResponseEntity<>(List.of(new GeneralExceptionDTO("При обработке входных параметров произошла ошибка")),
+        return new ResponseEntity<>(List.of(new GeneralExceptionDTO(MESSAGE_FOR_INVALID_INPUT_DATA)),
                 status);
     }
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
-        GeneralExceptionDTO dto = new GeneralExceptionDTO("Запрос содержит некорректные данные " +
-                "или необходимые данные отсутствуют. Измените запрос и отправьте его снова");
-        return new ResponseEntity<>(List.of(dto), HttpStatus.BAD_REQUEST);
+        GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(MESSAGE_FOR_INVALID_INPUT_DATA);
+        return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.BAD_REQUEST);
 
     }
 
     private StructuredExceptionDTO parseConstraintViolationException(ConstraintViolationException e) {
-        StructuredException exception = new StructuredException();
+        StructuredException structuredException = new StructuredException();
         Iterator<ConstraintViolation<?>> iterator = e.getConstraintViolations().iterator();
         while (iterator.hasNext()) {
             ConstraintViolation<?> constraintViolation = iterator.next();
             String propName = parseForPropNameInSnakeCase(constraintViolation);
             String message = constraintViolation.getMessage();
-            exception.put(propName, message);
+            structuredException.put(propName, message);
 
 
         }
 
 
-        return new StructuredExceptionDTO(exception);
+        return new StructuredExceptionDTO(structuredException);
     }
 
     private String parseForPropNameInSnakeCase(ConstraintViolation<?> next) {

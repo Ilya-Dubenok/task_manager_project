@@ -17,16 +17,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,7 +32,6 @@ import static org.mockito.BDDMockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-//@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
 public class AuthenticationServiceImplTest {
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
@@ -144,16 +141,13 @@ public class AuthenticationServiceImplTest {
         userRegistrationDTO.setPassword("anotherPassword");
 
 
-        StructuredException exception = Assertions.assertThrows(
-                StructuredException.class, () -> authenticationService.registerUser(
+        DataIntegrityViolationException exception = Assertions.assertThrows(
+                DataIntegrityViolationException.class, () -> authenticationService.registerUser(
                         userRegistrationDTO
                 )
         );
 
-        Map<String, String> exceptionsMap = exception.getExceptionsMap();
 
-        Assertions.assertEquals(1, exceptionsMap.size());
-        Assertions.assertTrue(exceptionsMap.containsKey("mail"));
 
 
     }

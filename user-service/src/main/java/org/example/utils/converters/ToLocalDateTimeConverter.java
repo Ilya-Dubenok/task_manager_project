@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 @Component
-public class ToLocalDateTimeGenericConverter<IN, OUT>
+public class ToLocalDateTimeConverter<IN, OUT>
         implements GenericConverter {
     @Override
     public Set<ConvertiblePair> getConvertibleTypes() {

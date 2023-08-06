@@ -67,7 +67,7 @@ public class KafkaProducerConfig {
 
     @Configuration
     @Profile("kafka_not_needed")
-    static class NoKafkaConfiguration{
+    public static class NoKafkaConfiguration{
 
         @Bean
         public AuditSenderKafkaClientImpl auditSenderKafkaClient() {

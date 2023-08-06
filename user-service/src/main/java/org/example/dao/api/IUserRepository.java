@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -31,7 +30,6 @@ public interface IUserRepository extends ListCrudRepository<User, UUID> {
             , nativeQuery = true
     )
     @Modifying
-    @Transactional
     int setUserActiveByEmail(String email);
 
 
