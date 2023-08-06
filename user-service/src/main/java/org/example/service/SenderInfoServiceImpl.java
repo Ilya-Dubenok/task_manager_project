@@ -74,25 +74,23 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
                 "Запись была обновлена. Следующие изменения:"
         );
 
-        updates.entrySet().forEach(x -> {
-                    stringBuilder
-                            .append(" ")
-                            .append(x.getKey());
-                    Pair<String, String> pair = x.getValue();
-                    if (pair == null) {
-                        stringBuilder.append("(не отображается).");
-                        return;
-                    }
-                    stringBuilder
-                            .append(", старое значение->")
-                            .append(pair.getKey())
-                            .append(", новое значение->")
-                            .append(pair.getValue())
-                            .append(".");
+        updates.forEach((key, pair) -> {
+            stringBuilder
+                    .append(" ")
+                    .append(key);
+            if (pair == null) {
+                stringBuilder.append("(не отображается).");
+                return;
+            }
+            stringBuilder
+                    .append(", старое значение->")
+                    .append(pair.getKey())
+                    .append(", новое значение->")
+                    .append(pair.getValue())
+                    .append(".");
 
 
-                }
-        );
+        });
 
         return stringBuilder.toString();
     }

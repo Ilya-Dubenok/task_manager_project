@@ -360,19 +360,6 @@ public class UserServiceImplTest {
 
         Map<String, Pair<String, String>> changes = userAnalyzer.getChanges(user1, user2);
 
-        changes.entrySet().forEach(
-                x->
-                {
-                    System.out.println(x.getKey());
-                    if (x.getValue() == null) {
-                        System.out.println("forbidden");
-                        return;
-                    }
-                    System.out.println(x.getValue().getKey());
-                    System.out.println(x.getValue().getValue());
-
-                }        );
-
         System.out.println(parseUpdatesToAuditMessage(changes));
 
 
@@ -383,25 +370,23 @@ public class UserServiceImplTest {
                 "Запись была обновлена. Следующие изменения:"
         );
 
-        updates.entrySet().forEach(x -> {
-                    stringBuilder
-                            .append(" ")
-                            .append(x.getKey());
-                    Pair<String, String> pair = x.getValue();
-                    if (pair == null) {
-                        stringBuilder.append("(не отображается).");
-                        return;
-                    }
-                    stringBuilder
-                            .append(", старое значение->")
-                            .append(pair.getKey())
-                            .append(", новое значение->")
-                            .append(pair.getValue())
-                            .append(".");
+        updates.forEach((key, pair) -> {
+            stringBuilder
+                    .append(" ")
+                    .append(key);
+            if (pair == null) {
+                stringBuilder.append("(не отображается).");
+                return;
+            }
+            stringBuilder
+                    .append(", старое значение->")
+                    .append(pair.getKey())
+                    .append(", новое значение->")
+                    .append(pair.getValue())
+                    .append(".");
 
 
-                }
-        );
+        });
 
         return stringBuilder.toString();
     }
