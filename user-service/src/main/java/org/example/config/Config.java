@@ -2,6 +2,7 @@ package org.example.config;
 
 
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import org.example.config.property.ApplicationProperties;
 import org.example.config.property.JWTProperties;
 import org.example.dao.entities.user.User;
@@ -9,6 +10,7 @@ import org.example.service.utils.ChangedFieldsOfEntitySearcher;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -43,15 +45,12 @@ public class Config implements WebMvcConfigurer {
         return new ChangedFieldsOfEntitySearcher
                 .Builder<>(User.class)
                 .setNotToScanAnnotations(List.of(
-                        Id.class, CreatedDate.class
+                        Id.class, CreatedDate.class, LastModifiedDate.class, Version.class
                 ))
                 .setFieldsWithNoValuesToDisclose(List.of("password"))
                 .build();
 
-
     }
-
-
 
 
 }
