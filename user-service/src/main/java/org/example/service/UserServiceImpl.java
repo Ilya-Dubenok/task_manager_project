@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
@@ -49,8 +50,6 @@ public class UserServiceImpl implements IUserService {
     private final JwtTokenHandler jwtTokenHandler;
 
 
-
-
     public UserServiceImpl(IUserRepository userRepository,
                            ConversionService conversionService,
                            ISenderInfoService senderInfoService,
@@ -65,6 +64,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional
     public void save(@Valid UserCreateDTO userCreateDTO) {
 
         encryptUserCreateDTOPassword(userCreateDTO);
@@ -74,21 +74,8 @@ public class UserServiceImpl implements IUserService {
         );
         toSave.setUuid(UUID.randomUUID());
 
-        User save;
+        User save = userRepository.save(toSave);
 
-
-        try {
-            save = userRepository.save(toSave);
-        } catch (Exception e) {
-
-            StructuredException structuredException = new StructuredException();
-
-            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
-                throw structuredException;
-            }
-
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
 
         try {
 
@@ -103,6 +90,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional
     public void save(@Valid UserRegistrationDTO userRegistrationDTO) {
         User toSave = conversionService.convert(userRegistrationDTO, User.class);
         toSave.setPassword(
@@ -114,18 +102,7 @@ public class UserServiceImpl implements IUserService {
         toSave.setStatus(UserStatus.WAITING_ACTIVATION);
         toSave.setUuid(UUID.randomUUID());
 
-        try {
-            toSave = userRepository.save(toSave);
-        } catch (Exception e) {
-
-            StructuredException structuredException = new StructuredException();
-
-            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
-                throw structuredException;
-            }
-
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
+        userRepository.save(toSave);
 
 
     }
@@ -139,6 +116,7 @@ public class UserServiceImpl implements IUserService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public User getByUUID(UUID uuid) {
         return userRepository.findById(
                 uuid
@@ -148,6 +126,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getList(List<UUID> uuids) {
 
         if (uuids == null || uuids.contains(null)) {
@@ -156,7 +135,7 @@ public class UserServiceImpl implements IUserService {
 
         try {
 
-             return userRepository.findAllById(uuids);
+            return userRepository.findAllById(uuids);
 
         } catch (Exception e) {
             throw new GeneralException("Произошла ошибка при поиске");
@@ -166,6 +145,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional
     public void update(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO) {
 
         User toUpdate = userRepository.findById(uuid).orElseThrow(
@@ -191,17 +171,7 @@ public class UserServiceImpl implements IUserService {
         toUpdate = updateUserParamsFromUserCreateDTO(toUpdate, userCreateDTO);
 
 
-        try {
-
-            toUpdate = userRepository.save(toUpdate);
-        } catch (Exception e) {
-            StructuredException structuredException = new StructuredException();
-            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
-                throw structuredException;
-            }
-
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
+        toUpdate = userRepository.save(toUpdate);
 
         if (!toUpdate.equals(copyBeforeSaving)) {
 
@@ -217,6 +187,7 @@ public class UserServiceImpl implements IUserService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public Page<User> getPage(Integer currentRequestedPage, Integer rowsPerPage) {
 
         StructuredException exception = new StructuredException();
@@ -235,21 +206,17 @@ public class UserServiceImpl implements IUserService {
             throw exception;
         }
 
-        try {
 
-            Page<User> page = userRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
+        Page<User> page = userRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
 
-            return page;
+        return page;
 
-        } catch (Exception e) {
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
 
     }
 
     @Override
+    @Transactional
     public int setUserActiveByEmail(String email) {
-        try {
 
             int i = userRepository.setUserActiveByEmail(email);
 
@@ -264,19 +231,12 @@ public class UserServiceImpl implements IUserService {
 
             return i;
 
-        } catch (Exception e) {
-            StructuredException structuredException = new StructuredException();
-            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
-                throw structuredException;
-            }
-
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
-        }
 
 
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User login(@Valid UserLoginDTO userLoginDTO) {
 
         String mail = userLoginDTO.getMail();
@@ -305,6 +265,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String loginAndReceiveToken(@Valid UserLoginDTO userLoginDTO) {
 
         User find = login(userLoginDTO);
@@ -322,8 +283,6 @@ public class UserServiceImpl implements IUserService {
         );
 
     }
-
-
 
 
     private User updateUserParamsFromUserCreateDTO(User user, UserCreateDTO userCreateDTO) {

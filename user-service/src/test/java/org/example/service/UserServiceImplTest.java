@@ -16,7 +16,7 @@ import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.reflections.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +24,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ActiveProfiles;
@@ -197,6 +200,8 @@ public class UserServiceImplTest {
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void updateUserWithExistingEmail() {
+        doReturn(null).when(userService).getUserFromCurrentSecurityContext();
+
         User user;
         try (EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager()) {
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -215,7 +220,7 @@ public class UserServiceImplTest {
 
         UUID uuid = user.getUuid();
 
-        Assertions.assertThrows(StructuredException.class,
+        Assertions.assertThrows(DataIntegrityViolationException.class,
                 () -> userService.update(uuid, user.getDtUpdate(), userCreateDTO));
 
     }
