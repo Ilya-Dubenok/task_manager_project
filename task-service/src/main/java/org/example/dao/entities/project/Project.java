@@ -35,8 +35,8 @@ public class Project {
     private String description;
 
     @ManyToOne
-    @JoinColumn(foreignKey = @ForeignKey(name = "project_users_foreign_key"))
-    private User user;
+    @JoinColumn(name = "manager", foreignKey = @ForeignKey(name = "project_users_foreign_key"))
+    private User manager;
 
     @ManyToMany
     @JoinTable(name = "projects_users",
@@ -57,13 +57,13 @@ public class Project {
         this.uuid = uuid;
     }
 
-    public Project(UUID uuid, LocalDateTime dtCreate, LocalDateTime dtUpdate, String name, String description, User user, Set<User> staff, ProjectStatus projectStatus) {
+    public Project(UUID uuid, LocalDateTime dtCreate, LocalDateTime dtUpdate, String name, String description, User manager, Set<User> staff, ProjectStatus projectStatus) {
         this.uuid = uuid;
         this.dtCreate = dtCreate;
         this.dtUpdate = dtUpdate;
         this.name = name;
         this.description = description;
-        this.user = user;
+        this.manager = manager;
         this.staff = staff;
         this.projectStatus = projectStatus;
     }
@@ -108,12 +108,12 @@ public class Project {
         this.description = description;
     }
 
-    public User getUser() {
-        return user;
+    public User getManager() {
+        return manager;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setManager(User manager) {
+        this.manager = manager;
     }
 
     public Set<User> getStaff() {

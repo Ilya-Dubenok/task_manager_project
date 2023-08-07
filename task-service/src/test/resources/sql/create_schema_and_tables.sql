@@ -14,10 +14,10 @@ CREATE TABLE IF NOT EXISTS app.project
     dt_update timestamp(3) without time zone,
     name character varying,
     project_status character varying(255),
-    user_uuid uuid,
+    manager uuid,
     CONSTRAINT project_pkey PRIMARY KEY (uuid),
     CONSTRAINT project_name_unique_constraint UNIQUE (name),
-    CONSTRAINT project_users_foreign_key FOREIGN KEY (user_uuid)
+    CONSTRAINT project_users_foreign_key FOREIGN KEY (manager)
         REFERENCES app.users (uuid) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
