@@ -4,8 +4,11 @@ import com.google.common.base.CaseFormat;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
+import org.example.core.dto.PageOfTypeDTO;
 import org.example.core.dto.project.ProjectCreateDTO;
+import org.example.core.dto.project.ProjectDTO;
 import org.example.core.dto.user.UserDTO;
+import org.example.core.exception.StructuredException;
 import org.example.dao.api.IProjectRepository;
 import org.example.dao.api.ITaskRepository;
 import org.example.dao.api.IUserRepository;
@@ -18,7 +21,12 @@ import org.example.service.api.IUserService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ResolvableType;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -52,6 +60,9 @@ public class ProjectServiceImplTest {
 
     @Autowired
     private ITaskService taskService;
+
+    @Autowired
+    private ConversionService conversionService;
 
 
     @BeforeAll
@@ -122,6 +133,38 @@ public class ProjectServiceImplTest {
         Assertions.assertEquals(res1.get("staff"), "uuid is not specified");
 
     }
+
+    @Test
+    public void getPageWorks() {
+        Page<Project> page = projectService.getPage(0, 2, true);
+
+            ResolvableType resolvableType = ResolvableType.forClassWithGenerics(
+                    PageOfTypeDTO.class, ProjectDTO.class
+            );
+
+            Assertions.assertDoesNotThrow(()->{
+                Object convert = conversionService.convert(
+                        page, TypeDescriptor.valueOf(PageImpl.class),
+                        new TypeDescriptor(resolvableType, null, null)
+                );
+
+                Assertions.assertNotNull(convert);
+
+            });
+
+    }
+
+    @Test
+    public void getPageThrows() {
+        StructuredException exception = Assertions.assertThrows(
+                StructuredException.class,
+                () -> projectService.getPage(-1, 0, true)
+        );
+
+        Assertions.assertEquals(2, exception.getSize());
+
+    }
+
 
     private Map<String, String> constraintViolationExceptionParser(ConstraintViolationException e) {
 

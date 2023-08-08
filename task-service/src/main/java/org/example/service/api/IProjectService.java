@@ -13,7 +13,7 @@ public interface IProjectService {
 
     Project findByUUID(UUID uuid);
 
-    Page<Project> getPage(Integer currentRequestedPage, Integer rowsPerPage);
+    Page<Project> getPage(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
 
 
 }

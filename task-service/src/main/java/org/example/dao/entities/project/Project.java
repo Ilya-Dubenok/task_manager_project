@@ -38,7 +38,7 @@ public class Project {
     @JoinColumn(name = "manager", foreignKey = @ForeignKey(name = "project_users_foreign_key"))
     private User manager;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "projects_users",
             joinColumns = @JoinColumn(name = "project_uuid"),
             foreignKey = @ForeignKey(name = "projects_users_project_foreign_key"),
