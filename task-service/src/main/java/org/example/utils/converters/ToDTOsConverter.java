@@ -1,5 +1,6 @@
 package org.example.utils.converters;
 
+import org.example.core.dto.PageOfTypeDTO;
 import org.example.core.dto.project.ProjectDTO;
 import org.example.core.dto.project.ProjectUuidDTO;
 import org.example.core.dto.task.TaskDTO;
@@ -9,10 +10,15 @@ import org.example.dao.entities.task.Task;
 import org.example.dao.entities.user.User;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Type;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,7 +30,8 @@ public class ToDTOsConverter<IN, OUT> implements GenericConverter {
         return Set.of(
                 new ConvertiblePair(User.class, UserDTO.class),
                 new ConvertiblePair(Project.class, ProjectDTO.class),
-                new ConvertiblePair(Task.class, TaskDTO.class)
+                new ConvertiblePair(Task.class, TaskDTO.class),
+                new ConvertiblePair(Page.class, PageOfTypeDTO.class)
         );
 
     }
@@ -41,6 +48,7 @@ public class ToDTOsConverter<IN, OUT> implements GenericConverter {
             UserDTO res = new UserDTO();
             User user = (User) source;
             res.setUuid(user.getUuid());
+
             return res;
 
         }
@@ -66,6 +74,7 @@ public class ToDTOsConverter<IN, OUT> implements GenericConverter {
                             .collect(Collectors.toSet())
             );
             res.setStatus(project.getStatus());
+
             return res;
 
         }
@@ -91,6 +100,56 @@ public class ToDTOsConverter<IN, OUT> implements GenericConverter {
 
         }
 
+        if (expectedSourceClass.equals(PageImpl.class) && expectedTargetClass.equals(PageOfTypeDTO.class)) {
+
+            Type resolvedGenericType = targetType.getResolvableType().getGeneric(0).getType();
+
+            if (resolvedGenericType.equals(ProjectDTO.class)) {
+
+                PageOfTypeDTO<ProjectDTO> res = new PageOfTypeDTO<>();
+
+                Page<Project> projectPage = (Page<Project>) source;
+
+                List<ProjectDTO> content = new ArrayList<>();
+                for (Project project : projectPage.toList()) {
+                    content.add(
+                            (ProjectDTO) this.convert(project,
+                                    TypeDescriptor.valueOf(Project.class),
+                                    TypeDescriptor.valueOf(ProjectDTO.class))
+                    );
+
+                }
+
+                fillPageWithValues(res, projectPage, content);
+
+                return res;
+            }
+
+            if (resolvedGenericType.equals(TaskDTO.class)) {
+                
+                PageOfTypeDTO<TaskDTO> res = new PageOfTypeDTO<>();
+
+                Page<Task> projectPage = (Page<Task>) source;
+
+                List<TaskDTO> content = new ArrayList<>();
+                for (Task project : projectPage.toList()) {
+                    content.add(
+                            (TaskDTO) this.convert(project,
+                                    TypeDescriptor.valueOf(Task.class),
+                                    TypeDescriptor.valueOf(TaskDTO.class))
+                    );
+
+                }
+
+                fillPageWithValues(res, projectPage, content);
+
+                return res;
+
+            }
+
+
+        }
+
         return null;
 
     }
@@ -100,6 +159,19 @@ public class ToDTOsConverter<IN, OUT> implements GenericConverter {
             return null;
         }
         return new UserDTO(user.getUuid());
+    }
+
+    private <T, E> void fillPageWithValues(PageOfTypeDTO<T> res, Page<E> source, List<T> content) {
+
+        res.setNumber(source.getNumber());
+        res.setTotalPages(source.getTotalPages());
+        res.setTotalElements(source.getTotalElements());
+        res.setFirst(source.isFirst());
+        res.setLast(!source.hasNext());
+        res.setSize(source.getSize());
+        res.setNumberOfElements(content.size());
+        res.setContent(content);
+
     }
 
 
