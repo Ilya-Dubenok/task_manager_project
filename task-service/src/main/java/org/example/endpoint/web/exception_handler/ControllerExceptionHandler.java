@@ -1,5 +1,7 @@
 package org.example.endpoint.web.exception_handler;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.base.CaseFormat;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -110,6 +112,30 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+
+        if (ex.getCause() instanceof InvalidFormatException) {
+
+            try {
+
+                String fieldName;
+
+                InvalidFormatException cause = (InvalidFormatException) ex.getCause();
+
+                JsonMappingException.Reference reference = cause.getPath().get(0);
+
+                fieldName = reference.getFieldName();
+
+                if (fieldName != null) {
+                    StructuredException structuredException = new StructuredException(fieldName, "введено неверное значение");
+                    return new ResponseEntity<>(new StructuredExceptionDTO(structuredException), HttpStatus.BAD_REQUEST);
+                }
+
+            } catch (Exception exception) {
+                GeneralExceptionDTO dto = new GeneralExceptionDTO(MESSAGE_FOR_INVALID_INPUT_DATA);
+                return new ResponseEntity<>(List.of(dto), HttpStatus.BAD_REQUEST);
+            }
+        }
+
 
         GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(MESSAGE_FOR_INVALID_INPUT_DATA);
         return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.BAD_REQUEST);

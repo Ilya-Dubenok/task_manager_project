@@ -1,37 +1,36 @@
-package org.example.dao;
+package org.example.service;
 
+import com.google.common.base.CaseFormat;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
+import org.example.core.dto.project.ProjectUuidDTO;
+import org.example.core.dto.task.TaskCreateDTO;
+import org.example.core.dto.user.UserDTO;
 import org.example.dao.api.IProjectRepository;
 import org.example.dao.api.ITaskRepository;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.project.Project;
 import org.example.dao.entities.project.ProjectStatus;
-import org.example.dao.entities.task.Task;
-import org.example.dao.entities.task.TaskStatus;
 import org.example.dao.entities.user.User;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
+import org.example.service.api.IProjectService;
+import org.example.service.api.ITaskService;
+import org.example.service.api.IUserService;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-
-@DataJpaTest
-@Transactional(propagation = Propagation.NOT_SUPPORTED)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
 @ActiveProfiles("test")
-public class TaskRepositoryDaoTest {
+public class TaskServiceImplTest {
+
+
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
@@ -43,8 +42,18 @@ public class TaskRepositoryDaoTest {
 
     @Autowired
     private ITaskRepository taskRepository;
+
     @Autowired
     private IProjectRepository projectRepository;
+
+    @Autowired
+    private IUserService userService;
+
+    @Autowired
+    private IProjectService projectService;
+
+    @Autowired
+    private ITaskService taskService;
 
 
     @BeforeAll
@@ -81,19 +90,52 @@ public class TaskRepositoryDaoTest {
     }
 
     @Test
-    public void createNewTask() {
+    public void validationOnFieldsWithCustomAnnotations() {
+        TaskCreateDTO taskCreateDTO = new TaskCreateDTO();
+        taskCreateDTO.setProject(new ProjectUuidDTO());
+        taskCreateDTO.setImplementer(new UserDTO());
 
-        Task task = new Task(UUID.randomUUID());
+        ConstraintViolationException exception1 = Assertions.assertThrows(ConstraintViolationException.class,
+                () -> taskService.save(taskCreateDTO));
 
-        task.setProject(projectRepository.findAll().get(0));
-        task.setTitle("Init task title");
-        task.setDescription("Init task description");
-        task.setStatus(TaskStatus.IN_WORK);
-        task.setImplementer(userRepository.findAll().get(0));
-        taskRepository.save(task);
-
+        Map<String, String> res2 = constraintViolationExceptionParser(exception1);
+        Assertions.assertEquals(3, res2.size());
+        Assertions.assertEquals(res2.get("project"), "uuid must not be null");
+        Assertions.assertEquals(res2.get("implementer"), "uuid must not be null");
 
     }
+
+
+    private Map<String, String> constraintViolationExceptionParser(ConstraintViolationException e) {
+
+        Iterator<ConstraintViolation<?>> iterator = e.getConstraintViolations().iterator();
+        Map<String, String> map = new HashMap<>();
+
+        while (iterator.hasNext()) {
+            ConstraintViolation<?> constraintViolation = iterator.next();
+            String propName = parseForPropNameInSnakeCase(constraintViolation);
+            String message = constraintViolation.getMessage();
+            map.put(propName, message);
+        }
+
+        return map;
+
+    }
+
+
+    private String parseForPropNameInSnakeCase(ConstraintViolation<?> next) {
+
+        Path propertyPath = next.getPropertyPath();
+        Iterator<Path.Node> iterator = propertyPath.iterator();
+        Path.Node node = null;
+
+        while (iterator.hasNext()) {
+            node = iterator.next();
+
+        }
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, node.getName());
+    }
+
 
     private static void persistDefaultStaffAndProject(IUserRepository userRepository, IProjectRepository projectRepository) {
 
@@ -123,7 +165,5 @@ public class TaskRepositoryDaoTest {
         projectRepository.save(project);
 
     }
-
-
 
 }

@@ -1,11 +1,12 @@
 package org.example.core.dto.user;
 
 import jakarta.validation.constraints.NotNull;
+import org.example.core.dto.validation.Uidable;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class UserDTO {
+public class UserDTO implements Uidable {
 
     @NotNull(message = "не задан uuid пользователя")
     private UUID uuid;

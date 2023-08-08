@@ -1,6 +1,8 @@
 package org.example.core.dto.project;
 
 import org.example.core.dto.user.UserDTO;
+import org.example.core.dto.validation.NotNullInternalUUID;
+import org.example.core.dto.validation.NotNullUUIDInIterable;
 import org.example.dao.entities.project.ProjectStatus;
 
 import java.util.Set;
@@ -11,8 +13,10 @@ public class ProjectCreateDTO {
 
     private String description;
 
+    @NotNullInternalUUID
     private UserDTO manager;
 
+    @NotNullUUIDInIterable
     private Set<UserDTO> staff;
 
     private ProjectStatus status;
