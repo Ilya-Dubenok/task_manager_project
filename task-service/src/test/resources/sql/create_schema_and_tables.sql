@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS app.project
     dt_create timestamp(3) without time zone,
     dt_update timestamp(3) without time zone,
     name character varying,
-    project_status character varying(255),
+    status character varying(255),
     manager uuid,
     CONSTRAINT project_pkey PRIMARY KEY (uuid),
     CONSTRAINT project_name_unique_constraint UNIQUE (name),

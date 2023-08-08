@@ -3,6 +3,7 @@ package org.example.core.dto.task;
 import org.example.core.dto.project.ProjectUuidDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.dao.entities.project.ProjectStatus;
+import org.example.dao.entities.task.TaskStatus;
 
 import java.util.UUID;
 
@@ -20,14 +21,14 @@ public class TaskDTO {
 
     private String description;
 
-    private ProjectStatus status;
+    private TaskStatus status;
 
     private UserDTO implementer;
 
     public TaskDTO() {
     }
 
-    public TaskDTO(UUID uuid, Long dtCreate, Long dtUpdate, ProjectUuidDTO project, String title, String description, ProjectStatus status, UserDTO implementer) {
+    public TaskDTO(UUID uuid, Long dtCreate, Long dtUpdate, ProjectUuidDTO project, String title, String description, TaskStatus status, UserDTO implementer) {
         this.uuid = uuid;
         this.dtCreate = dtCreate;
         this.dtUpdate = dtUpdate;
@@ -86,11 +87,11 @@ public class TaskDTO {
         this.description = description;
     }
 
-    public ProjectStatus getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ProjectStatus status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 

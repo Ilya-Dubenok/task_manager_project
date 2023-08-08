@@ -5,8 +5,6 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
 import org.example.core.dto.project.ProjectCreateDTO;
-import org.example.core.dto.project.ProjectUuidDTO;
-import org.example.core.dto.task.TaskCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.dao.api.IProjectRepository;
 import org.example.dao.api.ITaskRepository;
@@ -179,7 +177,7 @@ public class ProjectServiceImplTest {
 
         project.setManager(users.get(0));
         project.setStaff(Set.of(users.get(1), users.get(2), users.get(3)));
-        project.setProjectStatus(ProjectStatus.ACTIVE);
+        project.setStatus(ProjectStatus.ACTIVE);
         project.setName("Init project");
         project.setDescription("Init project with 3 staff");
 

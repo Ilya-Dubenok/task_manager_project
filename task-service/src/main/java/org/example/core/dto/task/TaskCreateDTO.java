@@ -1,6 +1,5 @@
 package org.example.core.dto.task;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.example.core.dto.project.ProjectUuidDTO;

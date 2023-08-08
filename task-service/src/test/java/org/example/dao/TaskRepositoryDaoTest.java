@@ -116,7 +116,7 @@ public class TaskRepositoryDaoTest {
 
         project.setManager(users.get(0));
         project.setStaff(Set.of(users.get(1), users.get(2), users.get(3)));
-        project.setProjectStatus(ProjectStatus.ACTIVE);
+        project.setStatus(ProjectStatus.ACTIVE);
         project.setName("Init project");
         project.setDescription("Init project with 3 staff");
 

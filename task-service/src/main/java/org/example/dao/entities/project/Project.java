@@ -48,7 +48,7 @@ public class Project {
     private Set<User> staff;
 
     @Enumerated(EnumType.STRING)
-    private ProjectStatus projectStatus;
+    private ProjectStatus status;
 
     public Project() {
     }
@@ -57,7 +57,7 @@ public class Project {
         this.uuid = uuid;
     }
 
-    public Project(UUID uuid, LocalDateTime dtCreate, LocalDateTime dtUpdate, String name, String description, User manager, Set<User> staff, ProjectStatus projectStatus) {
+    public Project(UUID uuid, LocalDateTime dtCreate, LocalDateTime dtUpdate, String name, String description, User manager, Set<User> staff, ProjectStatus status) {
         this.uuid = uuid;
         this.dtCreate = dtCreate;
         this.dtUpdate = dtUpdate;
@@ -65,7 +65,7 @@ public class Project {
         this.description = description;
         this.manager = manager;
         this.staff = staff;
-        this.projectStatus = projectStatus;
+        this.status = status;
     }
 
     public UUID getUuid() {
@@ -124,11 +124,11 @@ public class Project {
         this.staff = staff;
     }
 
-    public ProjectStatus getProjectStatus() {
-        return projectStatus;
+    public ProjectStatus getStatus() {
+        return status;
     }
 
-    public void setProjectStatus(ProjectStatus projectStatus) {
-        this.projectStatus = projectStatus;
+    public void setStatus(ProjectStatus status) {
+        this.status = status;
     }
 }
