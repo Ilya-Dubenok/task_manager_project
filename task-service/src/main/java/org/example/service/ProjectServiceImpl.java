@@ -68,8 +68,6 @@ public class ProjectServiceImpl implements IProjectService {
             throw exception;
         }
 
-        User userInCurrentContext = userService.findUserInCurrentContext();
-
         Page<Project> page = projectRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
 
         return page;

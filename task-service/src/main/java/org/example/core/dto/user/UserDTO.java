@@ -11,6 +11,8 @@ public class UserDTO implements Uidable {
     @NotNull(message = "не задан uuid пользователя")
     private UUID uuid;
 
+    private UserRole role;
+
     public UserDTO() {
     }
 
@@ -24,6 +26,14 @@ public class UserDTO implements Uidable {
 
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     @Override

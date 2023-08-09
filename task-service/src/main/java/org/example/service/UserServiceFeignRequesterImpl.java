@@ -6,10 +6,13 @@ import org.example.core.exception.GeneralException;
 import org.example.service.api.IUserServiceFeignClient;
 import org.example.service.api.IUserServiceRequester;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -29,7 +32,35 @@ public class UserServiceFeignRequesterImpl implements IUserServiceRequester {
     }
 
     @Override
-    public Set<UserDTO> getListOfUsers(List<UUID> uuids) {
+    public UserDTO getUser(UUID uuid) {
+
+        try {
+
+            ResponseEntity<UserDTO> response = userServiceFeignRequester.getUser(USER_SERVICE_INTERNAL_URL, uuid);
+
+            HttpStatusCode statusCode = response.getStatusCode();
+            if (statusCode == HttpStatus.OK) {
+
+                return response.getBody();
+
+            } else if (statusCode == HttpStatus.BAD_REQUEST) {
+
+                return null;
+
+            } else {
+
+                throw new GeneralException("При обработке запроса произошла ошибка");
+            }
+
+        } catch (Exception e) {
+
+            throw new GeneralException("При обработке запроса произошла ошибка", e);
+
+        }
+    }
+
+    @Override
+    public Set<UserDTO> getSetOfUserDTO(List<UUID> uuids) {
 
         try {
 

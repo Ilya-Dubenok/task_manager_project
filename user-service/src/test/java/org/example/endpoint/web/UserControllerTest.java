@@ -453,7 +453,7 @@ public class UserControllerTest {
 
         ObjectMapper objectMapper = converter.getObjectMapper();
         String contentAsString = this.mockMvc.perform(
-                        get("/internal/user")
+                        post("/internal/user")
                                 .contentType("application/json")
                                 .content(
                                         objectMapper.writeValueAsString(uuids)

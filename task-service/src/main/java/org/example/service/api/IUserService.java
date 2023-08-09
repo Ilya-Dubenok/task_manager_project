@@ -1,8 +1,19 @@
 package org.example.service.api;
 
+import org.example.core.dto.user.UserDTO;
+import org.example.core.dto.user.UserRole;
 import org.example.dao.entities.user.User;
 
+import java.util.List;
+import java.util.UUID;
+
 public interface IUserService {
+
+    User findAndSave(UserDTO userDTO);
+
+    User findByRoleAndSave(UserDTO userDTO, UserRole role);
+
+    List<User> findAllAndSave(List<UserDTO> userDTOList);
 
     User findUserInCurrentContext();
 

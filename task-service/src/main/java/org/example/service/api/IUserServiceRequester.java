@@ -7,5 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface IUserServiceRequester {
-    Set<UserDTO> getListOfUsers(List<UUID> uuids);
+
+    UserDTO getUser(UUID uuid);
+    Set<UserDTO> getSetOfUserDTO(List<UUID> uuids);
 }
