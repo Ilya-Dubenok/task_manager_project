@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface IProjectService {
 
-    void save(@Valid ProjectCreateDTO projectCreateDTO);
+    Project save(@Valid ProjectCreateDTO projectCreateDTO);
 
     Project findByUUID(UUID uuid);
 

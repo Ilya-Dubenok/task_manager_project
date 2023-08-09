@@ -8,6 +8,8 @@ import org.example.core.dto.PageOfTypeDTO;
 import org.example.core.dto.project.ProjectCreateDTO;
 import org.example.core.dto.project.ProjectDTO;
 import org.example.core.dto.user.UserDTO;
+import org.example.core.dto.user.UserRole;
+import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IProjectRepository;
 import org.example.dao.api.ITaskRepository;
@@ -18,9 +20,12 @@ import org.example.dao.entities.user.User;
 import org.example.service.api.IProjectService;
 import org.example.service.api.ITaskService;
 import org.example.service.api.IUserService;
+import org.example.service.api.IUserServiceRequester;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -32,6 +37,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
 import java.util.*;
+
+import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -63,6 +70,9 @@ public class ProjectServiceImplTest {
 
     @Autowired
     private ConversionService conversionService;
+
+    @SpyBean
+    private IUserServiceRequester userServiceRequester;
 
 
     @BeforeAll
@@ -164,6 +174,115 @@ public class ProjectServiceImplTest {
         Assertions.assertEquals(2, exception.getSize());
 
     }
+
+
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void validationOnServiceWorks() {
+        UserDTO manager = new UserDTO();
+
+        ProjectCreateDTO projectCreateDTO = new ProjectCreateDTO();
+        projectCreateDTO.setName("dfdf");
+        projectCreateDTO.setManager(manager);
+
+        Assertions.assertThrows(ConstraintViolationException.class,
+                () -> projectService.save(projectCreateDTO));
+
+        manager.setUuid(UUID.randomUUID());
+
+        doReturn(manager).when(userServiceRequester).getUser(manager.getUuid());
+
+        Assertions.assertThrows(GeneralException.class,
+                () -> projectService.save(projectCreateDTO));
+
+        manager.setRole(UserRole.USER);
+
+        Assertions.assertThrows(StructuredException.class,
+                () -> projectService.save(projectCreateDTO));
+
+
+        projectCreateDTO.setStaff(Set.of(new UserDTO(), new UserDTO(UUID.randomUUID())));
+
+        Assertions.assertThrows(ConstraintViolationException.class,
+                () -> projectService.save(projectCreateDTO));
+
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void saveWithManagerWorksFine() {
+
+        UUID managerUUID = UUID.randomUUID();
+
+        UserDTO manager = new UserDTO(managerUUID);
+        manager.setRole(UserRole.MANAGER);
+
+        ProjectCreateDTO projectCreateDTO = new ProjectCreateDTO();
+        projectCreateDTO.setName("dfdf");
+        projectCreateDTO.setManager(manager);
+
+        doReturn(manager).when(userServiceRequester).getUser(managerUUID);
+
+        Project save = projectService.save(projectCreateDTO);
+
+        Mockito.verify(userServiceRequester, Mockito.times(1)).getUser(Mockito.any());
+
+        Assertions.assertTrue(userRepository.existsById(managerUUID));
+
+        Assertions.assertNotNull(save);
+
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void saveWorksFine() {
+
+        UUID managerUUID = UUID.randomUUID();
+
+        UUID workerUUid1 = UUID.randomUUID();
+        UUID workerUUid2 = UUID.randomUUID();
+        UUID workerUUid3 = UUID.randomUUID();
+
+        UserDTO worker1 = new UserDTO(workerUUid1);
+        UserDTO worker2 = new UserDTO(workerUUid2);
+        UserDTO worker3 = new UserDTO(workerUUid3);
+
+        Set <UserDTO> staff = new HashSet<>();
+        staff.add(worker1); staff.add(worker2);
+        staff.add(worker3);
+
+        UserDTO manager = new UserDTO(managerUUID);
+        manager.setRole(UserRole.MANAGER);
+
+        ProjectCreateDTO projectCreateDTO = new ProjectCreateDTO();
+        projectCreateDTO.setName("some_name");
+        projectCreateDTO.setManager(manager);
+        projectCreateDTO.setStaff(staff);
+
+        doReturn(manager).when(userServiceRequester).getUser(managerUUID);
+        doReturn(staff).when(userServiceRequester).getSetOfUserDTO(Mockito.any());
+
+        Project save = projectService.save(projectCreateDTO);
+
+        Mockito.verify(userServiceRequester, Mockito.times(1)).getUser(Mockito.any());
+
+        Assertions.assertTrue(userRepository.existsById(managerUUID));
+
+        Assertions.assertNotNull(save);
+
+        Assertions.assertEquals(3, save.getStaff().size());
+        Assertions.assertNotNull(save.getManager());
+
+
+    }
+
+
 
 
     private Map<String, String> constraintViolationExceptionParser(ConstraintViolationException e) {

@@ -52,7 +52,7 @@ public class ProjectRepositoryTest {
         List<User> users = Stream.generate(
                 () -> new User(UUID.randomUUID())
         ).limit(50).toList();
-        userRepository.saveAll(users);
+        userRepository.saveAllAndFlush(users);
 
         for (int i = 0; i < 5; i++) {
 

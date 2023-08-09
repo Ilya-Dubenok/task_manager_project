@@ -1,19 +1,19 @@
 package org.example.service;
 
+import jakarta.validation.ConstraintViolationException;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
 import org.example.core.exception.GeneralException;
+import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IUserService;
 import org.example.service.api.IUserServiceRequester;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements IUserService {
@@ -43,7 +43,7 @@ public class UserServiceImpl implements IUserService {
 
                     User res = new User();
                     res.setUuid(dtoRes.getUuid());
-                    userRepository.save(res);
+                    userRepository.saveAndFlush(res);
                     return res;
                 }
         );
@@ -54,21 +54,28 @@ public class UserServiceImpl implements IUserService {
         UserDTO dtoRes = userServiceRequester.getUser(userDTO.getUuid());
 
         if (null == dtoRes) {
-            throw new GeneralException("передан uuid не существующего пользователя");
+            throw new ConstraintViolationException("передан uuid не существующего пользователя",null);
+        }
+
+        if (null == dtoRes.getRole()) {
+            throw new GeneralException("произошла ошибка");
         }
 
         if (!dtoRes.getRole().equals(role)) {
-            throw new GeneralException("данный пользователь не " + role.toString().toLowerCase());
+            throw new ConstraintViolationException("данный пользователь не " + role.toString().toLowerCase(), null);
         }
 
         User res = new User();
+
         res.setUuid(dtoRes.getUuid());
-        userRepository.save(res);
+
+        userRepository.saveAndFlush(res);
+
         return res;
     }
 
     @Override
-    public List<User> findAllAndSave(List<UserDTO> userDTOList) {
+    public List<User> findAllAndSave(Set<UserDTO> userDTOList) {
         List<UUID> listOfUUIDs = userDTOList.stream().map(UserDTO::getUuid).toList();
 
         List<User> found = userRepository.findAllById(listOfUUIDs);
@@ -85,11 +92,11 @@ public class UserServiceImpl implements IUserService {
 
             List<User> toSaveAdditionally = setOfUserDTO.stream().map(x -> new User(x.getUuid())).toList();
 
-            userRepository.saveAll(toSaveAdditionally);
+            userRepository.saveAllAndFlush(toSaveAdditionally);
 
             if (found.size() + toSaveAdditionally.size() < userDTOList.size()) {
 
-                throw new GeneralException("Переданы не существующие пользователи");
+                throw new ConstraintViolationException("Переданы не существующие пользователи", null);
             }
 
             found.addAll(toSaveAdditionally);

@@ -1,7 +1,6 @@
 package org.example.service;
 
 import org.example.core.dto.user.UserDTO;
-import org.example.service.api.IUserServiceFeignClient;
 import org.example.service.api.IUserServiceRequester;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;

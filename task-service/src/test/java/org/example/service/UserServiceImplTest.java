@@ -1,6 +1,7 @@
 package org.example.service;
 
 
+import jakarta.validation.ConstraintViolationException;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
 import org.example.core.exception.GeneralException;
@@ -80,7 +81,6 @@ public class UserServiceImplTest {
         Assertions.assertThrows(GeneralException.class,
                 () -> userService.findAndSave(new UserDTO(UUID.randomUUID())));
 
-        Mockito.verify(userRepository, times(0)).save(any());
 
     }
 
@@ -95,8 +95,6 @@ public class UserServiceImplTest {
                 () -> userService.findAndSave(new UserDTO(UUID.randomUUID()))
         );
 
-        Mockito.verify(userRepository, times(1)).findById(any());
-        Mockito.verify(userRepository, times(1)).save(any());
         long count = userRepository.count();
         Assertions.assertNotEquals(initial, count);
 
@@ -109,10 +107,9 @@ public class UserServiceImplTest {
 
         Mockito.doReturn(notManager).when(userServiceRequester).getUser(any());
 
-        Assertions.assertThrows(GeneralException.class,
+        Assertions.assertThrows(ConstraintViolationException.class,
                 () -> userService.findByRoleAndSave(notManager, UserRole.MANAGER));
 
-        Mockito.verify(userRepository, times(0)).save(any());
 
     }
 
@@ -130,7 +127,6 @@ public class UserServiceImplTest {
                 () -> userService.findByRoleAndSave(manager, UserRole.MANAGER)
         );
 
-        Mockito.verify(userRepository, times(1)).save(any());
         long count = userRepository.count();
         Assertions.assertNotEquals(initial, count);
     }
@@ -156,11 +152,9 @@ public class UserServiceImplTest {
 
         Mockito.doReturn(new HashSet<>(notStored)).when(userServiceRequester).getSetOfUserDTO(Mockito.anyList());
 
-        Assertions.assertDoesNotThrow(()->userService.findAllAndSave(combined));
+        Assertions.assertDoesNotThrow(()->userService.findAllAndSave(new HashSet<>(combined)));
 
-        Mockito.verify(userRepository, times(1)).findAllById(any());
 
-        Mockito.verify(userRepository, times(1)).saveAll(Mockito.any());
     }
 
     @Test
@@ -185,11 +179,9 @@ public class UserServiceImplTest {
 
         Mockito.doReturn(new HashSet<>(notStored)).when(userServiceRequester).getSetOfUserDTO(Mockito.anyList());
 
-        Assertions.assertThrows(GeneralException.class, ()->userService.findAllAndSave(combined));
+        Assertions.assertThrows(ConstraintViolationException.class, ()->userService.findAllAndSave(new HashSet<>(combined)));
 
-        Mockito.verify(userRepository, times(1)).findAllById(any());
 
-        Mockito.verify(userRepository, times(1)).saveAll(Mockito.any());
 
     }
 

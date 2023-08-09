@@ -1,8 +1,11 @@
 package org.example.service;
 
 import jakarta.persistence.criteria.Predicate;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import org.example.core.dto.project.ProjectCreateDTO;
+import org.example.core.dto.user.UserDTO;
+import org.example.core.dto.user.UserRole;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IProjectRepository;
@@ -11,6 +14,7 @@ import org.example.dao.entities.project.ProjectStatus;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IProjectService;
 import org.example.service.api.IUserService;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -18,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Validated
@@ -28,21 +35,43 @@ public class ProjectServiceImpl implements IProjectService {
 
     private IProjectRepository projectRepository;
 
-    public ProjectServiceImpl(IUserService userService, IProjectRepository projectRepository) {
+    private ConversionService conversionService;
+
+    public ProjectServiceImpl(IUserService userService, IProjectRepository projectRepository,
+                              ConversionService conversionService) {
         this.userService = userService;
         this.projectRepository = projectRepository;
+        this.conversionService = conversionService;
     }
 
     @Override
     @Transactional
-    public void save(@Valid ProjectCreateDTO projectCreateDTO) {
+    public Project save(@Valid ProjectCreateDTO projectCreateDTO) {
+
+        Project toPersist = conversionService.convert(projectCreateDTO, Project.class);
+        toPersist.setUuid(UUID.randomUUID());
+
+        verifyAndPersistUsers(projectCreateDTO, toPersist);
+
+        try {
+
+            return projectRepository.saveAndFlush(toPersist);
+
+
+        } catch (Exception e) {
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+        }
+
     }
+
+
 
     @Override
     @Transactional(readOnly = true)
     public Project findByUUID(UUID uuid) {
+
         return projectRepository.findById(uuid).orElseThrow(
-                () -> new GeneralException("Не найден проект по такому id")
+                () -> new StructuredException("uuid", "Не найден проект по такому id")
         );
 
     }
@@ -95,5 +124,46 @@ public class ProjectServiceImpl implements IProjectService {
 
             return res;
         };
+    }
+
+    private void assignTeam(UserDTO manager, Set<UserDTO> staff, Project toPersist) {
+
+
+    }
+
+    private void verifyAndPersistUsers(ProjectCreateDTO projectCreateDTO, Project project) {
+
+        UserDTO managerDTO = projectCreateDTO.getManager();
+
+        if (managerDTO != null) {
+
+            try {
+
+                User manager = userService.findByRoleAndSave(managerDTO, UserRole.MANAGER);
+                project.setManager(manager);
+
+            } catch (ConstraintViolationException e) {
+
+                throw new StructuredException("manager", e.getMessage());
+
+            }
+        }
+
+        Set<UserDTO> staff = projectCreateDTO.getStaff();
+
+        if (staff != null) {
+
+            try {
+
+                List<User> staffOfUsers = userService.findAllAndSave(staff);
+                project.setStaff(new HashSet<>(staffOfUsers));
+
+            } catch (ConstraintViolationException e) {
+
+                throw new StructuredException("staff", e.getMessage());
+
+            }
+        }
+
     }
 }
