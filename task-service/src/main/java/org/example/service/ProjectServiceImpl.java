@@ -17,6 +17,7 @@ import org.example.dao.entities.user.User;
 import org.example.service.api.IProjectService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.*;
 
 @Validated
@@ -79,14 +82,14 @@ public class ProjectServiceImpl implements IProjectService {
                         dtUpdate
                 )
         ) {
-            throw new StructuredException("dt_update",  "Версия проекта уже была обновлена");
+            throw new StructuredException("dt_update", "Версия проекта уже была обновлена");
         }
 
         updateProjectFields(projectCreateDTO, toUpdate);
 
         try {
 
-            return  projectRepository.saveAndFlush(toUpdate);
+            return projectRepository.saveAndFlush(toUpdate);
 
         } catch (Exception e) {
 
@@ -110,6 +113,37 @@ public class ProjectServiceImpl implements IProjectService {
         return projectRepository.findById(uuid).orElseThrow(
                 () -> new StructuredException("uuid", "Не найден проект по такому id")
         );
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Project findByUUIDAndUserInContext(UUID uuid) throws AccessDeniedException {
+
+
+        User userInCurrentContext = userService.findUserInCurrentContext();
+
+        if (null == userInCurrentContext) {
+            throw new AccessDeniedException("неавторизированный доступ");
+        }
+
+        Project found = findByUUID(uuid);
+
+        if (userInCurrentContext.getUuid().equals(found.getManager().getUuid())) {
+
+            return found;
+
+        }
+
+        for (User staff : found.getStaff()) {
+
+            if (staff.getUuid().equals(userInCurrentContext.getUuid())) {
+                return found;
+            }
+
+        }
+
+        return null;
 
     }
 
@@ -161,6 +195,22 @@ public class ProjectServiceImpl implements IProjectService {
 
             return res;
         };
+    }
+
+    private Specification<Project> getSpecificationOfUuidAndUserIsInProjectAndShowArchivedIs(UUID projectUuid, User user, Boolean showArchived) {
+
+        return (root, query, builder) -> {
+
+            Predicate uuidMatches = builder.equal(root.get("uuid"), projectUuid);
+
+            Predicate res = builder.and(uuidMatches,
+                    getSpecificationOfUserIsInProjectAndShowArchivedIs(user, showArchived).toPredicate(root,query,builder)
+            );
+
+            return res;
+
+        };
+
     }
 
 

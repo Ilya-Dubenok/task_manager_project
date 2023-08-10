@@ -38,6 +38,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,7 +65,7 @@ public class ProjectServiceImplTest {
     @Autowired
     private IProjectRepository projectRepository;
 
-    @Autowired
+    @SpyBean
     private IUserService userService;
 
     @Autowired
@@ -378,6 +379,78 @@ public class ProjectServiceImplTest {
 
         Assertions.assertThrows(StructuredException.class, ()->
                 projectService.update(project.getUuid(), project.getDtUpdate().minusSeconds(1), projectCreateDTO));
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void findForUserInContextAsManagerWorks() throws AccessDeniedException {
+
+        Project probe = getInitProject();
+
+        User manager = probe.getManager();
+
+        doReturn(manager).when(userService).findUserInCurrentContext();
+
+        Project target = projectService.findByUUIDAndUserInContext(probe.getUuid());
+
+        Assertions.assertNotNull(target);
+
+        Assertions.assertEquals(manager.getUuid(),target.getManager().getUuid());
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void findForUserInContextAsStaffWorks() throws AccessDeniedException {
+
+        Project probe = getInitProject();
+
+        Iterator<User> iterator = probe.getStaff().iterator();
+
+        User inStaff = iterator.next();
+
+        doReturn(inStaff).when(userService).findUserInCurrentContext();
+
+        Project target = projectService.findByUUIDAndUserInContext(probe.getUuid());
+
+        Assertions.assertNotNull(target);
+
+        Assertions.assertTrue(
+                ()-> target.getStaff().stream().anyMatch(x -> x.getUuid().equals(inStaff.getUuid()))
+        );
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void findForUserInContextNotInProjectThrows() throws AccessDeniedException {
+
+        Project probe = getInitProject();
+
+        User inContext = userRepository.save(new User(UUID.randomUUID()));
+
+        doReturn(inContext).when(userService).findUserInCurrentContext();
+
+        Project notShown = projectService.findByUUIDAndUserInContext(probe.getUuid());
+
+        Assertions.assertNull(notShown);
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void findForUserNotInContextNotInProjectThrows() {
+
+        Project probe = getInitProject();
+
+        doReturn(null).when(userService).findUserInCurrentContext();
+
+
+        Assertions.assertThrows(AccessDeniedException.class, ()->
+                projectService.findByUUIDAndUserInContext(probe.getUuid()));
 
     }
 

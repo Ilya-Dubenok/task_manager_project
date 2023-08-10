@@ -14,7 +14,5 @@ public interface IProjectRepository extends JpaRepository<Project, UUID>, JpaSpe
 
     Page<Project> findAllByOrderByUuid(Pageable pageable);
 
-    Page<Project> findAll(Specification<Project> specification, Pageable pageable);
-
 
 }

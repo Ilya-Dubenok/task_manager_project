@@ -10,6 +10,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -174,8 +175,33 @@ public class ProjectRepositoryTest {
 
     }
 
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void findForSpecificUserAsManagerWorks() {
 
-    public static Specification<Project> getSpecificationOfUserIsInProjectAndShowArchivedIs(User user, Boolean showArchived) {
+        User worksInProject = new User(UUID.randomUUID());
+        userRepository.saveAndFlush(worksInProject);
+
+        List<Project> projects = projectRepository.findAll();
+
+
+        Project existing = projects.get(0);
+        existing.setManager(worksInProject);
+        existing.setStatus(ProjectStatus.ACTIVE);
+
+        projectRepository.saveAndFlush(existing);
+        Project one = projectRepository.findOne(
+                getSpecificationOfUuidAndUserIsInProjectAndShowArchivedIs(
+                        existing.getUuid(), worksInProject, true
+                )
+        ).orElseThrow();
+
+        Assertions.assertNotNull(one);
+
+    }
+
+
+    private static Specification<Project> getSpecificationOfUserIsInProjectAndShowArchivedIs(User user, Boolean showArchived) {
         return (root, query, builder) -> {
 
             Predicate isManager = builder.equal(root.get("manager"), user);
@@ -196,6 +222,22 @@ public class ProjectRepositoryTest {
 
             return res;
         };
+    }
+
+    private Specification<Project> getSpecificationOfUuidAndUserIsInProjectAndShowArchivedIs(UUID projectUuid, User user, Boolean showArchived) {
+
+        return (root, query, builder) -> {
+
+            Predicate uuidMatches = builder.equal(root.get("uuid"), projectUuid);
+
+            Predicate res = builder.and(uuidMatches,
+                    getSpecificationOfUserIsInProjectAndShowArchivedIs(user, showArchived).toPredicate(root,query,builder)
+            );
+
+            return res;
+
+        };
+
     }
 
 
