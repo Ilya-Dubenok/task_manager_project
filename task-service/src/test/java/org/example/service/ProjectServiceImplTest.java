@@ -30,14 +30,19 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
@@ -93,8 +98,11 @@ public class ProjectServiceImplTest {
         databasePopulator.execute(dataSource);
     }
 
-    private static void fillDataBaseWithDefaultValues(DataSource dataSource, ITaskRepository taskRepository,
-                                                      IUserRepository userRepository, IProjectRepository projectRepository) {
+    private static void fillDataBaseWithDefaultValues(DataSource dataSource,
+                                                      ITaskRepository taskRepository,
+                                                      IUserRepository userRepository,
+                                                      IProjectRepository projectRepository) {
+
         persistDefaultStaffAndProject(userRepository, projectRepository);
 
     }
@@ -124,8 +132,7 @@ public class ProjectServiceImplTest {
         Assertions.assertEquals(1,res1.size());
         Assertions.assertEquals(res1.get("manager"), "uuid must not be null");
 
-        Set<UserDTO> staff = new HashSet<>();
-        staff.addAll(List.of(
+        Set<UserDTO> staff = new HashSet<>(List.of(
                 new UserDTO(),
                 new UserDTO(UUID.randomUUID()),
                 new UserDTO(UUID.randomUUID()))
@@ -229,7 +236,7 @@ public class ProjectServiceImplTest {
 
         Project save = projectService.save(projectCreateDTO);
 
-        Mockito.verify(userServiceRequester, Mockito.times(1)).getUser(Mockito.any());
+        Mockito.verify(userServiceRequester, Mockito.times(1)).getUser(any());
 
         Assertions.assertTrue(userRepository.existsById(managerUUID));
 
@@ -241,9 +248,8 @@ public class ProjectServiceImplTest {
 
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
-    public void saveWorksFine() {
+    public void saveWithFullStaffWorksFine() {
 
-        UUID managerUUID = UUID.randomUUID();
 
         UUID workerUUid1 = UUID.randomUUID();
         UUID workerUUid2 = UUID.randomUUID();
@@ -257,6 +263,8 @@ public class ProjectServiceImplTest {
         staff.add(worker1); staff.add(worker2);
         staff.add(worker3);
 
+
+        UUID managerUUID = UUID.randomUUID();
         UserDTO manager = new UserDTO(managerUUID);
         manager.setRole(UserRole.MANAGER);
 
@@ -266,11 +274,11 @@ public class ProjectServiceImplTest {
         projectCreateDTO.setStaff(staff);
 
         doReturn(manager).when(userServiceRequester).getUser(managerUUID);
-        doReturn(staff).when(userServiceRequester).getSetOfUserDTO(Mockito.any());
+        doReturn(staff).when(userServiceRequester).getSetOfUserDTO(any());
 
         Project save = projectService.save(projectCreateDTO);
 
-        Mockito.verify(userServiceRequester, Mockito.times(1)).getUser(Mockito.any());
+        Mockito.verify(userServiceRequester, Mockito.times(1)).getUser(any());
 
         Assertions.assertTrue(userRepository.existsById(managerUUID));
 
@@ -283,6 +291,106 @@ public class ProjectServiceImplTest {
     }
 
 
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void updateWorksFine() {
+
+        UUID managerUUID = UUID.randomUUID();
+        UserDTO newManager = new UserDTO(managerUUID);
+        newManager.setRole(UserRole.MANAGER);
+
+        doReturn(newManager).when(userServiceRequester).getUser(managerUUID);
+
+        Project project = getInitProject();
+
+        User initManager = project.getManager();
+
+        ProjectCreateDTO projectCreateDTO = new ProjectCreateDTO(
+                "updated project", "updated description", newManager, null, ProjectStatus.ARCHIVED
+        );
+
+        Project newProject = projectService.update(project.getUuid(), project.getDtUpdate(), projectCreateDTO);
+
+        Assertions.assertNotEquals(initManager.getUuid(), newProject.getManager().getUuid());
+
+        Assertions.assertNotEquals(project.getName(), newProject.getName());
+
+        Assertions.assertNotEquals(project.getDescription(), newProject.getDescription());
+
+        Assertions.assertNotEquals(project.getStatus(), newProject.getStatus());
+
+        Assertions.assertNull(newProject.getStaff());
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void updateThrowsOnUnknownUuidOrVersion() {
+
+        UUID managerUUID = UUID.randomUUID();
+        UserDTO newManager = new UserDTO(managerUUID);
+        newManager.setRole(UserRole.USER);
+
+        Project project = getInitProject();
+
+        Set<User> staff = project.getStaff();
+
+        doReturn(newManager).when(userServiceRequester).getUser(managerUUID);
+
+        Set<UserDTO> changedStaff = staff.stream().limit(2).map(x -> new UserDTO(x.getUuid())).collect(Collectors.toSet());
+
+        UserDTO nonExistingStaffMember = new UserDTO(UUID.randomUUID());
+
+        changedStaff.add(nonExistingStaffMember);
+
+        doReturn(new HashSet<>()).when(userServiceRequester).getSetOfUserDTO(any());
+
+        newManager.setRole(UserRole.ADMIN);
+
+
+        ProjectCreateDTO projectCreateDTO = new ProjectCreateDTO(
+                "updated project", "updated description", newManager, changedStaff, ProjectStatus.ARCHIVED
+        );
+
+
+        StructuredException structuredException = Assertions.assertThrows(StructuredException.class, () ->
+                projectService.update(project.getUuid(), project.getDtUpdate(), projectCreateDTO));
+
+        Assertions.assertEquals(2,structuredException.getSize());
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void updateThrowsOnUnknownManagerAndOneFromStaff() {
+
+
+        Project project = getInitProject();
+
+        ProjectCreateDTO projectCreateDTO = new ProjectCreateDTO(
+                "updated project", "updated description", null, null, ProjectStatus.ARCHIVED
+        );
+
+        Assertions.assertThrows(StructuredException.class, ()->
+                projectService.update(UUID.randomUUID(), project.getDtUpdate(), projectCreateDTO));
+
+        Assertions.assertThrows(StructuredException.class, ()->
+                projectService.update(project.getUuid(), project.getDtUpdate().minusSeconds(1), projectCreateDTO));
+
+    }
+
+    private Project getInitProject() {
+        Project probe = new Project();
+        probe.setName("Init project");
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnoreNullValues();
+
+        Project project = projectRepository.findOne(Example.of(probe, matcher))
+                .orElseThrow(RuntimeException::new);
+        return project;
+    }
 
 
     private Map<String, String> constraintViolationExceptionParser(ConstraintViolationException e) {

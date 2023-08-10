@@ -62,7 +62,7 @@ public class UserServiceFeignRequesterImpl implements IUserServiceRequester {
 
         try {
 
-            ResponseEntity<Set<UserDTO>> response = userServiceFeignRequester.getListOfUsers(USER_SERVICE_INTERNAL_URL, uuids);
+            ResponseEntity<Set<UserDTO>> response = userServiceFeignRequester.getSetOfUsers(USER_SERVICE_INTERNAL_URL, uuids);
 
             if (response.getStatusCode() == HttpStatus.OK) {
 

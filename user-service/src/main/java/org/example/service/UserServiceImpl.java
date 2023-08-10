@@ -181,7 +181,7 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
-    public void update(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO) {
+    public void update(UUID uuid, LocalDateTime dtUpdate, @Valid UserCreateDTO userCreateDTO) {
 
         User toUpdate = userRepository.findById(uuid).orElseThrow(
                 () -> new GeneralException("Не найден пользователь с таким uuid")
@@ -190,7 +190,7 @@ public class UserServiceImpl implements IUserService {
         if (
                 !Objects.equals(
                         toUpdate.getDtUpdate(),
-                        dt_update
+                        dtUpdate
                 )
         ) {
 

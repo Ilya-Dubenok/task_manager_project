@@ -20,7 +20,7 @@ public interface IUserServiceFeignClient {
     ResponseEntity<UserDTO> getUser(URI baseUrl, @PathVariable("uuid") UUID uuid);
 
     @RequestMapping(method = RequestMethod.POST, value = "/user", consumes = "application/json")
-    ResponseEntity<Set<UserDTO>> getListOfUsers(URI baseUrl, @RequestBody List<UUID> uuids);
+    ResponseEntity<Set<UserDTO>> getSetOfUsers(URI baseUrl, @RequestBody List<UUID> uuids);
 
 
 }

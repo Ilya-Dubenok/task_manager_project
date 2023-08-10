@@ -3,11 +3,13 @@ package org.example.service;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.example.core.dto.project.ProjectCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
+import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.IProjectRepository;
 import org.example.dao.entities.project.Project;
 import org.example.dao.entities.project.ProjectStatus;
@@ -22,10 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Validated
 @Service
@@ -49,6 +49,7 @@ public class ProjectServiceImpl implements IProjectService {
     public Project save(@Valid ProjectCreateDTO projectCreateDTO) {
 
         Project toPersist = conversionService.convert(projectCreateDTO, Project.class);
+
         toPersist.setUuid(UUID.randomUUID());
 
         verifyAndPersistUsers(projectCreateDTO, toPersist);
@@ -64,6 +65,42 @@ public class ProjectServiceImpl implements IProjectService {
 
     }
 
+    @Override
+    public Project update(UUID uuid, LocalDateTime dtUpdate, ProjectCreateDTO projectCreateDTO) {
+
+
+        Project toUpdate = projectRepository.findById(uuid).orElseThrow(
+                () -> new StructuredException("uuid", "не найдено по такому uuid")
+        );
+
+        if (
+                !Objects.equals(
+                        toUpdate.getDtUpdate(),
+                        dtUpdate
+                )
+        ) {
+            throw new StructuredException("dt_update",  "Версия проекта уже была обновлена");
+        }
+
+        updateProjectFields(projectCreateDTO, toUpdate);
+
+        try {
+
+            return  projectRepository.saveAndFlush(toUpdate);
+
+        } catch (Exception e) {
+
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
+        }
+
+
+    }
 
 
     @Override
@@ -77,6 +114,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     //TODO ADD SEARCH FOR USER
+
     @Override
     @Transactional(readOnly = true)
     public Page<Project> getPage(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
@@ -102,7 +140,6 @@ public class ProjectServiceImpl implements IProjectService {
         return page;
     }
 
-
     private Specification<Project> getSpecificationOfUserIsInProjectAndShowArchivedIs(User user, Boolean showArchived) {
         return (root, query, builder) -> {
 
@@ -126,44 +163,68 @@ public class ProjectServiceImpl implements IProjectService {
         };
     }
 
-    private void assignTeam(UserDTO manager, Set<UserDTO> staff, Project toPersist) {
-
-
-    }
 
     private void verifyAndPersistUsers(ProjectCreateDTO projectCreateDTO, Project project) {
 
         UserDTO managerDTO = projectCreateDTO.getManager();
+
+        StructuredException allChecksResultException = new StructuredException();
 
         if (managerDTO != null) {
 
             try {
 
                 User manager = userService.findByRoleAndSave(managerDTO, UserRole.MANAGER);
+
                 project.setManager(manager);
 
             } catch (ConstraintViolationException e) {
 
-                throw new StructuredException("manager", e.getMessage());
+                allChecksResultException.put("manager", e.getMessage());
 
             }
+        } else {
+            project.setManager(null);
         }
 
         Set<UserDTO> staff = projectCreateDTO.getStaff();
 
-        if (staff != null) {
+        if (staff != null && staff.size() != 0) {
 
             try {
 
                 List<User> staffOfUsers = userService.findAllAndSave(staff);
+
                 project.setStaff(new HashSet<>(staffOfUsers));
 
             } catch (ConstraintViolationException e) {
 
-                throw new StructuredException("staff", e.getMessage());
+                allChecksResultException.put("staff", e.getMessage());
 
             }
+        } else {
+
+            project.setStaff(null);
+
         }
+
+        if (allChecksResultException.hasExceptions()) {
+
+            throw allChecksResultException;
+
+        }
+
+    }
+
+    private void updateProjectFields(ProjectCreateDTO projectCreateDTO, Project toUpdate) {
+
+        verifyAndPersistUsers(projectCreateDTO, toUpdate);
+
+        toUpdate.setName(projectCreateDTO.getName());
+
+        toUpdate.setDescription(projectCreateDTO.getDescription());
+
+        toUpdate.setStatus(projectCreateDTO.getStatus());
 
     }
 }
