@@ -3,10 +3,10 @@ package org.example.service;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.example.core.dto.project.ProjectCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
+import org.example.core.exception.AuthenticationFailedException;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;
@@ -17,7 +17,6 @@ import org.example.dao.entities.user.User;
 import org.example.service.api.IProjectService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,9 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
-import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.*;
 
 @Validated
@@ -118,7 +115,7 @@ public class ProjectServiceImpl implements IProjectService {
 
     @Override
     @Transactional(readOnly = true)
-    public Project findByUUIDAndUserInContext(UUID uuid) throws AccessDeniedException {
+    public Project findByUUIDAndUserInContext(UUID uuid) {
 
 
         User userInCurrentContext;
@@ -129,7 +126,7 @@ public class ProjectServiceImpl implements IProjectService {
 
         } catch (NullPointerException e) {
 
-            throw new AccessDeniedException("неавторизированный доступ");
+            throw new AuthenticationFailedException("неавторизированный доступ");
 
         }
 
@@ -170,7 +167,7 @@ public class ProjectServiceImpl implements IProjectService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) throws AccessDeniedException {
+    public Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
 
         StructuredException exception = new StructuredException();
 
@@ -196,7 +193,7 @@ public class ProjectServiceImpl implements IProjectService {
 
         } catch (NullPointerException e) {
 
-            throw new AccessDeniedException("неавторизированный доступ");
+            throw new AuthenticationFailedException("неавторизированный доступ");
 
         }
 

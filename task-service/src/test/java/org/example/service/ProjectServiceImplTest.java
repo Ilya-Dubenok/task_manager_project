@@ -9,6 +9,7 @@ import org.example.core.dto.project.ProjectCreateDTO;
 import org.example.core.dto.project.ProjectDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
+import org.example.core.exception.AuthenticationFailedException;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IProjectRepository;
@@ -38,7 +39,6 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
-import java.nio.file.AccessDeniedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +50,7 @@ import static org.mockito.Mockito.doThrow;
 @ActiveProfiles("test")
 public class ProjectServiceImplTest {
 
+    private static final UUID USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS = UUID.randomUUID();
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
@@ -80,7 +81,6 @@ public class ProjectServiceImplTest {
     @SpyBean
     private IUserServiceRequester userServiceRequester;
 
-    private static final UUID USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS = UUID.randomUUID();
 
 
     @BeforeAll
@@ -386,7 +386,7 @@ public class ProjectServiceImplTest {
 
 
     @Test
-    public void findForUserInContextAsManagerWorks() throws AccessDeniedException {
+    public void findForUserInContextAsManagerWorks()  {
 
         Project probe = getInitProject();
 
@@ -403,7 +403,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    public void findForUserInContextAsStaffWorks() throws AccessDeniedException {
+    public void findForUserInContextAsStaffWorks()  {
 
         Project probe = getInitProject();
 
@@ -424,7 +424,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    public void findForUserInContextNotInProjectThrows() throws AccessDeniedException {
+    public void findForUserInContextNotInProjectThrows()  {
 
         Project probe = getInitProject();
 
@@ -444,7 +444,7 @@ public class ProjectServiceImplTest {
 
         Project probe = getInitProject();
 
-        Assertions.assertThrows(AccessDeniedException.class, ()->
+        Assertions.assertThrows(AuthenticationFailedException.class, ()->
                 projectService.findByUUIDAndUserInContext(probe.getUuid()));
 
     }
@@ -473,7 +473,7 @@ public class ProjectServiceImplTest {
 
 
     @Test
-    public void findPageUserInContextDoesNotWorkIsZero() throws AccessDeniedException {
+    public void findPageUserInContextDoesNotWorkIsZero()  {
 
         doReturn(new User(UUID.randomUUID())).when(userService).findUserInCurrentContext();
 
@@ -486,7 +486,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    public void findPageUserInContextWorksReturnsShowArchived() throws AccessDeniedException {
+    public void findPageUserInContextWorksReturnsShowArchived()  {
 
         User worksIn3Projects = userRepository.findById(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS).orElseThrow();
 
@@ -501,7 +501,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    public void findPageUserInContextWorksReturnsNotShowArchived() throws AccessDeniedException {
+    public void findPageUserInContextWorksReturnsNotShowArchived()  {
 
         User worksIn3Projects = userRepository.findById(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS).orElseThrow();
 
@@ -519,7 +519,7 @@ public class ProjectServiceImplTest {
     @Test
     public void findPageUserNotInContextNotInProjectThrows() {
 
-        Assertions.assertThrows(AccessDeniedException.class, ()->
+        Assertions.assertThrows(AuthenticationFailedException.class, ()->
                 projectService.getPageForUserInContextAndInProjectAndShowArchived(0,2, true));
     }
 

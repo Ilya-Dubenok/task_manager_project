@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import org.example.core.dto.project.ProjectUuidDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.validation.NotNullInternalUUID;
-import org.example.dao.entities.project.ProjectStatus;
+import org.example.dao.entities.task.TaskStatus;
 
 public class TaskCreateDTO {
 
@@ -18,7 +18,7 @@ public class TaskCreateDTO {
 
     private String description;
 
-    private ProjectStatus status;
+    private TaskStatus status;
 
     @NotNullInternalUUID
     private UserDTO implementer;
@@ -26,7 +26,7 @@ public class TaskCreateDTO {
     public TaskCreateDTO() {
     }
 
-    public TaskCreateDTO(ProjectUuidDTO project, String title, String description, ProjectStatus status, UserDTO implementer) {
+    public TaskCreateDTO(ProjectUuidDTO project, String title, String description, TaskStatus status, UserDTO implementer) {
         this.project = project;
         this.title = title;
         this.description = description;
@@ -58,11 +58,11 @@ public class TaskCreateDTO {
         this.description = description;
     }
 
-    public ProjectStatus getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ProjectStatus status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 

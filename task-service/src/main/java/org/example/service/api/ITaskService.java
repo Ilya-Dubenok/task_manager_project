@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface ITaskService {
 
-    void save(@Valid TaskCreateDTO taskCreateDTO);
+    Task save(@Valid TaskCreateDTO taskCreateDTO);
 
     Task findByUUID(UUID uuid);
 

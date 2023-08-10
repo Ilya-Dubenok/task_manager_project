@@ -1,6 +1,7 @@
 package org.example.core.exception.utils;
 
 import org.example.core.exception.StructuredException;
+import org.example.dao.entities.task.Task;
 import org.hibernate.PropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
 
@@ -29,7 +30,7 @@ public class DatabaseExceptionsMapper {
             String propertyName = ((PropertyValueException) cause).getPropertyName();
             PropertyLimit propertyLimit = findPropertyLimit(entityName, propertyName);
             if (propertyLimit != null) {
-                exception.put(propertyLimit.getAuditFieldName(), propertyLimit.getMessage());
+                exception.put(propertyLimit.getDTOFieldName(), propertyLimit.getMessage());
                 return true;
 
             }
@@ -84,8 +85,14 @@ public class DatabaseExceptionsMapper {
 
     private enum Constraint {
 
-
-        ;
+        PROJECT_NAME_UNIQUE_CONSTRAINT("project_name_unique_constraint", "name",
+                "задано не уникальное название проекта"),
+        NO_MANAGER_FOUND_CONSTRAINT("project_users_foreign_key", "manager",
+                "данного менеджера не существует"),
+        NO_PROJECT_FOR_TASK_EXISTS("task_project_foreign_key", "project",
+                "Введен uuid не существующего проекта"),
+        NO_IMPLEMENTER_FOR_TASK_EXISTS("task_user_foreign_key", "implementer", "Введен uuid не" +
+                " существующего пользователя");
 
 
         private final String constraintName;
@@ -115,7 +122,8 @@ public class DatabaseExceptionsMapper {
 
     private enum PropertyLimit {
 
-        ;
+        TASK_TITLE_NOT_NULL(
+                Task.class, "title", "title", "Не задано название проекта");
 
 
         private final Class<?> entity;
@@ -124,16 +132,16 @@ public class DatabaseExceptionsMapper {
 
         private final String propertyName;
 
-        private final String auditFieldName;
+        private final String DTOfieldName;
 
         private final String message;
 
 
-        PropertyLimit(Class<?> entity, String propertyName, String auditFieldName, String propMessage) {
+        PropertyLimit(Class<?> entity, String propertyName, String DTOfieldName, String propMessage) {
             this.entity = entity;
             this.className = entity.getName();
             this.propertyName = propertyName;
-            this.auditFieldName = auditFieldName;
+            this.DTOfieldName = DTOfieldName;
             this.message = propMessage;
         }
 
@@ -153,8 +161,8 @@ public class DatabaseExceptionsMapper {
             return entity;
         }
 
-        public String getAuditFieldName() {
-            return auditFieldName;
+        public String getDTOFieldName() {
+            return DTOfieldName;
         }
     }
 

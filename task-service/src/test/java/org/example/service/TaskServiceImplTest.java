@@ -7,11 +7,15 @@ import jakarta.validation.Path;
 import org.example.core.dto.project.ProjectUuidDTO;
 import org.example.core.dto.task.TaskCreateDTO;
 import org.example.core.dto.user.UserDTO;
+import org.example.core.exception.AuthenticationFailedException;
+import org.example.core.exception.StructuredException;
 import org.example.dao.api.IProjectRepository;
 import org.example.dao.api.ITaskRepository;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.project.Project;
 import org.example.dao.entities.project.ProjectStatus;
+import org.example.dao.entities.task.Task;
+import org.example.dao.entities.task.TaskStatus;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IProjectService;
 import org.example.service.api.ITaskService;
@@ -19,6 +23,7 @@ import org.example.service.api.IUserService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
@@ -26,13 +31,20 @@ import org.springframework.test.context.ActiveProfiles;
 import javax.sql.DataSource;
 import java.util.*;
 
+import static org.mockito.Mockito.doReturn;
+
 @SpringBootTest
 @ActiveProfiles("test")
 public class TaskServiceImplTest {
 
-
+    private static final UUID USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS = UUID.randomUUID();
+    private static final UUID INIT_PROJECT_UUID = UUID.randomUUID();
+    private static final UUID PROJECT_2_UUID = UUID.randomUUID();
+    private static final UUID PROJECT_3_UUID = UUID.randomUUID();
+    private static final UUID PROJECT_4_UUID = UUID.randomUUID();
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
+
 
     @Autowired
     private DataSource dataSource;
@@ -47,13 +59,16 @@ public class TaskServiceImplTest {
     private IProjectRepository projectRepository;
 
     @Autowired
-    private IUserService userService;
-
-    @Autowired
     private IProjectService projectService;
 
     @Autowired
     private ITaskService taskService;
+
+    @SpyBean
+    private IUserService userService;
+
+
+
 
 
     @BeforeAll
@@ -105,6 +120,63 @@ public class TaskServiceImplTest {
 
     }
 
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void testSaveMethodWorks() {
+
+        TaskCreateDTO taskCreateDTO = new TaskCreateDTO(
+                new ProjectUuidDTO(PROJECT_2_UUID), "mustached_boss", "put_off_your_clothes_and_work",
+                TaskStatus.IN_WORK, new UserDTO(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS)
+        );
+
+        User inProject = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        doReturn(inProject).when(userService).findUserInCurrentContext();
+
+        Task save = taskService.save(taskCreateDTO);
+
+        Assertions.assertNotNull(save);
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void testSaveThrowsWhenImproperRequester() {
+
+        UserDTO notInProjectRequested = new UserDTO(UUID.randomUUID());
+
+        TaskCreateDTO taskCreateDTO = new TaskCreateDTO(
+                new ProjectUuidDTO(PROJECT_2_UUID), "mustached_boss", "put_off_your_clothes_and_work",
+                TaskStatus.IN_WORK, notInProjectRequested
+        );
+
+        doReturn(new User(notInProjectRequested.getUuid())).when(userService).findUserInCurrentContext();
+
+        Assertions.assertThrows(AuthenticationFailedException.class, ()->taskService.save(taskCreateDTO));
+
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void testSaveThrowsWhenImproperImplementer() {
+
+        UserDTO fakeImplementer = new UserDTO(UUID.randomUUID());
+
+        TaskCreateDTO taskCreateDTO = new TaskCreateDTO(
+                new ProjectUuidDTO(PROJECT_2_UUID), "mustached_boss", "put_off_your_clothes_and_work",
+                TaskStatus.IN_WORK, fakeImplementer
+        );
+
+        doReturn(new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS)).when(userService).findUserInCurrentContext();
+
+        Assertions.assertThrows(StructuredException.class, ()->taskService.save(taskCreateDTO));
+
+
+    }
+
 
     private Map<String, String> constraintViolationExceptionParser(ConstraintViolationException e) {
 
@@ -139,7 +211,9 @@ public class TaskServiceImplTest {
 
     private static void persistDefaultStaffAndProject(IUserRepository userRepository, IProjectRepository projectRepository) {
 
-        List<User> users = userRepository.saveAll(
+        User userWorksIn3Projects = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        List<User> users = userRepository.saveAllAndFlush(
                 List.of(
                         new User(UUID.randomUUID()),
                         new User(UUID.randomUUID()),
@@ -153,16 +227,48 @@ public class TaskServiceImplTest {
                 )
         );
 
+        userRepository.saveAndFlush(userWorksIn3Projects);
 
-        Project project = new Project(UUID.randomUUID());
 
-        project.setManager(users.get(0));
-        project.setStaff(Set.of(users.get(1), users.get(2), users.get(3)));
+        Project project = new Project(INIT_PROJECT_UUID);
+
+        project.setManager(userWorksIn3Projects);
+        project.setStaff(Set.of(users.get(0), users.get(1), users.get(2)));
         project.setStatus(ProjectStatus.ACTIVE);
         project.setName("Init project");
         project.setDescription("Init project with 3 staff");
 
-        projectRepository.save(project);
+        projectRepository.saveAndFlush(project);
+
+        Project project1 = new Project(PROJECT_2_UUID);
+
+        project1.setManager(users.get(5));
+        project1.setStaff(Set.of(users.get(6), users.get(7), userWorksIn3Projects));
+        project1.setStatus(ProjectStatus.ARCHIVED);
+        project1.setName("Init project2");
+        project1.setDescription("Init project2 with 3 staff archived");
+
+        projectRepository.saveAndFlush(project1);
+
+
+        Project project2 = new Project(PROJECT_3_UUID);
+
+        project2.setManager(userWorksIn3Projects);
+        project2.setStatus(ProjectStatus.ACTIVE);
+        project2.setName("Init project3");
+        project2.setDescription("Init project3 with 0 staff");
+
+        projectRepository.saveAndFlush(project2);
+
+        Project project3 = new Project(PROJECT_4_UUID);
+
+        project3.setManager(users.get(0));
+        project1.setStaff(Set.of(users.get(6), users.get(7), users.get(2)));
+        project3.setStatus(ProjectStatus.ACTIVE);
+        project3.setName("Init project4");
+        project3.setDescription("Init project4 with 3 staff");
+
+        projectRepository.saveAndFlush(project3);
 
     }
 
