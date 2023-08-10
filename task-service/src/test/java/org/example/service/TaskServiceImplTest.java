@@ -29,6 +29,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.mockito.Mockito.doReturn;
@@ -38,10 +39,13 @@ import static org.mockito.Mockito.doReturn;
 public class TaskServiceImplTest {
 
     private static final UUID USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS = UUID.randomUUID();
+
     private static final UUID INIT_PROJECT_UUID = UUID.randomUUID();
     private static final UUID PROJECT_2_UUID = UUID.randomUUID();
     private static final UUID PROJECT_3_UUID = UUID.randomUUID();
     private static final UUID PROJECT_4_UUID = UUID.randomUUID();
+
+    private static final UUID INIT_TASK_UUID = UUID.randomUUID();
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
@@ -91,7 +95,7 @@ public class TaskServiceImplTest {
 
     private static void fillDataBaseWithDefaultValues(DataSource dataSource, ITaskRepository taskRepository,
                                                       IUserRepository userRepository, IProjectRepository projectRepository) {
-        persistDefaultStaffAndProject(userRepository, projectRepository);
+        persistDefaultStaffAndProject(userRepository, projectRepository, taskRepository);
 
     }
 
@@ -178,6 +182,33 @@ public class TaskServiceImplTest {
     }
 
 
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void updateWorksWhenAllIsFine() {
+
+        TaskCreateDTO taskCreateDTO = new TaskCreateDTO(
+                new ProjectUuidDTO(PROJECT_2_UUID), "mustached_boss", "put_off_your_clothes_and_work",
+                TaskStatus.IN_WORK, new UserDTO(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS)
+        );
+
+        User inProject = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        doReturn(inProject).when(userService).findUserInCurrentContext();
+
+        Task target = taskRepository.findById(INIT_TASK_UUID).orElseThrow();
+
+        LocalDateTime dtUpdate = target.getDtUpdate();
+
+        Task update = taskService.update(INIT_TASK_UUID, dtUpdate, taskCreateDTO);
+
+        Assertions.assertNotEquals(target.getTitle(), update.getTitle());
+
+        Assertions.assertNotEquals(target.getDtUpdate(), update.getDtUpdate());
+
+
+    }
+
+
     private Map<String, String> constraintViolationExceptionParser(ConstraintViolationException e) {
 
         Iterator<ConstraintViolation<?>> iterator = e.getConstraintViolations().iterator();
@@ -209,7 +240,7 @@ public class TaskServiceImplTest {
     }
 
 
-    private static void persistDefaultStaffAndProject(IUserRepository userRepository, IProjectRepository projectRepository) {
+    private static void persistDefaultStaffAndProject(IUserRepository userRepository, IProjectRepository projectRepository, ITaskRepository taskRepository) {
 
         User userWorksIn3Projects = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
 
@@ -230,15 +261,15 @@ public class TaskServiceImplTest {
         userRepository.saveAndFlush(userWorksIn3Projects);
 
 
-        Project project = new Project(INIT_PROJECT_UUID);
+        Project init_project = new Project(INIT_PROJECT_UUID);
 
-        project.setManager(userWorksIn3Projects);
-        project.setStaff(Set.of(users.get(0), users.get(1), users.get(2)));
-        project.setStatus(ProjectStatus.ACTIVE);
-        project.setName("Init project");
-        project.setDescription("Init project with 3 staff");
+        init_project.setManager(userWorksIn3Projects);
+        init_project.setStaff(Set.of(users.get(0), users.get(1), users.get(2)));
+        init_project.setStatus(ProjectStatus.ACTIVE);
+        init_project.setName("Init project");
+        init_project.setDescription("Init project with 3 staff");
 
-        projectRepository.saveAndFlush(project);
+        projectRepository.saveAndFlush(init_project);
 
         Project project1 = new Project(PROJECT_2_UUID);
 
@@ -269,6 +300,16 @@ public class TaskServiceImplTest {
         project3.setDescription("Init project4 with 3 staff");
 
         projectRepository.saveAndFlush(project3);
+
+
+        Task initTask = new Task();
+        initTask.setUuid(INIT_TASK_UUID);
+        initTask.setTitle("init_title");
+        initTask.setImplementer(new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS));
+        initTask.setProject(init_project);
+
+        taskRepository.saveAndFlush(initTask);
+
 
     }
 
