@@ -121,10 +121,16 @@ public class ProjectServiceImpl implements IProjectService {
     public Project findByUUIDAndUserInContext(UUID uuid) throws AccessDeniedException {
 
 
-        User userInCurrentContext = userService.findUserInCurrentContext();
+        User userInCurrentContext;
 
-        if (null == userInCurrentContext) {
+        try {
+
+            userInCurrentContext = userService.findUserInCurrentContext();
+
+        } catch (NullPointerException e) {
+
             throw new AccessDeniedException("неавторизированный доступ");
+
         }
 
         Project found = findByUUID(uuid);
@@ -144,6 +150,61 @@ public class ProjectServiceImpl implements IProjectService {
         }
 
         return null;
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Project> getProjectsWhereUserIsInProject(User user) {
+
+        return projectRepository.findAll(((root, query, builder) -> {
+                    Predicate isManager = builder.equal(root.get("manager"), user);
+                    Predicate isInStuff = builder.isMember(user, root.get("staff"));
+
+                    return builder.or(isManager, isInStuff);
+                })
+        );
+
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) throws AccessDeniedException {
+
+        StructuredException exception = new StructuredException();
+
+        if (currentRequestedPage < 0) {
+
+            exception.put("page", "Номер страницы не может быть меньше 0");
+
+        }
+        if (rowsPerPage < 1) {
+            exception.put("size", "Размер страницы не может быть меньше 0");
+
+        }
+
+        if (exception.hasExceptions()) {
+            throw exception;
+        }
+
+        User userInCurrentContext;
+
+        try {
+
+            userInCurrentContext = userService.findUserInCurrentContext();
+
+        } catch (NullPointerException e) {
+
+            throw new AccessDeniedException("неавторизированный доступ");
+
+        }
+
+        return projectRepository.findAll(
+                getSpecificationOfUserIsInProjectAndShowArchivedIs(userInCurrentContext, showArchived),
+                PageRequest.of(currentRequestedPage, rowsPerPage)
+        );
+
 
     }
 
@@ -204,7 +265,7 @@ public class ProjectServiceImpl implements IProjectService {
             Predicate uuidMatches = builder.equal(root.get("uuid"), projectUuid);
 
             Predicate res = builder.and(uuidMatches,
-                    getSpecificationOfUserIsInProjectAndShowArchivedIs(user, showArchived).toPredicate(root,query,builder)
+                    getSpecificationOfUserIsInProjectAndShowArchivedIs(user, showArchived).toPredicate(root, query, builder)
             );
 
             return res;

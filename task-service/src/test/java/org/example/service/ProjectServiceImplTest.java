@@ -39,12 +39,12 @@ import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
 import java.nio.file.AccessDeniedException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -79,6 +79,8 @@ public class ProjectServiceImplTest {
 
     @SpyBean
     private IUserServiceRequester userServiceRequester;
+
+    private static final UUID USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS = UUID.randomUUID();
 
 
     @BeforeAll
@@ -384,7 +386,6 @@ public class ProjectServiceImplTest {
 
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void findForUserInContextAsManagerWorks() throws AccessDeniedException {
 
         Project probe = getInitProject();
@@ -402,7 +403,6 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void findForUserInContextAsStaffWorks() throws AccessDeniedException {
 
         Project probe = getInitProject();
@@ -424,7 +424,6 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void findForUserInContextNotInProjectThrows() throws AccessDeniedException {
 
         Project probe = getInitProject();
@@ -441,17 +440,87 @@ public class ProjectServiceImplTest {
 
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void findForUserNotInContextNotInProjectThrows() {
 
         Project probe = getInitProject();
 
-        doReturn(null).when(userService).findUserInCurrentContext();
-
-
         Assertions.assertThrows(AccessDeniedException.class, ()->
                 projectService.findByUUIDAndUserInContext(probe.getUuid()));
 
+    }
+
+    @Test
+    public void findForUserNotWorksIsEmptyList() {
+
+        User notWorks = new User(UUID.randomUUID());
+
+        List<Project> projectsWhereUserIsIn = projectService.getProjectsWhereUserIsInProject(notWorks);
+
+        Assertions.assertEquals(0, projectsWhereUserIsIn.size());
+
+    }
+
+    @Test
+    public void findForUserNotWorksIs3ElementsList() {
+
+        User works = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        List<Project> projectsWhereUserIsIn = projectService.getProjectsWhereUserIsInProject(works);
+
+        Assertions.assertEquals(3, projectsWhereUserIsIn.size());
+
+    }
+
+
+    @Test
+    public void findPageUserInContextDoesNotWorkIsZero() throws AccessDeniedException {
+
+        doReturn(new User(UUID.randomUUID())).when(userService).findUserInCurrentContext();
+
+        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageForUserInContextAndInProjectAndShowArchived(0, 20, true);
+
+        long totalElements = pageForUserInContextAndShowArchived.getTotalElements();
+
+        Assertions.assertEquals(0, totalElements);
+
+    }
+
+    @Test
+    public void findPageUserInContextWorksReturnsShowArchived() throws AccessDeniedException {
+
+        User worksIn3Projects = userRepository.findById(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS).orElseThrow();
+
+        doReturn(worksIn3Projects).when(userService).findUserInCurrentContext();
+
+        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageForUserInContextAndInProjectAndShowArchived(0, 20, true);
+
+        long totalElements = pageForUserInContextAndShowArchived.getTotalElements();
+
+        Assertions.assertEquals(3, totalElements);
+
+    }
+
+    @Test
+    public void findPageUserInContextWorksReturnsNotShowArchived() throws AccessDeniedException {
+
+        User worksIn3Projects = userRepository.findById(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS).orElseThrow();
+
+        doReturn(worksIn3Projects).when(userService).findUserInCurrentContext();
+
+        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageForUserInContextAndInProjectAndShowArchived(0, 20, false);
+
+        long totalElements = pageForUserInContextAndShowArchived.getTotalElements();
+
+        Assertions.assertEquals(2, totalElements);
+
+    }
+
+
+    @Test
+    public void findPageUserNotInContextNotInProjectThrows() {
+
+        Assertions.assertThrows(AccessDeniedException.class, ()->
+                projectService.getPageForUserInContextAndInProjectAndShowArchived(0,2, true));
     }
 
     private Project getInitProject() {
@@ -501,7 +570,9 @@ public class ProjectServiceImplTest {
 
     private static void persistDefaultStaffAndProject(IUserRepository userRepository, IProjectRepository projectRepository) {
 
-        List<User> users = userRepository.saveAll(
+        User userWorksIn3Projects = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        List<User> users = userRepository.saveAllAndFlush(
                 List.of(
                         new User(UUID.randomUUID()),
                         new User(UUID.randomUUID()),
@@ -515,16 +586,49 @@ public class ProjectServiceImplTest {
                 )
         );
 
+        userRepository.saveAndFlush(userWorksIn3Projects);
+
 
         Project project = new Project(UUID.randomUUID());
 
-        project.setManager(users.get(0));
-        project.setStaff(Set.of(users.get(1), users.get(2), users.get(3)));
+        project.setManager(userWorksIn3Projects);
+        project.setStaff(Set.of(users.get(0), users.get(1), users.get(2)));
         project.setStatus(ProjectStatus.ACTIVE);
         project.setName("Init project");
         project.setDescription("Init project with 3 staff");
 
-        projectRepository.save(project);
+        projectRepository.saveAndFlush(project);
+
+        Project project1 = new Project(UUID.randomUUID());
+
+        project1.setManager(users.get(5));
+        project1.setStaff(Set.of(users.get(6), users.get(7), userWorksIn3Projects));
+        project1.setStatus(ProjectStatus.ARCHIVED);
+        project1.setName("Init project2");
+        project1.setDescription("Init project2 with 3 staff archived");
+
+        projectRepository.saveAndFlush(project1);
+
+
+        Project project2 = new Project(UUID.randomUUID());
+
+        project2.setManager(userWorksIn3Projects);
+        project2.setStatus(ProjectStatus.ACTIVE);
+        project2.setName("Init project3");
+        project2.setDescription("Init project3 with 0 staff");
+
+        projectRepository.saveAndFlush(project2);
+
+        Project project3 = new Project(UUID.randomUUID());
+
+        project3.setManager(users.get(0));
+        project1.setStaff(Set.of(users.get(6), users.get(7), users.get(2)));
+        project3.setStatus(ProjectStatus.ACTIVE);
+        project3.setName("Init project4");
+        project3.setDescription("Init project4 with 3 staff");
+
+        projectRepository.saveAndFlush(project3);
+
 
     }
 
