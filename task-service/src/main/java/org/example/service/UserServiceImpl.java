@@ -9,8 +9,10 @@ import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IUserService;
 import org.example.service.api.IUserServiceRequester;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -117,5 +119,23 @@ public class UserServiceImpl implements IUserService {
         user.setUuid(uuid);
 
         return user;
+    }
+
+    @Override
+    public boolean isUserInCurrentContextHasOneOfRoles(UserRole... userRoles) {
+
+        for (GrantedAuthority authority : userHolder.getUser().getAuthorities()) {
+
+            for (UserRole userRole : userRoles) {
+                if (authority.getAuthority().equals("ROLE_".concat(userRole.toString()))) {
+                    return true;
+                }
+
+            }
+
+        }
+
+        return false;
+
     }
 }

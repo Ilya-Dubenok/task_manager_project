@@ -201,6 +201,72 @@ public class ProjectRepositoryTest {
     }
 
 
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void existsProjectByUuidAndUserIsInProjectTrue() {
+
+        User worksInProject = new User(UUID.randomUUID());
+        userRepository.saveAndFlush(worksInProject);
+
+        List<Project> projects = projectRepository.findAll();
+
+
+        Project existing = projects.get(0);
+        existing.setManager(worksInProject);
+        existing.setStatus(ProjectStatus.ACTIVE);
+
+        projectRepository.saveAndFlush(existing);
+
+
+        boolean exists = projectRepository.exists(getSpecificationOfProjectUuidAndUserIsInProject(worksInProject, existing.getUuid()));
+
+        Assertions.assertTrue(exists);
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void existsProjectByUuidAndUserIsInProjectFalse() {
+
+        User worksInProject = new User(UUID.randomUUID());
+        User notWorks = new User(UUID.randomUUID());
+        userRepository.saveAllAndFlush(List.of(worksInProject,notWorks));
+
+        List<Project> projects = projectRepository.findAll();
+
+
+        Project existing = projects.get(0);
+        existing.setManager(worksInProject);
+        existing.setStatus(ProjectStatus.ACTIVE);
+
+        projectRepository.saveAndFlush(existing);
+
+
+        boolean exists = projectRepository.exists(getSpecificationOfProjectUuidAndUserIsInProject(notWorks, existing.getUuid()));
+
+        Assertions.assertFalse(exists);
+
+    }
+
+    private Specification<Project> getSpecificationOfProjectUuidAndUserIsInProject(User worksInProject, UUID projectUuid) {
+
+        return (root, query, builder) -> {
+
+            Predicate res = builder.equal(root.get("uuid"), projectUuid);
+
+            Predicate isManager = builder.equal(root.get("manager"), worksInProject);
+
+            Predicate isInStuff = builder.isMember(worksInProject, root.get("staff"));
+
+            res = builder.and(res, builder.or(isManager, isInStuff));
+
+            return res;
+        };
+
+
+    }
+
+
     private static Specification<Project> getSpecificationOfUserIsInProjectAndShowArchivedIs(User user, Boolean showArchived) {
         return (root, query, builder) -> {
 

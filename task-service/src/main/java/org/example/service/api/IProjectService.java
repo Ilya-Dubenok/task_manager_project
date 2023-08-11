@@ -20,6 +20,8 @@ public interface IProjectService {
 
     Project findByUUIDAndUserInContext(UUID uuid);
 
+    boolean userIsInProject(User user, UUID projectUuid);
+
     List<Project> getProjectsWhereUserIsInProject(User user);
 
     Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);

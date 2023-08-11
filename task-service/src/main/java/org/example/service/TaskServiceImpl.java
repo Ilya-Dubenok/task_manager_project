@@ -8,6 +8,7 @@ import org.example.core.exception.StructuredException;
 import org.example.dao.api.ITaskRepository;
 import org.example.dao.entities.project.Project;
 import org.example.dao.entities.task.Task;
+import org.example.dao.entities.task.TaskStatus;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IProjectService;
 import org.example.service.api.ITaskService;
@@ -121,6 +122,46 @@ public class TaskServiceImpl implements ITaskService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
 
         }
+
+    }
+
+    @Override
+    @Transactional
+    public Task updateStatus(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus) {
+
+        User requester = getUserForCurrentContext();
+
+        Task toUpdate = taskRepository.findById(uuid).orElseThrow(
+                () -> new StructuredException("uuid", "не найдено по такому uuid")
+        );
+
+        if (
+                !Objects.equals(
+                        toUpdate.getDtUpdate(),
+                        dtUpdate
+                )
+        ) {
+            throw new StructuredException("dt_update", "Версия проекта уже была обновлена");
+        }
+
+        if (!projectService.userIsInProject(requester, toUpdate.getProject().getUuid())) {
+
+            throw new AuthenticationFailedException("пользователь не является участником этого проекта");
+
+        }
+
+        toUpdate.setStatus(taskStatus);
+
+        try {
+
+            return taskRepository.saveAndFlush(toUpdate);
+
+        } catch (Exception e) {
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+
+        }
+
 
     }
 

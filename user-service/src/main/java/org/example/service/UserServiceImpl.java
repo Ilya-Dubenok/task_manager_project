@@ -323,7 +323,7 @@ public class UserServiceImpl implements IUserService {
         }
 
         if (!passwordEncoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
-            throw new StructuredException("password", "Пароль неверный");
+            throw new StructuredException("password", "Логин или пароль неверный");
         }
 
         return user;

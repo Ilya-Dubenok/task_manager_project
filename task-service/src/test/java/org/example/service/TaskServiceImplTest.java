@@ -126,7 +126,7 @@ public class TaskServiceImplTest {
 
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
-    public void testSaveMethodWorks() {
+    public void saveMethodWorks() {
 
         TaskCreateDTO taskCreateDTO = new TaskCreateDTO(
                 new ProjectUuidDTO(PROJECT_2_UUID), "mustached_boss", "put_off_your_clothes_and_work",
@@ -146,7 +146,7 @@ public class TaskServiceImplTest {
 
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
-    public void testSaveThrowsWhenImproperRequester() {
+    public void saveThrowsWhenImproperRequester() {
 
         UserDTO notInProjectRequested = new UserDTO(UUID.randomUUID());
 
@@ -165,7 +165,7 @@ public class TaskServiceImplTest {
 
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
-    public void testSaveThrowsWhenImproperImplementer() {
+    public void saveThrowsWhenImproperImplementer() {
 
         UserDTO fakeImplementer = new UserDTO(UUID.randomUUID());
 
@@ -205,6 +205,41 @@ public class TaskServiceImplTest {
 
         Assertions.assertNotEquals(target.getDtUpdate(), update.getDtUpdate());
 
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void updateStatusWorksWhenUserIsInProject() {
+
+        Task target = taskRepository.findById(INIT_TASK_UUID).orElseThrow();
+
+        LocalDateTime dtUpdate = target.getDtUpdate();
+
+        User inProject = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        doReturn(inProject).when(userService).findUserInCurrentContext();
+
+        Task updated = taskService.updateStatus(INIT_TASK_UUID, dtUpdate, null);
+
+        Assertions.assertNull(updated.getStatus());
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void updateStatusFailsWhenUserIsNotInProject() {
+
+        Task target = taskRepository.findById(INIT_TASK_UUID).orElseThrow();
+
+        LocalDateTime dtUpdate = target.getDtUpdate();
+
+        User notInProject = new User(UUID.randomUUID());
+
+        doReturn(notInProject).when(userService).findUserInCurrentContext();
+
+        Assertions.assertThrows(AuthenticationFailedException.class,
+                ()->taskService.updateStatus(INIT_TASK_UUID, dtUpdate, null));
 
     }
 
@@ -306,6 +341,7 @@ public class TaskServiceImplTest {
         initTask.setUuid(INIT_TASK_UUID);
         initTask.setTitle("init_title");
         initTask.setImplementer(new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS));
+        initTask.setStatus(TaskStatus.IN_WORK);
         initTask.setProject(init_project);
 
         taskRepository.saveAndFlush(initTask);

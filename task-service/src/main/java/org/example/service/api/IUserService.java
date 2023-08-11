@@ -18,4 +18,6 @@ public interface IUserService {
 
     User findUserInCurrentContext();
 
+    boolean isUserInCurrentContextHasOneOfRoles(UserRole... userRoles);
+
 }

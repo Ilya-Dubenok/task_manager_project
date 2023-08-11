@@ -51,6 +51,10 @@ import static org.mockito.Mockito.doThrow;
 public class ProjectServiceImplTest {
 
     private static final UUID USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS = UUID.randomUUID();
+    private static final UUID INIT_PROJECT_UUID = UUID.randomUUID();
+    private static final UUID PROJECT2_UUID = UUID.randomUUID();
+    private static final UUID PROJECT3_UUID = UUID.randomUUID();
+    private static final UUID PROJECT4_UUID = UUID.randomUUID();
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
@@ -515,6 +519,41 @@ public class ProjectServiceImplTest {
 
     }
 
+    @Test
+    public void findProjectByUuidAndUserManager()  {
+
+        User worksIn3Projects = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        boolean exists = projectService.userIsInProject(worksIn3Projects, INIT_PROJECT_UUID);
+
+        Assertions.assertTrue(exists);
+
+
+    }
+
+    @Test
+    public void findProjectByUuidAndUserStaff()  {
+
+        User worksIn3Projects = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        boolean exists = projectService.userIsInProject(worksIn3Projects, PROJECT2_UUID);
+
+        Assertions.assertTrue(exists);
+
+    }
+
+
+    @Test
+    public void findProjectByUuidAndUserIsNotIn()  {
+
+        User worksIn3Projects = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        boolean exists = projectService.userIsInProject(worksIn3Projects, PROJECT4_UUID);
+
+        Assertions.assertFalse(exists);
+
+    }
+
 
     @Test
     public void findPageUserNotInContextNotInProjectThrows() {
@@ -589,7 +628,7 @@ public class ProjectServiceImplTest {
         userRepository.saveAndFlush(userWorksIn3Projects);
 
 
-        Project project = new Project(UUID.randomUUID());
+        Project project = new Project(INIT_PROJECT_UUID);
 
         project.setManager(userWorksIn3Projects);
         project.setStaff(Set.of(users.get(0), users.get(1), users.get(2)));
@@ -599,7 +638,7 @@ public class ProjectServiceImplTest {
 
         projectRepository.saveAndFlush(project);
 
-        Project project1 = new Project(UUID.randomUUID());
+        Project project1 = new Project(PROJECT2_UUID);
 
         project1.setManager(users.get(5));
         project1.setStaff(Set.of(users.get(6), users.get(7), userWorksIn3Projects));
@@ -610,7 +649,7 @@ public class ProjectServiceImplTest {
         projectRepository.saveAndFlush(project1);
 
 
-        Project project2 = new Project(UUID.randomUUID());
+        Project project2 = new Project(PROJECT3_UUID);
 
         project2.setManager(userWorksIn3Projects);
         project2.setStatus(ProjectStatus.ACTIVE);
@@ -619,7 +658,7 @@ public class ProjectServiceImplTest {
 
         projectRepository.saveAndFlush(project2);
 
-        Project project3 = new Project(UUID.randomUUID());
+        Project project3 = new Project(PROJECT4_UUID);
 
         project3.setManager(users.get(0));
         project1.setStaff(Set.of(users.get(6), users.get(7), users.get(2)));

@@ -152,6 +152,12 @@ public class ProjectServiceImpl implements IProjectService {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean userIsInProject(User user, UUID projectUuid) {
+        return projectRepository.exists(getSpecificationOfProjectUuidAndUserIsInProject(user, projectUuid));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Project> getProjectsWhereUserIsInProject(User user) {
 
         return projectRepository.findAll(((root, query, builder) -> {
@@ -230,6 +236,24 @@ public class ProjectServiceImpl implements IProjectService {
         Page<Project> page = projectRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
 
         return page;
+    }
+
+    private Specification<Project> getSpecificationOfProjectUuidAndUserIsInProject(User worksInProject, UUID projectUuid) {
+
+        return (root, query, builder) -> {
+
+            Predicate res = builder.equal(root.get("uuid"), projectUuid);
+
+            Predicate isManager = builder.equal(root.get("manager"), worksInProject);
+
+            Predicate isInStuff = builder.isMember(worksInProject, root.get("staff"));
+
+            res = builder.and(res, builder.or(isManager, isInStuff));
+
+            return res;
+        };
+
+
     }
 
     private Specification<Project> getSpecificationOfUserIsInProjectAndShowArchivedIs(User user, Boolean showArchived) {
