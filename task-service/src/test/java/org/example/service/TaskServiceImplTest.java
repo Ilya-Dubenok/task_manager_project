@@ -244,6 +244,37 @@ public class TaskServiceImplTest {
     }
 
 
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void nullWhenUserIsNotInProject() {
+
+
+        User notInProject = new User(UUID.randomUUID());
+
+        doReturn(notInProject).when(userService).findUserInCurrentContext();
+
+        Task res = taskService.findByUUID(INIT_TASK_UUID);
+
+        Assertions.assertNull(res);
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void taskReturnedWhenUserIsInProject() {
+
+
+        User inProject = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        doReturn(inProject).when(userService).findUserInCurrentContext();
+
+        Task res = taskService.findByUUID(INIT_TASK_UUID);
+
+        Assertions.assertNotNull(res);
+
+    }
+
+
     private Map<String, String> constraintViolationExceptionParser(ConstraintViolationException e) {
 
         Iterator<ConstraintViolation<?>> iterator = e.getConstraintViolations().iterator();

@@ -41,6 +41,31 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Task findByUUID(UUID uuid) {
+
+        User requester = getUserForCurrentContext();
+
+        Task task = taskRepository.findById(uuid).orElseThrow(
+                () -> new StructuredException("uuid", "не найдено по такому uuid")
+        );
+
+        if (!projectService.userIsInProject(requester, task.getProject().getUuid())) {
+
+            return null;
+
+        }
+
+        return task;
+
+    }
+
+    @Override
+    public Page<Task> getPage(Integer currentRequestedPage, Integer rowsPerPage) {
+        return null;
+    }
+
+    @Override
     @Transactional
     public Task save(@Valid TaskCreateDTO taskCreateDTO) {
 
@@ -206,15 +231,5 @@ public class TaskServiceImpl implements ITaskService {
 
         return null;
 
-    }
-
-    @Override
-    public Task findByUUID(UUID uuid) {
-        return null;
-    }
-
-    @Override
-    public Page<Task> getPage(Integer currentRequestedPage, Integer rowsPerPage) {
-        return null;
     }
 }
