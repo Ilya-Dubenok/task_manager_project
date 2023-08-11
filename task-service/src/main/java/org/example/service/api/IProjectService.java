@@ -24,6 +24,8 @@ public interface IProjectService {
 
     List<Project> getProjectsWhereUserIsInProject(User user);
 
+    List<Project> getProjectsWhereUserIsInProject(User user, List<UUID> projectUuidsList);
+
     Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
 
     Page<Project> getPage(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);

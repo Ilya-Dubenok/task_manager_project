@@ -1,5 +1,8 @@
 package org.example.service;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 import org.example.core.dto.task.TaskCreateDTO;
 import org.example.core.exception.AuthenticationFailedException;
@@ -14,14 +17,16 @@ import org.example.service.api.IProjectService;
 import org.example.service.api.ITaskService;
 import org.example.service.api.IUserService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Validated
 @Service
@@ -61,8 +66,33 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     @Override
-    public Page<Task> getPage(Integer currentRequestedPage, Integer rowsPerPage) {
-        return null;
+    @Transactional(readOnly = true)
+    public Page<Task> getPageWithFilters(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
+
+        User requester = getUserForCurrentContext();
+
+        List<Project> projectsToFilter;
+
+        if (projectUuids != null && projectUuids.size() != 0) {
+
+            projectsToFilter = projectService.getProjectsWhereUserIsInProject(requester, projectUuids);
+
+        } else {
+
+            projectsToFilter = projectService.getProjectsWhereUserIsInProject(requester);
+
+        }
+
+        if (projectsToFilter.size() == 0) {
+            return new PageImpl<>(new ArrayList<>(), PageRequest.of(currentRequestedPage, rowsPerPage), 0);
+        }
+
+        return taskRepository.findAll(
+                getTaskSpecificationOnFilters(projectsToFilter, implementersUuids, taskStatuses),
+                PageRequest.of(currentRequestedPage, rowsPerPage)
+        );
+
+
     }
 
     @Override
@@ -190,6 +220,24 @@ public class TaskServiceImpl implements ITaskService {
 
     }
 
+    private static void validatePageArguments(Integer currentRequestedPage, Integer rowsPerPage) {
+        StructuredException exception = new StructuredException();
+
+        if (currentRequestedPage < 0) {
+
+            exception.put("page", "Номер страницы не может быть меньше 0");
+
+        }
+        if (rowsPerPage < 1) {
+            exception.put("size", "Размер страницы не может быть меньше 0");
+
+        }
+
+        if (exception.hasExceptions()) {
+            throw exception;
+        }
+    }
+
     private static void updateTaskFiled(TaskCreateDTO taskCreateDTO, Project project, User implementer, Task toPersist) {
         toPersist.setProject(project);
         toPersist.setTitle(taskCreateDTO.getTitle());
@@ -231,5 +279,35 @@ public class TaskServiceImpl implements ITaskService {
 
         return null;
 
+    }
+
+    private static Specification<Task> getTaskSpecificationOnFilters(List<Project> projectsToFilter, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
+        return (root, query, builder) -> {
+
+            Path<Object> project = root.get("project");
+            CriteriaBuilder.In<Object> inProject = builder.in(project);
+            Predicate res = inProject.value(projectsToFilter);
+
+            if (taskStatuses != null && taskStatuses.size() != 0) {
+
+                Path<Object> status = root.get("status");
+                CriteriaBuilder.In<Object> inStatus = builder.in(status);
+                Predicate inListOfStatuses = inStatus.value(taskStatuses);
+                res = builder.and(res, inListOfStatuses);
+
+            }
+
+            if (implementersUuids != null && implementersUuids.size() != 0) {
+
+                Path<Object> implementerUuid = root.get("implementer").get("uuid");
+                CriteriaBuilder.In<Object> inImplementer = builder.in(implementerUuid);
+                Predicate inListOfImplementers = inImplementer.value(implementersUuids);
+                res = builder.and(res, inListOfImplementers);
+
+            }
+
+            return res;
+
+        };
     }
 }

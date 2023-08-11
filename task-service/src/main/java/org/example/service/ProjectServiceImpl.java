@@ -1,5 +1,7 @@
 package org.example.service;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
@@ -168,28 +170,32 @@ public class ProjectServiceImpl implements IProjectService {
                 })
         );
 
+    }
 
+    @Override
+    public List<Project> getProjectsWhereUserIsInProject(User user, List<UUID> projectUuidsList) {
+        return projectRepository.findAll(((root, query, builder) -> {
+
+            Path<Object> uuidPath = root.get("uuid");
+
+            CriteriaBuilder.In<Object> in = builder.in(uuidPath);
+
+            Predicate inUuidListPredicate = in.value(projectUuidsList);
+
+            Predicate isManager = builder.equal(root.get("manager"), user);
+
+            Predicate isInStuff = builder.isMember(user, root.get("staff"));
+
+            return builder.and(inUuidListPredicate,builder.or(isManager, isInStuff));
+                })
+        );
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
 
-        StructuredException exception = new StructuredException();
-
-        if (currentRequestedPage < 0) {
-
-            exception.put("page", "Номер страницы не может быть меньше 0");
-
-        }
-        if (rowsPerPage < 1) {
-            exception.put("size", "Размер страницы не может быть меньше 0");
-
-        }
-
-        if (exception.hasExceptions()) {
-            throw exception;
-        }
+        validatePageArguments(currentRequestedPage, rowsPerPage);
 
         User userInCurrentContext;
 
@@ -211,27 +217,13 @@ public class ProjectServiceImpl implements IProjectService {
 
     }
 
-    //TODO ADD SEARCH FOR USER
 
+    //TODO ADD SEARCH FOR USER
     @Override
     @Transactional(readOnly = true)
     public Page<Project> getPage(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
 
-        StructuredException exception = new StructuredException();
-
-        if (currentRequestedPage < 0) {
-
-            exception.put("page", "Номер страницы не может быть меньше 0");
-
-        }
-        if (rowsPerPage < 1) {
-            exception.put("size", "Размер страницы не может быть меньше 0");
-
-        }
-
-        if (exception.hasExceptions()) {
-            throw exception;
-        }
+        validatePageArguments(currentRequestedPage, rowsPerPage);
 
         Page<Project> page = projectRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
 
@@ -358,5 +350,23 @@ public class ProjectServiceImpl implements IProjectService {
 
         toUpdate.setStatus(projectCreateDTO.getStatus());
 
+    }
+
+    private static void validatePageArguments(Integer currentRequestedPage, Integer rowsPerPage) {
+        StructuredException exception = new StructuredException();
+
+        if (currentRequestedPage < 0) {
+
+            exception.put("page", "Номер страницы не может быть меньше 0");
+
+        }
+        if (rowsPerPage < 1) {
+            exception.put("size", "Размер страницы не может быть меньше 0");
+
+        }
+
+        if (exception.hasExceptions()) {
+            throw exception;
+        }
     }
 }

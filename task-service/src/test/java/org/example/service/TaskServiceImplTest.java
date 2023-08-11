@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Page;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -227,7 +228,6 @@ public class TaskServiceImplTest {
     }
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void updateStatusFailsWhenUserIsNotInProject() {
 
         Task target = taskRepository.findById(INIT_TASK_UUID).orElseThrow();
@@ -245,7 +245,6 @@ public class TaskServiceImplTest {
 
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void nullWhenUserIsNotInProject() {
 
 
@@ -260,7 +259,6 @@ public class TaskServiceImplTest {
     }
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
     public void taskReturnedWhenUserIsInProject() {
 
 
@@ -272,6 +270,20 @@ public class TaskServiceImplTest {
 
         Assertions.assertNotNull(res);
 
+    }
+
+    @Test
+    public void pageWithNothingReturnedWhenForbiddenUuidIsPassed() {
+
+        User inProject = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        doReturn(inProject).when(userService).findUserInCurrentContext();
+
+        Page<Task> page = taskService.getPageWithFilters(0, 20, List.of(PROJECT_4_UUID), null, null);
+
+        Assertions.assertEquals(0, page.getTotalPages());
+
+        Assertions.assertEquals(0, page.getTotalElements());
     }
 
 

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public interface ITaskService {
@@ -22,7 +23,8 @@ public interface ITaskService {
 
     Task findByUUID(UUID uuid);
 
-    Page<Task> getPage(Integer currentRequestedPage, Integer rowsPerPage);
+    Page<Task> getPageWithFilters(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids,
+                                  List<UUID> implementersUuids, List<TaskStatus> taskStatuses);
 
 
 }

@@ -554,6 +554,35 @@ public class ProjectServiceImplTest {
 
     }
 
+    @Test
+    public void findProjectsWhereUserIsInProjectByUuidFilter()  {
+
+        User worksIn3Projects = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        List<UUID> uuidList = List.of(INIT_PROJECT_UUID, PROJECT2_UUID);
+
+        List<Project> projectsWhereUserIsInProject = projectService.getProjectsWhereUserIsInProject(worksIn3Projects, uuidList);
+
+        Assertions.assertEquals(2, projectsWhereUserIsInProject.size());
+
+
+    }
+
+
+    @Test
+    public void findProjectsWhereUserIsInProjectByUuidFilterWith1NotApplicable()  {
+
+        User worksIn3Projects = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
+
+        List<UUID> uuidList = List.of(INIT_PROJECT_UUID, PROJECT2_UUID, PROJECT4_UUID);
+
+        List<Project> projectsWhereUserIsInProject = projectService.getProjectsWhereUserIsInProject(worksIn3Projects, uuidList);
+
+        Assertions.assertEquals(2, projectsWhereUserIsInProject.size());
+
+
+    }
+
 
     @Test
     public void findPageUserNotInContextNotInProjectThrows() {
