@@ -10,7 +10,6 @@ import org.example.core.exception.*;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;

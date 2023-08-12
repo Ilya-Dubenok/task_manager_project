@@ -17,6 +17,8 @@ public interface ITaskService {
 
     Task saveForUserInContext(@Valid TaskCreateDTO taskCreateDTO);
 
+    Task saveWithUserRoleInContextCheck(@Valid TaskCreateDTO taskCreateDTO);
+
     Task update(UUID uuid, LocalDateTime dtUpdate, @Valid TaskCreateDTO taskCreateDTO);
 
     Task updateForUserInContext(UUID uuid, LocalDateTime dtUpdate, @Valid TaskCreateDTO taskCreateDTO);
@@ -38,5 +40,9 @@ public interface ITaskService {
     Page<Task> getPageWithFilters(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids,
                                   List<UUID> implementersUuids, List<TaskStatus> taskStatuses);
 
-    Task saveWithUserRoleInContextCheck(@Valid TaskCreateDTO taskCreateDTO);
+    Page<Task> getPagesWithRoleOfUserInContextCheck(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids,
+                                                    List<UUID> implementersUuids, List<TaskStatus> taskStatuses);
+
+    Page<Task> getPageWithFiltersForUserInContext(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids,
+                                                  List<UUID> implementersUuids, List<TaskStatus> taskStatuses);
 }

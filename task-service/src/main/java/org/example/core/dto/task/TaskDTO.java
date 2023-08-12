@@ -2,7 +2,6 @@ package org.example.core.dto.task;
 
 import org.example.core.dto.project.ProjectUuidDTO;
 import org.example.core.dto.user.UserDTO;
-import org.example.dao.entities.project.ProjectStatus;
 import org.example.dao.entities.task.TaskStatus;
 
 import java.util.UUID;

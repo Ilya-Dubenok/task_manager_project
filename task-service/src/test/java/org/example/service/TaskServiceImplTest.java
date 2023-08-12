@@ -279,7 +279,7 @@ public class TaskServiceImplTest {
 
         doReturn(inProject).when(userService).findUserInCurrentContext();
 
-        Page<Task> page = taskService.getPageWithFilters(0, 20, List.of(PROJECT_4_UUID), null, null);
+        Page<Task> page = taskService.getPageWithFiltersForUserInContext(0, 20, List.of(PROJECT_4_UUID), null, null);
 
         Assertions.assertEquals(0, page.getTotalPages());
 

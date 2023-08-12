@@ -79,6 +79,39 @@ public class TaskServiceImpl implements ITaskService {
     @Transactional(readOnly = true)
     public Page<Task> getPageWithFilters(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
 
+        if (projectUuids == null || projectUuids.size() == 0) {
+
+            return taskRepository.findAll(getTaskSpecificationOnFilters(implementersUuids, taskStatuses),
+                    PageRequest.of(currentRequestedPage, rowsPerPage, Sort.by("uuid")));
+
+        } else {
+
+            return taskRepository.findAll(getTaskSpecificationOnUuidFilters(projectUuids, implementersUuids, taskStatuses),
+                    PageRequest.of(currentRequestedPage, rowsPerPage, Sort.by("uuid")));
+
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Task> getPagesWithRoleOfUserInContextCheck(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
+
+
+        if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
+
+            return getPageWithFilters(currentRequestedPage, rowsPerPage, projectUuids, implementersUuids, taskStatuses);
+
+        } else {
+
+            return getPageWithFiltersForUserInContext(currentRequestedPage, rowsPerPage, projectUuids, implementersUuids, taskStatuses);
+
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Task> getPageWithFiltersForUserInContext(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
+
         User requester = getUserForCurrentContext();
 
         List<Project> projectsToFilter;
@@ -447,29 +480,130 @@ public class TaskServiceImpl implements ITaskService {
 
     }
 
-    private static Specification<Task> getTaskSpecificationOnFilters(List<Project> projectsToFilter, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
+    private Specification<Task> getTaskSpecificationOnUuidFilters(List<UUID> projectUuids, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
+        return ((root, query, builder) -> {
+
+            Path<Object> projectUuidPath = root.get("project").get("uuid");
+
+            CriteriaBuilder.In<Object> inProjects = builder.in(projectUuidPath);
+
+            Predicate inListOfProjects = inProjects.value(projectUuids);
+
+            Specification<Task> taskSpecificationOnImplementersAndStatuses = getTaskSpecificationOnFilters(implementersUuids, taskStatuses);
+
+            Predicate implementersAndStatusesPredicate = taskSpecificationOnImplementersAndStatuses.toPredicate(root, query, builder);
+
+            if (null != implementersAndStatusesPredicate) {
+                return builder.and(inListOfProjects, implementersAndStatusesPredicate);
+            }
+
+            return builder.and(inListOfProjects);
+
+
+        } );
+    }
+
+
+    private Specification<Task> getTaskSpecificationOnFilters(List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
+
+        return (root, query, builder) -> {
+
+            Predicate inListOfStatuses = null;
+
+            Predicate inListOfImplementers = null;
+
+            if (taskStatuses != null) {
+
+                Path<Object> status = root.get("status");
+
+                if (taskStatuses.size() == 0) {
+
+                    return builder.isNull(status);
+                }
+
+                Predicate nullStatus = null;
+
+
+                if (taskStatuses.removeIf(Objects::isNull)) {
+
+                     nullStatus = builder.isNull(status);
+
+                }
+
+                CriteriaBuilder.In<Object> inStatus = builder.in(status);
+
+                inListOfStatuses = inStatus.value(taskStatuses);
+
+                if (null != nullStatus) {
+
+                    inListOfStatuses = builder.or(nullStatus, inListOfStatuses);
+                }
+
+            }
+
+            if (implementersUuids != null) {
+
+                Path<Object> implementerUuid = root.get("implementer").get("uuid");
+
+                if (implementersUuids.size() == 0) {
+
+                    return builder.isNull(implementerUuid);
+                }
+
+                Predicate nullImplementer = null;
+
+
+                if (implementersUuids.removeIf(Objects::isNull)) {
+
+                    nullImplementer = builder.isNull(implementerUuid);
+
+                }
+
+                CriteriaBuilder.In<Object> inImplementer = builder.in(implementerUuid);
+
+                inListOfImplementers = inImplementer.value(implementersUuids);
+
+                if (null != nullImplementer) {
+
+                    inListOfImplementers = builder.or(nullImplementer, inListOfImplementers);
+                }
+
+            }
+
+            if (inListOfStatuses == null && inListOfImplementers == null) {
+
+                return query.getRestriction();
+
+            } else if (inListOfStatuses == null) {
+
+                return inListOfImplementers;
+
+            } else if (inListOfImplementers == null) {
+
+                return inListOfStatuses;
+            }
+
+            return builder.and(inListOfStatuses, inListOfImplementers);
+
+
+        };
+
+    }
+
+    private Specification<Task> getTaskSpecificationOnFilters(List<Project> projectsToFilter, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
+
         return (root, query, builder) -> {
 
             Path<Object> project = root.get("project");
             CriteriaBuilder.In<Object> inProject = builder.in(project);
             Predicate res = inProject.value(projectsToFilter);
 
-            if (taskStatuses != null && taskStatuses.size() != 0) {
+            Specification<Task> taskSpecificationOnImplementersAndStatuses = getTaskSpecificationOnFilters(implementersUuids, taskStatuses);
 
-                Path<Object> status = root.get("status");
-                CriteriaBuilder.In<Object> inStatus = builder.in(status);
-                Predicate inListOfStatuses = inStatus.value(taskStatuses);
-                res = builder.and(res, inListOfStatuses);
+            Predicate implementersAndStatusesPredicate = taskSpecificationOnImplementersAndStatuses.toPredicate(root, query, builder);
 
-            }
-
-            if (implementersUuids != null && implementersUuids.size() != 0) {
-
-                Path<Object> implementerUuid = root.get("implementer").get("uuid");
-                CriteriaBuilder.In<Object> inImplementer = builder.in(implementerUuid);
-                Predicate inListOfImplementers = inImplementer.value(implementersUuids);
-                res = builder.and(res, inListOfImplementers);
-
+            if (null != implementersAndStatusesPredicate) {
+                return builder.and(res, implementersAndStatusesPredicate);
             }
 
             return res;
