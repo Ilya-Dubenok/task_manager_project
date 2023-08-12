@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/task_service_test?ApplicationName=Task_Service
+
+
+
+
+
+

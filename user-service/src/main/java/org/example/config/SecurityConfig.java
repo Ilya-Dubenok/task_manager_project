@@ -1,6 +1,7 @@
 package org.example.config;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.endpoint.web.filters.FilterChainExceptionFilter;
 import org.example.endpoint.web.filters.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,7 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter filter) throws Exception  {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter filter, FilterChainExceptionFilter filterChainExceptionFilter) throws Exception  {
         // Enable CORS and disable CSRF
         http = http.cors().and().csrf().disable();
 
@@ -60,6 +61,11 @@ public class SecurityConfig {
         http.addFilterBefore(
                 filter,
                 UsernamePasswordAuthenticationFilter.class
+        );
+
+        http.addFilterBefore(
+                filterChainExceptionFilter,
+                JwtFilter.class
         );
 
         return http.build();

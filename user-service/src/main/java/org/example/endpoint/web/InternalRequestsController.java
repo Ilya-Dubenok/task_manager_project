@@ -53,7 +53,7 @@ public class InternalRequestsController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/user")
+    @PostMapping(value = "/user")
     public ResponseEntity<List<UserDTO>> getByListOfUuids(@RequestBody List<UUID> uuidList) {
 
         List<User> userList = userService.getList(uuidList);

@@ -27,8 +27,7 @@ public class FilterChainExceptionFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (GeneralException e) {
 
-            handlerExceptionResolver.resolveException(request, response, null,
-                    new Exception(e.getMessage()));
+            handlerExceptionResolver.resolveException(request, response, null, new Exception(e.getMessage()));
 
 
         }
