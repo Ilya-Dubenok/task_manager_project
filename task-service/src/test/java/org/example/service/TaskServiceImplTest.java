@@ -116,7 +116,7 @@ public class TaskServiceImplTest {
         taskCreateDTO.setImplementer(new UserDTO());
 
         ConstraintViolationException exception1 = Assertions.assertThrows(ConstraintViolationException.class,
-                () -> taskService.save(taskCreateDTO));
+                () -> taskService.saveForUserInContext(taskCreateDTO));
 
         Map<String, String> res2 = constraintViolationExceptionParser(exception1);
         Assertions.assertEquals(3, res2.size());
@@ -138,7 +138,7 @@ public class TaskServiceImplTest {
 
         doReturn(inProject).when(userService).findUserInCurrentContext();
 
-        Task save = taskService.save(taskCreateDTO);
+        Task save = taskService.saveForUserInContext(taskCreateDTO);
 
         Assertions.assertNotNull(save);
 
@@ -158,7 +158,7 @@ public class TaskServiceImplTest {
 
         doReturn(new User(notInProjectRequested.getUuid())).when(userService).findUserInCurrentContext();
 
-        Assertions.assertThrows(AuthenticationFailedException.class, ()->taskService.save(taskCreateDTO));
+        Assertions.assertThrows(AuthenticationFailedException.class, ()->taskService.saveForUserInContext(taskCreateDTO));
 
 
     }
@@ -177,7 +177,7 @@ public class TaskServiceImplTest {
 
         doReturn(new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS)).when(userService).findUserInCurrentContext();
 
-        Assertions.assertThrows(StructuredException.class, ()->taskService.save(taskCreateDTO));
+        Assertions.assertThrows(StructuredException.class, ()->taskService.saveForUserInContext(taskCreateDTO));
 
 
     }

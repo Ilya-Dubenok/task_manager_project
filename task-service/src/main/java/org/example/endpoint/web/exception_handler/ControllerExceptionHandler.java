@@ -6,10 +6,7 @@ import com.google.common.base.CaseFormat;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
-import org.example.core.exception.GeneralException;
-import org.example.core.exception.GeneralExceptionDTO;
-import org.example.core.exception.StructuredException;
-import org.example.core.exception.StructuredExceptionDTO;
+import org.example.core.exception.*;
 import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -61,6 +58,13 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         StructuredExceptionDTO structuredExceptionDTO = parseConstraintViolationException(e);
 
         return new ResponseEntity<>(structuredExceptionDTO, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = AuthenticationFailedException.class)
+    protected ResponseEntity<Object> handleAuthenticationFailedException (AuthenticationFailedException e, WebRequest request) {
+        GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO();
+        generalExceptionDTO.setMessage(e.getMessage());
+        return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(value = Exception.class)

@@ -5,6 +5,8 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 import org.example.core.dto.task.TaskCreateDTO;
+import org.example.core.dto.user.UserDTO;
+import org.example.core.dto.user.UserRole;
 import org.example.core.exception.AuthenticationFailedException;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
@@ -97,7 +99,63 @@ public class TaskServiceImpl implements ITaskService {
 
     @Override
     @Transactional
-    public Task save(@Valid TaskCreateDTO taskCreateDTO) {
+    public Task save(TaskCreateDTO taskCreateDTO) {
+
+
+        UserDTO implementerDTO = taskCreateDTO.getImplementer();
+
+        User implementer = null;
+
+        if (implementerDTO != null) {
+
+            implementer = new User(implementerDTO.getUuid());
+
+        }
+
+        Project project = getProjectAndCheckImplementer(taskCreateDTO, implementer);
+
+        Task toPersist = new Task();
+
+        toPersist.setUuid(UUID.randomUUID());
+
+        updateTaskFields(taskCreateDTO, project, implementer, toPersist);
+
+        try {
+
+            return taskRepository.saveAndFlush(toPersist);
+
+        } catch (Exception e) {
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+
+        }
+
+    }
+
+    @Override
+    @Transactional
+    public Task saveWithUserRoleInContextCheck(TaskCreateDTO taskCreateDTO) {
+
+        UUID projectUuid = taskCreateDTO.getProject().getUuid();
+
+        if (!projectService.projectExists(projectUuid)) {
+            throw new StructuredException("project", "не найден такой проект");
+        }
+
+        if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
+
+            return save(taskCreateDTO);
+
+        } else {
+
+            return saveForUserInContext(taskCreateDTO);
+
+        }
+    }
+
+    @Override
+    @Transactional
+    public Task saveForUserInContext(@Valid TaskCreateDTO taskCreateDTO) {
 
         User requester = getUserForCurrentContext();
 
@@ -109,17 +167,13 @@ public class TaskServiceImpl implements ITaskService {
 
         User implementer = new User(taskCreateDTO.getImplementer().getUuid());
 
-        project = getRequestedProjectForUser(implementer, taskCreateDTO);
-
-        if (project == null) {
-            throw new StructuredException("implementer", "не является участником этого проекта");
-        }
+        project = getProjectAndCheckImplementer(taskCreateDTO, implementer);
 
         Task toPersist = new Task();
 
         toPersist.setUuid(UUID.randomUUID());
 
-        updateTaskFiled(taskCreateDTO, project, implementer, toPersist);
+        updateTaskFields(taskCreateDTO, project, implementer, toPersist);
 
         try {
 
@@ -147,11 +201,7 @@ public class TaskServiceImpl implements ITaskService {
 
         User implementer = new User(taskCreateDTO.getImplementer().getUuid());
 
-        project = getRequestedProjectForUser(implementer, taskCreateDTO);
-
-        if (project == null) {
-            throw new StructuredException("implementer", "не является участником этого проекта");
-        }
+        project = getProjectAndCheckImplementer(taskCreateDTO, implementer);
 
         Task toUpdate = taskRepository.findById(uuid).orElseThrow(
                 () -> new StructuredException("uuid", "не найдено по такому uuid")
@@ -166,7 +216,7 @@ public class TaskServiceImpl implements ITaskService {
             throw new StructuredException("dt_update", "Версия проекта уже была обновлена");
         }
 
-        updateTaskFiled(taskCreateDTO, project, implementer, toUpdate);
+        updateTaskFields(taskCreateDTO, project, implementer, toUpdate);
 
         try {
 
@@ -220,6 +270,15 @@ public class TaskServiceImpl implements ITaskService {
 
     }
 
+    private Project getProjectAndCheckImplementer(TaskCreateDTO taskCreateDTO, User implementer) {
+        Project project = getRequestedProjectForUser(implementer, taskCreateDTO);
+
+        if (project == null) {
+            throw new StructuredException("implementer", "не является участником этого проекта");
+        }
+        return project;
+    }
+
     private static void validatePageArguments(Integer currentRequestedPage, Integer rowsPerPage) {
         StructuredException exception = new StructuredException();
 
@@ -238,7 +297,7 @@ public class TaskServiceImpl implements ITaskService {
         }
     }
 
-    private static void updateTaskFiled(TaskCreateDTO taskCreateDTO, Project project, User implementer, Task toPersist) {
+    private static void updateTaskFields(TaskCreateDTO taskCreateDTO, Project project, User implementer, Task toPersist) {
         toPersist.setProject(project);
         toPersist.setTitle(taskCreateDTO.getTitle());
         toPersist.setDescription(taskCreateDTO.getDescription());
@@ -265,13 +324,20 @@ public class TaskServiceImpl implements ITaskService {
 
     private Project getRequestedProjectForUser(User user, TaskCreateDTO taskCreateDTO) {
 
-        UUID uuid = taskCreateDTO.getProject().getUuid();
+        UUID projectUuid = taskCreateDTO.getProject().getUuid();
+
+
+        if (user == null) {
+
+            return projectService.findByUUID(projectUuid);
+
+        }
 
         List<Project> projectsWhereUserIsInProject = projectService.getProjectsWhereUserIsInProject(user);
 
         for (Project project : projectsWhereUserIsInProject) {
 
-            if (project.getUuid().equals(uuid)) {
+            if (project.getUuid().equals(projectUuid)) {
                 return project;
             }
 

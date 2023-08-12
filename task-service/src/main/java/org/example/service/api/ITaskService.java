@@ -5,7 +5,6 @@ import org.example.core.dto.task.TaskCreateDTO;
 import org.example.dao.entities.task.Task;
 import org.example.dao.entities.task.TaskStatus;
 import org.springframework.data.domain.Page;
-import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.LocalDateTime;
@@ -16,7 +15,8 @@ public interface ITaskService {
 
     Task save(@Valid TaskCreateDTO taskCreateDTO);
 
-    @Transactional
+    Task saveForUserInContext(@Valid TaskCreateDTO taskCreateDTO);
+
     Task update(UUID uuid, LocalDateTime dtUpdate, @Valid TaskCreateDTO taskCreateDTO);
 
     Task updateStatus(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus);
@@ -26,5 +26,5 @@ public interface ITaskService {
     Page<Task> getPageWithFilters(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids,
                                   List<UUID> implementersUuids, List<TaskStatus> taskStatuses);
 
-
+    Task saveWithUserRoleInContextCheck(@Valid TaskCreateDTO taskCreateDTO);
 }

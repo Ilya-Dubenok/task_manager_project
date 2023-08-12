@@ -184,6 +184,11 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    public boolean projectExists(UUID projectUuid) {
+        return projectRepository.existsById(projectUuid);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<Project> getProjectsWhereUserIsInProject(User user) {
 

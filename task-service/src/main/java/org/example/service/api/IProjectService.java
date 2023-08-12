@@ -24,6 +24,8 @@ public interface IProjectService {
 
     boolean userIsInProject(User user, UUID projectUuid);
 
+    boolean projectExists(UUID projectUuid);
+
     Page<Project> getAllPagesAndShowArchivedIs(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
 
     List<Project> getProjectsWhereUserIsInProject(User user);
