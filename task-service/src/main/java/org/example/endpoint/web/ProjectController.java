@@ -32,12 +32,22 @@ public class ProjectController {
         this.conversionService = conversionService;
     }
 
+    @GetMapping(value = "/{uuid}")
+    public ResponseEntity<ProjectDTO> getByUuid(@PathVariable UUID uuid) {
+
+        Project project = projectService.findWithRoleOfUserInContextCheck(uuid);
+
+        ProjectDTO dto = conversionService.convert(project, ProjectDTO.class);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+
     @GetMapping
     public ResponseEntity<?> getPage(@RequestParam(value = "page", defaultValue = "0") Integer page,
                                              @RequestParam(value = "size", defaultValue = "20") Integer size,
                                              @RequestParam(value = "archived", defaultValue = "false") Boolean showArchived) {
 
-        Page<Project> pageOfProjects = projectService.getAllPagesAndShowArchivesIs(page, size, showArchived);
+        Page<Project> pageOfProjects = projectService.getPageWithUserRoleInContextCheckAndShowArchived(page, size, showArchived);
 
         ResolvableType resolvableType = ResolvableType.forClassWithGenerics(
                 PageOfTypeDTO.class, ProjectDTO.class

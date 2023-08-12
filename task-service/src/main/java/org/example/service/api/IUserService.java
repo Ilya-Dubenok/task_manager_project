@@ -6,7 +6,6 @@ import org.example.dao.entities.user.User;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 public interface IUserService {
 
@@ -18,6 +17,6 @@ public interface IUserService {
 
     User findUserInCurrentContext();
 
-    boolean isUserInCurrentContextHasOneOfRoles(UserRole... userRoles);
+    boolean userInCurrentContextHasOneOfRoles(UserRole... userRoles);
 
 }

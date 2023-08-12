@@ -16,19 +16,21 @@ public interface IProjectService {
 
     Project update(UUID uuid, LocalDateTime dtUpdate, @Valid ProjectCreateDTO projectCreateDTO);
 
-    Project findByUUID(UUID uuid);
+    Project findByUUID(UUID projectUuid);
 
-    Project findByUUIDAndUserInContext(UUID uuid);
+    Project findWithRoleOfUserInContextCheck(UUID projectUuid);
+
+    Project findOneForUserInCurrentContext(UUID projectUuid);
 
     boolean userIsInProject(User user, UUID projectUuid);
 
-    Page<Project> getAllPagesAndShowArchivesIs(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
+    Page<Project> getAllPagesAndShowArchivedIs(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
 
     List<Project> getProjectsWhereUserIsInProject(User user);
 
     List<Project> getProjectsWhereUserIsInProject(User user, List<UUID> projectUuidsList);
 
-    Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
+    Page<Project> getPageWhereUserInContextWorksAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
 
-
+    Page<Project> getPageWithUserRoleInContextCheckAndShowArchived(Integer page, Integer size, Boolean showArchived);
 }

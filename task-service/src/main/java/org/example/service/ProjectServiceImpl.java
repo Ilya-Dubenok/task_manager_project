@@ -109,17 +109,32 @@ public class ProjectServiceImpl implements IProjectService {
 
     @Override
     @Transactional(readOnly = true)
-    public Project findByUUID(UUID uuid) {
+    public Project findByUUID(UUID projectUuid) {
 
-        return projectRepository.findById(uuid).orElseThrow(
+        return projectRepository.findById(projectUuid).orElseThrow(
                 () -> new StructuredException("uuid", "Не найден проект по такому id")
         );
 
     }
 
     @Override
+    public Project findWithRoleOfUserInContextCheck(UUID projectUuid) {
+        if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
+
+            return projectRepository.findById(projectUuid).orElseThrow(
+                    () -> new StructuredException("uuid", "Не найден проект по такому id")
+            );
+
+        } else {
+
+            return this.findOneForUserInCurrentContext(projectUuid);
+
+        }
+    }
+
+    @Override
     @Transactional(readOnly = true)
-    public Project findByUUIDAndUserInContext(UUID uuid) {
+    public Project findOneForUserInCurrentContext(UUID projectUuid) {
 
 
         User userInCurrentContext;
@@ -134,21 +149,29 @@ public class ProjectServiceImpl implements IProjectService {
 
         }
 
-        Project found = findByUUID(uuid);
+        Project found = findByUUID(projectUuid);
 
-        if (userInCurrentContext.getUuid().equals(found.getManager().getUuid())) {
+        User manager = found.getManager();
+
+        if (manager != null && userInCurrentContext.getUuid().equals(manager.getUuid())) {
 
             return found;
 
         }
 
-        for (User staff : found.getStaff()) {
+        Set<User> staff = found.getStaff();
 
-            if (staff.getUuid().equals(userInCurrentContext.getUuid())) {
-                return found;
+        if (staff != null) {
+
+            for (User worker : staff) {
+
+                if (worker.getUuid().equals(userInCurrentContext.getUuid())) {
+                    return found;
+                }
+
             }
-
         }
+
 
         return null;
 
@@ -178,26 +201,41 @@ public class ProjectServiceImpl implements IProjectService {
     public List<Project> getProjectsWhereUserIsInProject(User user, List<UUID> projectUuidsList) {
         return projectRepository.findAll(((root, query, builder) -> {
 
-            Path<Object> uuidPath = root.get("uuid");
+                    Path<Object> uuidPath = root.get("uuid");
 
-            CriteriaBuilder.In<Object> in = builder.in(uuidPath);
+                    CriteriaBuilder.In<Object> in = builder.in(uuidPath);
 
-            Predicate inUuidListPredicate = in.value(projectUuidsList);
+                    Predicate inUuidListPredicate = in.value(projectUuidsList);
 
-            Predicate isManager = builder.equal(root.get("manager"), user);
+                    Predicate isManager = builder.equal(root.get("manager"), user);
 
-            Predicate isInStuff = builder.isMember(user, root.get("staff"));
+                    Predicate isInStuff = builder.isMember(user, root.get("staff"));
 
-            return builder.and(inUuidListPredicate,builder.or(isManager, isInStuff));
+                    return builder.and(inUuidListPredicate, builder.or(isManager, isInStuff));
                 })
         );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
+    public Page<Project> getPageWithUserRoleInContextCheckAndShowArchived(Integer page, Integer size, Boolean showArchived) {
 
-        validatePageArguments(currentRequestedPage, rowsPerPage);
+        validatePageArguments(page, size);
+
+        if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
+
+            return getAllPagesAndShowArchivedIs(page, size, showArchived);
+
+        } else {
+
+            return getPageWhereUserInContextWorksAndShowArchived(page, size, showArchived);
+
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Project> getPageWhereUserInContextWorksAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
+
 
         User userInCurrentContext;
 
@@ -222,9 +260,7 @@ public class ProjectServiceImpl implements IProjectService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Project> getAllPagesAndShowArchivesIs(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
-
-        validatePageArguments(currentRequestedPage, rowsPerPage);
+    public Page<Project> getAllPagesAndShowArchivedIs(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
 
         if (showArchived) {
 
@@ -237,7 +273,7 @@ public class ProjectServiceImpl implements IProjectService {
                             builder.notEqual(root.get("status"), ProjectStatus.ARCHIVED),
                             builder.isNull(root.get("status"))
                     ))
-                    ,PageRequest.of(currentRequestedPage, rowsPerPage, Sort.by("uuid"))
+                    , PageRequest.of(currentRequestedPage, rowsPerPage, Sort.by("uuid"))
             );
 
         }

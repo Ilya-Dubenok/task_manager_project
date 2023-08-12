@@ -127,7 +127,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public boolean isUserInCurrentContextHasOneOfRoles(UserRole... userRoles) {
+    public boolean userInCurrentContextHasOneOfRoles(UserRole... userRoles) {
 
         for (GrantedAuthority authority : userHolder.getUser().getAuthorities()) {
 

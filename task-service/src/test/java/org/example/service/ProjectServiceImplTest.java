@@ -160,7 +160,7 @@ public class ProjectServiceImplTest {
 
     @Test
     public void getPageWorks() {
-        Page<Project> page = projectService.getAllPagesAndShowArchivesIs(0, 2, true);
+        Page<Project> page = projectService.getAllPagesAndShowArchivedIs(0, 2, true);
 
             ResolvableType resolvableType = ResolvableType.forClassWithGenerics(
                     PageOfTypeDTO.class, ProjectDTO.class
@@ -182,7 +182,7 @@ public class ProjectServiceImplTest {
     public void getPageThrows() {
         StructuredException exception = Assertions.assertThrows(
                 StructuredException.class,
-                () -> projectService.getAllPagesAndShowArchivesIs(-1, 0, true)
+                () -> projectService.getPageWithUserRoleInContextCheckAndShowArchived(-1, 0, true)
         );
 
         Assertions.assertEquals(2, exception.getSize());
@@ -404,7 +404,7 @@ public class ProjectServiceImplTest {
 
         doReturn(manager).when(userService).findUserInCurrentContext();
 
-        Project target = projectService.findByUUIDAndUserInContext(probe.getUuid());
+        Project target = projectService.findOneForUserInCurrentContext(probe.getUuid());
 
         Assertions.assertNotNull(target);
 
@@ -423,7 +423,7 @@ public class ProjectServiceImplTest {
 
         doReturn(inStaff).when(userService).findUserInCurrentContext();
 
-        Project target = projectService.findByUUIDAndUserInContext(probe.getUuid());
+        Project target = projectService.findOneForUserInCurrentContext(probe.getUuid());
 
         Assertions.assertNotNull(target);
 
@@ -442,7 +442,7 @@ public class ProjectServiceImplTest {
 
         doReturn(inContext).when(userService).findUserInCurrentContext();
 
-        Project notShown = projectService.findByUUIDAndUserInContext(probe.getUuid());
+        Project notShown = projectService.findOneForUserInCurrentContext(probe.getUuid());
 
         Assertions.assertNull(notShown);
 
@@ -455,7 +455,7 @@ public class ProjectServiceImplTest {
         Project probe = getInitProject();
 
         Assertions.assertThrows(AuthenticationFailedException.class, ()->
-                projectService.findByUUIDAndUserInContext(probe.getUuid()));
+                projectService.findOneForUserInCurrentContext(probe.getUuid()));
 
     }
 
@@ -487,7 +487,7 @@ public class ProjectServiceImplTest {
 
         doReturn(new User(UUID.randomUUID())).when(userService).findUserInCurrentContext();
 
-        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageForUserInContextAndInProjectAndShowArchived(0, 20, true);
+        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageWhereUserInContextWorksAndShowArchived(0, 20, true);
 
         long totalElements = pageForUserInContextAndShowArchived.getTotalElements();
 
@@ -502,7 +502,7 @@ public class ProjectServiceImplTest {
 
         doReturn(worksIn3Projects).when(userService).findUserInCurrentContext();
 
-        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageForUserInContextAndInProjectAndShowArchived(0, 20, true);
+        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageWhereUserInContextWorksAndShowArchived(0, 20, true);
 
         long totalElements = pageForUserInContextAndShowArchived.getTotalElements();
 
@@ -517,7 +517,7 @@ public class ProjectServiceImplTest {
 
         doReturn(worksIn3Projects).when(userService).findUserInCurrentContext();
 
-        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageForUserInContextAndInProjectAndShowArchived(0, 20, false);
+        Page<Project> pageForUserInContextAndShowArchived = projectService.getPageWhereUserInContextWorksAndShowArchived(0, 20, false);
 
         long totalElements = pageForUserInContextAndShowArchived.getTotalElements();
 
@@ -594,7 +594,7 @@ public class ProjectServiceImplTest {
     public void findPageUserNotInContextNotInProjectThrows() {
 
         Assertions.assertThrows(AuthenticationFailedException.class, ()->
-                projectService.getPageForUserInContextAndInProjectAndShowArchived(0,2, true));
+                projectService.getPageWhereUserInContextWorksAndShowArchived(0,2, true));
     }
 
     private Project getInitProject() {
