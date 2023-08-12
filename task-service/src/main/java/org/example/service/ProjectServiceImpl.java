@@ -23,6 +23,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -68,6 +70,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Transactional
     public Project update(UUID uuid, LocalDateTime dtUpdate, ProjectCreateDTO projectCreateDTO) {
 
 
@@ -218,16 +221,13 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
 
-    //TODO ADD SEARCH FOR USER
     @Override
     @Transactional(readOnly = true)
-    public Page<Project> getPage(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
+    public Page<Project> getAllPagesAndShowArchivesIs(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived) {
 
         validatePageArguments(currentRequestedPage, rowsPerPage);
 
-        Page<Project> page = projectRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
-
-        return page;
+        return projectRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
     }
 
     private Specification<Project> getSpecificationOfProjectUuidAndUserIsInProject(User worksInProject, UUID projectUuid) {

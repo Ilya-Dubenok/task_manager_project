@@ -160,7 +160,7 @@ public class ProjectServiceImplTest {
 
     @Test
     public void getPageWorks() {
-        Page<Project> page = projectService.getPage(0, 2, true);
+        Page<Project> page = projectService.getAllPagesAndShowArchivesIs(0, 2, true);
 
             ResolvableType resolvableType = ResolvableType.forClassWithGenerics(
                     PageOfTypeDTO.class, ProjectDTO.class
@@ -182,7 +182,7 @@ public class ProjectServiceImplTest {
     public void getPageThrows() {
         StructuredException exception = Assertions.assertThrows(
                 StructuredException.class,
-                () -> projectService.getPage(-1, 0, true)
+                () -> projectService.getAllPagesAndShowArchivesIs(-1, 0, true)
         );
 
         Assertions.assertEquals(2, exception.getSize());
@@ -307,14 +307,20 @@ public class ProjectServiceImplTest {
         UserDTO newManager = new UserDTO(managerUUID);
         newManager.setRole(UserRole.MANAGER);
 
+        UUID newStaffUUID = UUID.randomUUID();
+        UserDTO newStaff = new UserDTO(newStaffUUID);
+        newStaff.setRole(UserRole.MANAGER);
+
         doReturn(newManager).when(userServiceRequester).getUser(managerUUID);
+        doReturn(new HashSet<>(List.of(newStaff))).when(userServiceRequester).getSetOfUserDTOs(List.of(newStaffUUID));
 
         Project project = getInitProject();
 
         User initManager = project.getManager();
 
+
         ProjectCreateDTO projectCreateDTO = new ProjectCreateDTO(
-                "updated project", "updated description", newManager, null, ProjectStatus.ARCHIVED
+                "updated project", "updated description", newManager, new HashSet<>(List.of(newStaff)), ProjectStatus.ARCHIVED
         );
 
         Project newProject = projectService.update(project.getUuid(), project.getDtUpdate(), projectCreateDTO);
@@ -327,7 +333,7 @@ public class ProjectServiceImplTest {
 
         Assertions.assertNotEquals(project.getStatus(), newProject.getStatus());
 
-        Assertions.assertNull(newProject.getStaff());
+        Assertions.assertEquals(1, newProject.getStaff().size());
 
     }
 

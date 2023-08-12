@@ -10,6 +10,8 @@ import org.example.service.api.IUserService;
 import org.example.service.api.IUserServiceRequester;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -32,6 +34,7 @@ public class UserServiceImpl implements IUserService {
 
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public User findAndSave(UserDTO userDTO) {
         return userRepository.findById(userDTO.getUuid()).orElseGet(
                 () -> {
@@ -50,6 +53,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public User findByRoleAndSave(UserDTO userDTO, UserRole role) {
         UserDTO dtoRes = userServiceRequester.getUser(userDTO.getUuid());
 
@@ -75,6 +79,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<User> findAllAndSave(Set<UserDTO> userDTOList) {
         List<UUID> listOfUUIDs = userDTOList.stream().map(UserDTO::getUuid).toList();
 
@@ -83,18 +88,11 @@ public class UserServiceImpl implements IUserService {
         if (userDTOList.size() != found.size()) {
 
 
-            List<UUID> toFindOnService;
-
-            if (found.size() == 0) {
-
-                toFindOnService = listOfUUIDs;
-
-            } else {
-               toFindOnService = userDTOList.stream()
+            List<UUID> toFindOnService = userDTOList.stream()
                         .map(UserDTO::getUuid)
                         .filter(uuid ->found.stream().noneMatch(user -> user.getUuid().equals(uuid)))
                         .toList();
-            }
+
 
 
             Set<UserDTO> setOfUserDTO = userServiceRequester.getSetOfUserDTOs(toFindOnService);

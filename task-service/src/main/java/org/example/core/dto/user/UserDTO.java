@@ -1,5 +1,6 @@
 package org.example.core.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import org.example.core.dto.validation.Uidable;
 
@@ -11,6 +12,7 @@ public class UserDTO implements Uidable {
     @NotNull(message = "не задан uuid пользователя")
     private UUID uuid;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private UserRole role;
 
     public UserDTO() {

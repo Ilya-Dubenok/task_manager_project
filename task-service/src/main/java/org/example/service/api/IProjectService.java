@@ -22,13 +22,13 @@ public interface IProjectService {
 
     boolean userIsInProject(User user, UUID projectUuid);
 
+    Page<Project> getAllPagesAndShowArchivesIs(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
+
     List<Project> getProjectsWhereUserIsInProject(User user);
 
     List<Project> getProjectsWhereUserIsInProject(User user, List<UUID> projectUuidsList);
 
     Page<Project> getPageForUserInContextAndInProjectAndShowArchived(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
-
-    Page<Project> getPage(Integer currentRequestedPage, Integer rowsPerPage, Boolean showArchived);
 
 
 }
