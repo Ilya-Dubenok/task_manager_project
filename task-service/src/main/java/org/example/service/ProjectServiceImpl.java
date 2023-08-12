@@ -21,10 +21,9 @@ import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -214,7 +213,7 @@ public class ProjectServiceImpl implements IProjectService {
 
         return projectRepository.findAll(
                 getSpecificationOfUserIsInProjectAndShowArchivedIs(userInCurrentContext, showArchived),
-                PageRequest.of(currentRequestedPage, rowsPerPage)
+                PageRequest.of(currentRequestedPage, rowsPerPage, Sort.by("uuid"))
         );
 
 
@@ -227,7 +226,22 @@ public class ProjectServiceImpl implements IProjectService {
 
         validatePageArguments(currentRequestedPage, rowsPerPage);
 
-        return projectRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
+        if (showArchived) {
+
+            return projectRepository.findAllByOrderByUuid(PageRequest.of(currentRequestedPage, rowsPerPage));
+
+        } else {
+
+            return projectRepository.findAll(
+                    ((root, query, builder) -> builder.or(
+                            builder.notEqual(root.get("status"), ProjectStatus.ARCHIVED),
+                            builder.isNull(root.get("status"))
+                    ))
+                    ,PageRequest.of(currentRequestedPage, rowsPerPage, Sort.by("uuid"))
+            );
+
+        }
+
     }
 
     private Specification<Project> getSpecificationOfProjectUuidAndUserIsInProject(User worksInProject, UUID projectUuid) {

@@ -89,7 +89,7 @@ public class TaskServiceImpl implements ITaskService {
 
         return taskRepository.findAll(
                 getTaskSpecificationOnFilters(projectsToFilter, implementersUuids, taskStatuses),
-                PageRequest.of(currentRequestedPage, rowsPerPage)
+                PageRequest.of(currentRequestedPage, rowsPerPage, Sort.by("uuid"))
         );
 
 
