@@ -47,15 +47,22 @@ public class TaskServiceImpl implements ITaskService {
         this.taskRepository = taskRepository;
     }
 
+
+    @Override
+    public Task findByUUID(UUID taskUuid) {
+
+        return taskRepository.findById(taskUuid).orElseThrow(
+                () -> new StructuredException("uuid", "не найдено по такому uuid")
+        );
+    }
+
     @Override
     @Transactional(readOnly = true)
-    public Task findByUUID(UUID uuid) {
+    public Task findByUUIDForUserInContext(UUID taskUuid) {
 
         User requester = getUserForCurrentContext();
 
-        Task task = taskRepository.findById(uuid).orElseThrow(
-                () -> new StructuredException("uuid", "не найдено по такому uuid")
-        );
+        Task task = findByUUID(taskUuid);
 
         if (!projectService.userIsInProject(requester, task.getProject().getUuid())) {
 
@@ -188,20 +195,33 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     @Override
+    public Task findWithRoleOfUserInContextCheck(UUID taskUuid) {
+        if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
+
+            return findByUUID(taskUuid);
+
+        } else {
+
+            return findByUUIDForUserInContext(taskUuid);
+
+        }
+    }
+
+    @Override
     @Transactional
-    public Task update(UUID uuid, LocalDateTime dtUpdate, @Valid TaskCreateDTO taskCreateDTO) {
+    public Task update(UUID uuid, LocalDateTime dtUpdate, TaskCreateDTO taskCreateDTO) {
 
-        User requester = getUserForCurrentContext();
+        UserDTO implementerDTO = taskCreateDTO.getImplementer();
 
-        Project project = getRequestedProjectForUser(requester, taskCreateDTO);
+        User implementer = null;
 
-        if (project == null) {
-            throw new AuthenticationFailedException("пользователь не является участником этого проекта");
+        if (implementerDTO != null) {
+
+            implementer = new User(implementerDTO.getUuid());
+
         }
 
-        User implementer = new User(taskCreateDTO.getImplementer().getUuid());
-
-        project = getProjectAndCheckImplementer(taskCreateDTO, implementer);
+        Project project = getProjectAndCheckImplementer(taskCreateDTO, implementer);
 
         Task toUpdate = taskRepository.findById(uuid).orElseThrow(
                 () -> new StructuredException("uuid", "не найдено по такому uuid")
@@ -227,7 +247,41 @@ public class TaskServiceImpl implements ITaskService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
 
         }
+    }
 
+    @Override
+    @Transactional
+    public Task updateForUserInContext(UUID uuid, LocalDateTime dtUpdate, @Valid TaskCreateDTO taskCreateDTO) {
+
+        User requester = getUserForCurrentContext();
+
+        Project project = getRequestedProjectForUser(requester, taskCreateDTO);
+
+        if (project == null) {
+            throw new AuthenticationFailedException("пользователь не является участником этого проекта");
+        }
+
+        return update(uuid, dtUpdate, taskCreateDTO);
+
+    }
+
+    @Override
+    public Task updateWithRoleOfUserInContextCheck(UUID uuid, LocalDateTime dtUpdate, TaskCreateDTO taskCreateDTO) {
+        UUID projectUuid = taskCreateDTO.getProject().getUuid();
+
+        if (!projectService.projectExists(projectUuid)) {
+            throw new StructuredException("project", "не найден такой проект");
+        }
+
+        if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
+
+            return update(uuid, dtUpdate, taskCreateDTO);
+
+        } else {
+
+            return updateForUserInContext(uuid, dtUpdate, taskCreateDTO);
+
+        }
     }
 
     @Override

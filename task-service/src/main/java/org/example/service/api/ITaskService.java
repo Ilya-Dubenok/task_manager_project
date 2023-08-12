@@ -19,9 +19,17 @@ public interface ITaskService {
 
     Task update(UUID uuid, LocalDateTime dtUpdate, @Valid TaskCreateDTO taskCreateDTO);
 
+    Task updateForUserInContext(UUID uuid, LocalDateTime dtUpdate, @Valid TaskCreateDTO taskCreateDTO);
+
+    Task updateWithRoleOfUserInContextCheck(UUID uuid, LocalDateTime dtUpdate, @Valid TaskCreateDTO taskCreateDTO);
+
     Task updateStatus(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus);
 
-    Task findByUUID(UUID uuid);
+    Task findByUUID(UUID taskUuid);
+
+    Task findByUUIDForUserInContext(UUID taskUuid);
+
+    Task findWithRoleOfUserInContextCheck(UUID taskUuid);
 
     Page<Task> getPageWithFilters(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids,
                                   List<UUID> implementersUuids, List<TaskStatus> taskStatuses);

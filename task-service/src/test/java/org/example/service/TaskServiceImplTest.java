@@ -200,7 +200,7 @@ public class TaskServiceImplTest {
 
         LocalDateTime dtUpdate = target.getDtUpdate();
 
-        Task update = taskService.update(INIT_TASK_UUID, dtUpdate, taskCreateDTO);
+        Task update = taskService.updateForUserInContext(INIT_TASK_UUID, dtUpdate, taskCreateDTO);
 
         Assertions.assertNotEquals(target.getTitle(), update.getTitle());
 
@@ -252,7 +252,7 @@ public class TaskServiceImplTest {
 
         doReturn(notInProject).when(userService).findUserInCurrentContext();
 
-        Task res = taskService.findByUUID(INIT_TASK_UUID);
+        Task res = taskService.findByUUIDForUserInContext(INIT_TASK_UUID);
 
         Assertions.assertNull(res);
 
@@ -266,7 +266,7 @@ public class TaskServiceImplTest {
 
         doReturn(inProject).when(userService).findUserInCurrentContext();
 
-        Task res = taskService.findByUUID(INIT_TASK_UUID);
+        Task res = taskService.findByUUIDForUserInContext(INIT_TASK_UUID);
 
         Assertions.assertNotNull(res);
 
