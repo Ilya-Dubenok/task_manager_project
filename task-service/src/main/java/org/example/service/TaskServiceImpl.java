@@ -49,6 +49,7 @@ public class TaskServiceImpl implements ITaskService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public Task findByUUID(UUID taskUuid) {
 
         return taskRepository.findById(taskUuid).orElseThrow(
@@ -195,6 +196,7 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Task findWithRoleOfUserInContextCheck(UUID taskUuid) {
         if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
 
@@ -233,7 +235,7 @@ public class TaskServiceImpl implements ITaskService {
                         dtUpdate
                 )
         ) {
-            throw new StructuredException("dt_update", "Версия проекта уже была обновлена");
+            throw new StructuredException("dt_update", "Версия задачи уже была обновлена");
         }
 
         updateTaskFields(taskCreateDTO, project, implementer, toUpdate);
@@ -266,6 +268,7 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     @Override
+    @Transactional
     public Task updateWithRoleOfUserInContextCheck(UUID uuid, LocalDateTime dtUpdate, TaskCreateDTO taskCreateDTO) {
         UUID projectUuid = taskCreateDTO.getProject().getUuid();
 
@@ -288,6 +291,36 @@ public class TaskServiceImpl implements ITaskService {
     @Transactional
     public Task updateStatus(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus) {
 
+        Task toUpdate = taskRepository.findById(uuid).orElseThrow(
+                () -> new StructuredException("uuid", "не найдено по такому uuid")
+        );
+
+        if (
+                !Objects.equals(
+                        toUpdate.getDtUpdate(),
+                        dtUpdate
+                )
+        ) {
+            throw new StructuredException("dt_update", "Версия задачи уже была обновлена");
+        }
+
+        toUpdate.setStatus(taskStatus);
+
+        try {
+
+            return taskRepository.saveAndFlush(toUpdate);
+
+        } catch (Exception e) {
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+
+        }
+    }
+
+    @Override
+    @Transactional
+    public Task updateStatusForUserInContext(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus) {
+
         User requester = getUserForCurrentContext();
 
         Task toUpdate = taskRepository.findById(uuid).orElseThrow(
@@ -300,7 +333,7 @@ public class TaskServiceImpl implements ITaskService {
                         dtUpdate
                 )
         ) {
-            throw new StructuredException("dt_update", "Версия проекта уже была обновлена");
+            throw new StructuredException("dt_update", "Версия задачи уже была обновлена");
         }
 
         if (!projectService.userIsInProject(requester, toUpdate.getProject().getUuid())) {
@@ -321,7 +354,20 @@ public class TaskServiceImpl implements ITaskService {
 
         }
 
+    }
 
+    @Override
+    public Task updateStatusWithRoleOfUserInContextCheck(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus) {
+
+        if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
+
+            return updateStatus(uuid, dtUpdate, taskStatus);
+
+        } else {
+
+            return updateStatusForUserInContext(uuid, dtUpdate, taskStatus);
+
+        }
     }
 
     private Project getProjectAndCheckImplementer(TaskCreateDTO taskCreateDTO, User implementer) {

@@ -25,6 +25,10 @@ public interface ITaskService {
 
     Task updateStatus(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus);
 
+    Task updateStatusForUserInContext(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus);
+
+    Task updateStatusWithRoleOfUserInContextCheck(UUID uuid, LocalDateTime dtUpdate, TaskStatus taskStatus);
+
     Task findByUUID(UUID taskUuid);
 
     Task findByUUIDForUserInContext(UUID taskUuid);

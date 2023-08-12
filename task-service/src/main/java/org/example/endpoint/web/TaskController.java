@@ -1,11 +1,10 @@
 package org.example.endpoint.web;
 
 
-import org.example.core.dto.project.ProjectDTO;
 import org.example.core.dto.task.TaskCreateDTO;
 import org.example.core.dto.task.TaskDTO;
-import org.example.dao.entities.project.Project;
 import org.example.dao.entities.task.Task;
+import org.example.dao.entities.task.TaskStatus;
 import org.example.service.api.ITaskService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.HttpStatus;
@@ -57,5 +56,15 @@ public class TaskController {
     }
 
 
+
+    @PatchMapping(value = "/{uuid}/dt_update/{dt_update}/status/{status}")
+    public ResponseEntity<?> updateStatus(@PathVariable UUID uuid, @PathVariable LocalDateTime dt_update,
+                                          @PathVariable TaskStatus status) {
+
+        taskService.updateStatusWithRoleOfUserInContextCheck(uuid, dt_update, status);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+
+    }
 
 }

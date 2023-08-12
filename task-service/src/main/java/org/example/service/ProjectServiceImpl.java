@@ -118,6 +118,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Project findWithRoleOfUserInContextCheck(UUID projectUuid) {
         if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
 
@@ -184,6 +185,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean projectExists(UUID projectUuid) {
         return projectRepository.existsById(projectUuid);
     }
@@ -203,6 +205,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Project> getProjectsWhereUserIsInProject(User user, List<UUID> projectUuidsList) {
         return projectRepository.findAll(((root, query, builder) -> {
 
@@ -222,6 +225,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<Project> getPageWithUserRoleInContextCheckAndShowArchived(Integer page, Integer size, Boolean showArchived) {
 
         validatePageArguments(page, size);

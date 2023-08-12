@@ -221,7 +221,7 @@ public class TaskServiceImplTest {
 
         doReturn(inProject).when(userService).findUserInCurrentContext();
 
-        Task updated = taskService.updateStatus(INIT_TASK_UUID, dtUpdate, null);
+        Task updated = taskService.updateStatusForUserInContext(INIT_TASK_UUID, dtUpdate, null);
 
         Assertions.assertNull(updated.getStatus());
 
@@ -239,7 +239,7 @@ public class TaskServiceImplTest {
         doReturn(notInProject).when(userService).findUserInCurrentContext();
 
         Assertions.assertThrows(AuthenticationFailedException.class,
-                ()->taskService.updateStatus(INIT_TASK_UUID, dtUpdate, null));
+                ()->taskService.updateStatusForUserInContext(INIT_TASK_UUID, dtUpdate, null));
 
     }
 
