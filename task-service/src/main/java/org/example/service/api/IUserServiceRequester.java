@@ -9,5 +9,6 @@ import java.util.UUID;
 public interface IUserServiceRequester {
 
     UserDTO getUser(UUID uuid);
-    Set<UserDTO> getSetOfUserDTO(List<UUID> uuids);
+
+    Set<UserDTO> getSetOfUserDTOs(List<UUID> uuids);
 }

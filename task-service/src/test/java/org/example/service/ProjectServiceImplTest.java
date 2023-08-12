@@ -281,7 +281,7 @@ public class ProjectServiceImplTest {
         projectCreateDTO.setStaff(staff);
 
         doReturn(manager).when(userServiceRequester).getUser(managerUUID);
-        doReturn(staff).when(userServiceRequester).getSetOfUserDTO(any());
+        doReturn(staff).when(userServiceRequester).getSetOfUserDTOs(any());
 
         Project save = projectService.save(projectCreateDTO);
 
@@ -351,7 +351,7 @@ public class ProjectServiceImplTest {
 
         changedStaff.add(nonExistingStaffMember);
 
-        doReturn(new HashSet<>()).when(userServiceRequester).getSetOfUserDTO(any());
+        doReturn(new HashSet<>()).when(userServiceRequester).getSetOfUserDTOs(any());
 
         newManager.setRole(UserRole.ADMIN);
 

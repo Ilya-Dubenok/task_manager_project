@@ -4,7 +4,6 @@ import jakarta.validation.ConstraintViolationException;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
 import org.example.core.exception.GeneralException;
-import org.example.core.exception.StructuredException;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.user.User;
 import org.example.service.api.IUserService;
@@ -12,7 +11,6 @@ import org.example.service.api.IUserServiceRequester;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -84,13 +82,22 @@ public class UserServiceImpl implements IUserService {
 
         if (userDTOList.size() != found.size()) {
 
-            List<UUID> toFindOnService = userDTOList.stream()
-                    .map(UserDTO::getUuid)
-                    .filter(uuid ->
-                            found.stream().anyMatch(user -> user.getUuid().equals(uuid)))
-                    .toList();
 
-            Set<UserDTO> setOfUserDTO = userServiceRequester.getSetOfUserDTO(toFindOnService);
+            List<UUID> toFindOnService;
+
+            if (found.size() == 0) {
+
+                toFindOnService = listOfUUIDs;
+
+            } else {
+               toFindOnService = userDTOList.stream()
+                        .map(UserDTO::getUuid)
+                        .filter(uuid ->found.stream().noneMatch(user -> user.getUuid().equals(uuid)))
+                        .toList();
+            }
+
+
+            Set<UserDTO> setOfUserDTO = userServiceRequester.getSetOfUserDTOs(toFindOnService);
 
             List<User> toSaveAdditionally = setOfUserDTO.stream().map(x -> new User(x.getUuid())).toList();
 

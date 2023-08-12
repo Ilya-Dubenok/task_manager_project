@@ -29,7 +29,7 @@ logging:
 server:
   port: 8080
   servlet:
-    context-path: /task_service
+    context-path: /api/v1/
     encoding:
       charset: UTF-8
       force: true

@@ -6,6 +6,7 @@ import org.example.endpoint.web.filters.FilterChainExceptionFilter;
 import org.example.endpoint.web.filters.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,9 +44,9 @@ public class SecurityConfig {
                                 )
                 )
                 .authorizeHttpRequests(requests->requests
-                        //TODO DEFINE ALL URLS!
-
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.POST,"/project").hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,"/project/**").hasAnyRole("ADMIN","MANAGER")
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(
                 filter,

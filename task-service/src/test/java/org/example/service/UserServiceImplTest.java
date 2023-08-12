@@ -24,7 +24,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -150,7 +149,7 @@ public class UserServiceImplTest {
         Collections.shuffle(combined);
 
 
-        Mockito.doReturn(new HashSet<>(notStored)).when(userServiceRequester).getSetOfUserDTO(Mockito.anyList());
+        Mockito.doReturn(new HashSet<>(notStored)).when(userServiceRequester).getSetOfUserDTOs(Mockito.anyList());
 
         Assertions.assertDoesNotThrow(()->userService.findAllAndSave(new HashSet<>(combined)));
 
@@ -177,7 +176,7 @@ public class UserServiceImplTest {
         Collections.shuffle(combined);
         notStored.remove(0);
 
-        Mockito.doReturn(new HashSet<>(notStored)).when(userServiceRequester).getSetOfUserDTO(Mockito.anyList());
+        Mockito.doReturn(new HashSet<>(notStored)).when(userServiceRequester).getSetOfUserDTOs(Mockito.anyList());
 
         Assertions.assertThrows(ConstraintViolationException.class, ()->userService.findAllAndSave(new HashSet<>(combined)));
 

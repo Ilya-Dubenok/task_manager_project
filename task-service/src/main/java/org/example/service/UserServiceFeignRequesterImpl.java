@@ -1,5 +1,6 @@
 package org.example.service;
 
+import feign.FeignException;
 import org.example.config.properties.ApplicationProperties;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.exception.GeneralException;
@@ -50,6 +51,10 @@ public class UserServiceFeignRequesterImpl implements IUserServiceRequester {
                 throw new GeneralException("При обработке запроса произошла ошибка");
             }
 
+        } catch (FeignException.FeignClientException.BadRequest badRequest) {
+
+            return null;
+
         } catch (Exception e) {
 
             throw new GeneralException("При обработке запроса произошла ошибка", e);
@@ -58,7 +63,7 @@ public class UserServiceFeignRequesterImpl implements IUserServiceRequester {
     }
 
     @Override
-    public Set<UserDTO> getSetOfUserDTO(List<UUID> uuids) {
+    public Set<UserDTO> getSetOfUserDTOs(List<UUID> uuids) {
 
         try {
 
