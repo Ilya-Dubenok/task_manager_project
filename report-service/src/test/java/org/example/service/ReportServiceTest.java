@@ -2,10 +2,13 @@ package org.example.service;
 
 import org.example.core.dto.report.ReportDTO;
 import org.example.core.dto.report.ReportParamAudit;
+import org.example.core.exception.GeneralException;
+import org.example.core.exception.StructuredException;
 import org.example.dao.api.IReportRepository;
 import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
+import org.example.service.api.IReportService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,6 +41,9 @@ public class ReportServiceTest {
 
     @Autowired
     private IReportRepository reportRepository;
+
+    @Autowired
+    private IReportService reportService;
 
     @Autowired
     private ConversionService conversionService;
@@ -97,8 +103,51 @@ public class ReportServiceTest {
 
         Assertions.assertEquals(to, LocalDate.now().plusDays(2));
 
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void testPutReportWorks() {
+        Map<String, String> init = new HashMap<>();
+        init.put("user", UUID.randomUUID().toString());
+        init.put("from", "2023-08-13");
+        init.put("to", "2023-08-13");
+
+        Assertions.assertDoesNotThrow(()->reportService.putReportRequest(init, ReportType.JOURNAL_AUDIT));
+
+    }
 
 
+    @Test
+    public void testPutReportThrows() {
+        Map<String, String> init = new HashMap<>();
+        init.put("user", null);
+        init.put("from", "2023-08-13");
+        init.put("to", "2023-08-13");
+        StructuredException structuredException = Assertions.assertThrows(StructuredException.class,
+                () -> reportService.putReportRequest(init, ReportType.JOURNAL_AUDIT));
+
+    }
+
+    @Test
+    public void testPutReportThrows2() {
+        Map<String, String> init = new HashMap<>();
+        init.put("from", "2023-08-13");
+        init.put("to", "2023-08-13");
+        StructuredException structuredException = Assertions.assertThrows(StructuredException.class,
+                () -> reportService.putReportRequest(init, ReportType.JOURNAL_AUDIT));
+
+    }
+
+
+    @Test
+    public void testPutReportThrows3() {
+        Map<String, String> init = new HashMap<>();
+        init.put("user", UUID.randomUUID().toString());
+        init.put("from", "2023-09-13");
+        init.put("to", "2023-08-13");
+        GeneralException generalException = Assertions.assertThrows(GeneralException.class,
+                () -> reportService.putReportRequest(init, ReportType.JOURNAL_AUDIT));
 
     }
 
