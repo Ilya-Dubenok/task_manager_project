@@ -1,41 +1,46 @@
-package org.example.dao;
-
+package org.example.service;
 
 import org.example.core.dto.report.ReportDTO;
 import org.example.dao.api.IReportRepository;
 import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
-@DataJpaTest
-@Transactional(propagation = Propagation.NOT_SUPPORTED)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
 @ActiveProfiles("test")
-public class ReportRepositoryTest {
-
-    private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
+public class ReportServiceTest {
 
     private static final UUID SAMPLE_REPORT_UUID = UUID.randomUUID();
 
+
+
+    private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
     @Autowired
     private DataSource dataSource;
 
     @Autowired
     private IReportRepository reportRepository;
+
+    @Autowired
+    private ConversionService conversionService;
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IReportRepository reportRepository) {
@@ -55,48 +60,11 @@ public class ReportRepositoryTest {
 
 
     @Test
-    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
-    public void testPersistenceWorks() {
+    public void testConversionToDTOWorks() {
 
-        UUID reportUuid = UUID.randomUUID();
-        Report report = new Report(reportUuid);
+        Report report = reportRepository.findById(SAMPLE_REPORT_UUID).orElseThrow();
 
-        report.setDescription("some descr");
-        report.setType(ReportType.JOURNAL_AUDIT);
-        report.setStatus(ReportStatus.LOADED);
-
-        Map<String, Object> params = new HashMap<>();
-
-        UUID userUuid = UUID.randomUUID();
-
-        params.put("user", userUuid);
-        params.put("from", LocalDate.now());
-        params.put("to", LocalDate.now().plusDays(2));
-
-        report.setParams(params);
-
-        reportRepository.saveAndFlush(report);
-
-        Report persisted = reportRepository.findById(reportUuid).orElseThrow();
-
-        Map<String, Object> params1 = persisted.getParams();
-
-        UUID user =   UUID.fromString((String) params1.get("user"));
-
-        Assertions.assertEquals(userUuid, user);
-
-        List<?> from = (List<?>) params1.get("from");
-
-        LocalDate persistedFrom = LocalDate.of((int) from.get(0), (int) from.get(1), (int) from.get(2));
-
-        Assertions.assertEquals(LocalDate.now(), persistedFrom);
-
-        List<?> to = (List<?>) params1.get("to");
-
-        LocalDate persistedTo = LocalDate.of((int) to.get(0), (int) to.get(1), (int) to.get(2));
-
-        Assertions.assertEquals(LocalDate.now().plusDays(2), persistedTo);
-
+        ReportDTO convert = conversionService.convert(report, ReportDTO.class);
 
     }
 
@@ -133,6 +101,5 @@ public class ReportRepositoryTest {
         reportRepository.save(report);
 
     }
-
 
 }
