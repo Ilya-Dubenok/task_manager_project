@@ -1,17 +1,17 @@
 package org.example.service;
 
 import org.example.core.dto.report.ReportDTO;
+import org.example.core.dto.report.ReportParamAudit;
 import org.example.dao.api.IReportRepository;
 import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
@@ -64,7 +64,41 @@ public class ReportServiceTest {
 
         Report report = reportRepository.findById(SAMPLE_REPORT_UUID).orElseThrow();
 
-        ReportDTO convert = conversionService.convert(report, ReportDTO.class);
+        Assertions.assertDoesNotThrow(()-> conversionService.convert(report, ReportDTO.class));
+
+    }
+
+
+    @Test
+    public void testConversionFromMapToMapWorks() {
+
+        Map<String, String> params = new HashMap<>();
+
+        UUID userUuid = UUID.randomUUID();
+
+        params.put("user", userUuid.toString());
+        params.put("from", LocalDate.now().toString());
+        params.put("to", LocalDate.now().plusDays(2).toString());
+
+        ResolvableType type = ResolvableType.forClassWithGenerics(Map.class, ReportParamAudit.class, null);
+
+        Map<?,?> converted = (Map<?, ?>) conversionService.convert(params,
+                TypeDescriptor.valueOf(Map.class),
+                new TypeDescriptor(type, null, null)
+        );
+
+        LocalDate from = (LocalDate) converted.get("from");
+        LocalDate to = (LocalDate) converted.get("to");
+        UUID uuid = (UUID) converted.get("user");
+
+        Assertions.assertEquals(userUuid, uuid);
+
+        Assertions.assertEquals(from, LocalDate.now());
+
+        Assertions.assertEquals(to, LocalDate.now().plusDays(2));
+
+
+
 
     }
 
