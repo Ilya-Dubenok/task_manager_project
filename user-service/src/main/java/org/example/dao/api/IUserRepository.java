@@ -31,8 +31,8 @@ public interface IUserRepository extends JpaRepository<User, UUID> {
                     "WHERE mail = ?1 AND status= 'WAITING_ACTIVATION'"
             , nativeQuery = true
     )
-    @Modifying
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Modifying(flushAutomatically = true)
+    @Transactional
     int setUserActiveByEmail(String email);
 
 

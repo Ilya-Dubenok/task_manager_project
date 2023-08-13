@@ -121,8 +121,8 @@ public class AuthenticationServiceImplTest {
         userRegistrationDTO.setPassword("anotherPassword");
 
 
-        DataIntegrityViolationException exception = Assertions.assertThrows(
-                DataIntegrityViolationException.class, () -> authenticationService.registerUser(
+        StructuredException exception = Assertions.assertThrows(
+                StructuredException.class, () -> authenticationService.registerUser(
                         userRegistrationDTO
                 )
         );

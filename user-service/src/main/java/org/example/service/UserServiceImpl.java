@@ -111,21 +111,19 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void save(@Valid UserRegistrationDTO userRegistrationDTO) {
 
         User toSave = conversionService.convert(userRegistrationDTO, User.class);
 
-        toSave.setPassword(
-                passwordEncoder.encode(userRegistrationDTO.getPassword())
-        );
+        toSave.setPassword(passwordEncoder.encode(userRegistrationDTO.getPassword()));
         toSave.setRole(UserRole.USER);
         toSave.setStatus(UserStatus.WAITING_ACTIVATION);
         toSave.setUuid(UUID.randomUUID());
 
         try {
 
-            userRepository.save(toSave);
+            userRepository.saveAndFlush(toSave);
 
         } catch (Exception e) {
 
