@@ -20,6 +20,8 @@ public class ApplicationProperties {
 
         private UserService userService;
 
+        private AuditService auditService;
+
         public UserService getUserService() {
             return userService;
         }
@@ -28,8 +30,58 @@ public class ApplicationProperties {
             this.userService = userService;
         }
 
+        public AuditService getAuditService() {
+            return auditService;
+        }
+
+        public void setAuditService(AuditService auditService) {
+            this.auditService = auditService;
+        }
 
         public static class UserService{
+
+            private String address;
+
+            private String host;
+
+            private String appendix;
+
+            private String internalAppendix;
+
+            public String getAddress() {
+                return address;
+            }
+
+            public void setAddress(String address) {
+                this.address = address;
+            }
+
+            public String getHost() {
+                return host;
+            }
+
+            public void setHost(String host) {
+                this.host = host;
+            }
+
+            public String getAppendix() {
+                return appendix;
+            }
+
+            public void setAppendix(String appendix) {
+                this.appendix = appendix;
+            }
+
+            public String getInternalAppendix() {
+                return internalAppendix;
+            }
+
+            public void setInternalAppendix(String internalAppendix) {
+                this.internalAppendix = internalAppendix;
+            }
+        }
+
+        public static class AuditService{
 
             private String address;
 

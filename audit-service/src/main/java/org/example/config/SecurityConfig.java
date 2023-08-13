@@ -43,7 +43,8 @@ public class SecurityConfig {
                                 )
                 )
                 .authorizeHttpRequests(requests->requests
-                        .requestMatchers("/api/v1/audit/**").hasAnyRole("ADMIN")
+                        .requestMatchers("/audit/**").hasAnyRole("ADMIN")
+                        .requestMatchers("/internal/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

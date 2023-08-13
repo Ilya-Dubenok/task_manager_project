@@ -39,6 +39,11 @@ app:
       host: localhost
       appendix: /users
       internal_appendix: /internal
+    audit_service:
+      address: localhost:8080
+      host: localhost
+      internal_appendix: /internal
+
 
 jwt:
   secret: ucHYIsBgrm/XpThkkMBk4uaEl/8Es4VXSM85QcopGhk=

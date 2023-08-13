@@ -1,5 +1,6 @@
-package org.example.service.api;
+package org.example.service;
 
+import org.example.core.dto.audit.AuditDTO;
 import org.example.core.dto.report.ReportParamAudit;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
@@ -7,6 +8,7 @@ import org.example.dao.api.IReportRepository;
 import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
+import org.example.service.api.IReportService;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -80,5 +83,18 @@ public class ReportServiceImpl implements IReportService {
 
         }
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Report> getReportsWithTypeAndStatus(ReportType type, ReportStatus status) {
+        return reportRepository.findByTypeIsAndStatusIs(type, status);
+    }
+
+
+
+    @Override
+    public boolean isReportAvailable(UUID reportUuid) {
+        return false;
     }
 }

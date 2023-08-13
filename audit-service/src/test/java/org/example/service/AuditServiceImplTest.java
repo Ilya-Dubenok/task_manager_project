@@ -22,6 +22,9 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -148,6 +151,39 @@ public class AuditServiceImplTest {
 
     }
 
+//    @Test
+////    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+//    public void getByUserAndPeriodWorks() {
+//
+//        UUID uuid = UUID.randomUUID();
+//        Audit audit = new Audit(UUID.randomUUID(),
+//                new UserAuditDTO(
+//                        uuid, "mail", "fio", UserRole.ADMIN
+//                ), "some txt", Type.USER, "id");
+//
+//
+//        Audit audit2 = new Audit(UUID.randomUUID(),
+//                new UserAuditDTO(
+//                        uuid, "mail", "fio", UserRole.ADMIN
+//                ), "some txt", Type.USER, "id");
+//
+//        Audit audit3 = new Audit(UUID.randomUUID(),
+//                new UserAuditDTO(
+//                        uuid, "mail", "fio", UserRole.ADMIN
+//                ), "some txt", Type.USER, "id");
+//
+//
+//        repository.saveAndFlush(audit);
+//
+//        repository.saveAndFlush(audit2);
+//
+//        repository.saveAndFlush(audit3);
+//
+//        List<Audit> listOfAuditsForUserUuidAndTimeRange = auditService.getListOfAuditsForUserUuidAndTimeRange(uuid, LocalDate.now(), LocalDate.now().plusDays(3));
+//
+//
+//        System.out.println(listOfAuditsForUserUuidAndTimeRange.size());
+//    }
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IAuditRepository repository) {
