@@ -1,7 +1,6 @@
 package org.example.endpoint.web;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.core.dto.SimpleEmailTemplateDTO;
 import org.junit.jupiter.api.Assertions;
@@ -46,7 +45,7 @@ public class SendEmailControllerTest {
         ObjectMapper objectMapper = springMvcJacksonConverter.getObjectMapper();
         String dtoInString = objectMapper.writeValueAsString(dto);
 
-        String contentAsString = mockMvc.perform(post("/api/v1/email")
+        String contentAsString = mockMvc.perform(post("/email")
                         .contentType("application/json")
                         .content(dtoInString))
                 .andDo(print())
@@ -79,7 +78,7 @@ public class SendEmailControllerTest {
         ObjectMapper objectMapper = springMvcJacksonConverter.getObjectMapper();
         String dtoInString = objectMapper.writeValueAsString(dto);
 
-        String contentAsString = mockMvc.perform(post("/api/v1/email")
+        String contentAsString = mockMvc.perform(post("/email")
                         .contentType("application/json")
                         .content(dtoInString))
                 .andDo(print())

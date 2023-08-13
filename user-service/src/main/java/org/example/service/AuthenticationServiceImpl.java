@@ -2,6 +2,7 @@ package org.example.service;
 
 import jakarta.validation.Valid;
 import org.example.config.property.ApplicationProperties;
+import org.example.core.dto.user.UserLoginDTO;
 import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
@@ -12,7 +13,6 @@ import org.example.dao.entities.verification.VerificationInfo;
 import org.example.service.api.IAuthenticationService;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -101,6 +101,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         return verificationCode;
 
+    }
+
+    @Override
+    public String loginAndReceiveToken(UserLoginDTO userLoginDTO) {
+        return userService.loginAndReceiveToken(userLoginDTO);
     }
 
     @Override

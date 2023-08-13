@@ -82,7 +82,7 @@ public class UserControllerTest {
     public void getPagesOfUsersWithDefaultValues() throws Exception {
 
 
-        ResultActions resultActions = this.mockMvc.perform(getMockRequestWithAdminAuthorization(get("/api/v1/users"))).andExpect(
+        ResultActions resultActions = this.mockMvc.perform(getMockRequestWithAdminAuthorization(get("/users"))).andExpect(
                 status().isOk()
         );
 
@@ -110,7 +110,7 @@ public class UserControllerTest {
     public void getPagesOfUsersWithProvidedPage() throws Exception {
 
         ResultActions resultActions = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=1"))
+                        getMockRequestWithAdminAuthorization(get("/users?page=1"))
                 )
                 .andExpect(
                         status().isOk()
@@ -140,7 +140,7 @@ public class UserControllerTest {
     public void getPagesOfUsersWithProvidedPageAndSize() throws Exception {
 
         ResultActions resultActions = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=1&size=15"))
+                        getMockRequestWithAdminAuthorization(get("/users?page=1&size=15"))
                 )
                 .andExpect(
                         status().isOk()
@@ -169,7 +169,7 @@ public class UserControllerTest {
     public void getPagesOfUsersWithUnparsablePage() throws Exception {
 
         ResultActions resultActions = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=blablabla&size=15"))
+                        getMockRequestWithAdminAuthorization(get("/users?page=blablabla&size=15"))
                                 .characterEncoding("UTF-8"))
                 .andDo(print())
                 .andExpect(
@@ -201,7 +201,7 @@ public class UserControllerTest {
     public void getPagesOfUsersWithUnparsableSize() throws Exception {
 
         ResultActions resultActions = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=0&size=blablabla"))
+                        getMockRequestWithAdminAuthorization(get("/users?page=0&size=blablabla"))
                                 .characterEncoding("UTF-8")
                 )
                 .andDo(print())
@@ -233,14 +233,14 @@ public class UserControllerTest {
     public void getPageOfUsersIsDetermined() throws Exception {
 
         String firstRequest = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=3&size=15"))
+                        getMockRequestWithAdminAuthorization(get("/users?page=3&size=15"))
                 )
                 .andExpect(
                         status().isOk()
                 ).andReturn().getResponse().getContentAsString();
 
         String secondRequest = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=3&size=15"))
+                        getMockRequestWithAdminAuthorization(get("/users?page=3&size=15"))
                 )
                 .andExpect(
                         status().isOk()
@@ -266,14 +266,14 @@ public class UserControllerTest {
     public void getPageOfUsersDoesNotOverlap() throws Exception {
 
         String firstRequest = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=3&size=15"))
+                        getMockRequestWithAdminAuthorization(get("/users?page=3&size=15"))
                 )
                 .andExpect(
                         status().isOk()
                 ).andReturn().getResponse().getContentAsString();
 
         String secondRequest = this.mockMvc.perform(
-                        getMockRequestWithAdminAuthorization(get("/api/v1/users?page=4&size=15"))
+                        getMockRequestWithAdminAuthorization(get("/users?page=4&size=15"))
                 )
                 .andExpect(
                         status().isOk()
@@ -305,7 +305,7 @@ public class UserControllerTest {
 
         Stream<String> responceEntityStream = Stream.iterate(0, x -> x + 1)
                 .limit(7)
-                .map(x -> "/api/v1/users?page=" + x + "&size=15")
+                .map(x -> "/users?page=" + x + "&size=15")
                 .map(
                         x -> {
                             try {
@@ -356,7 +356,7 @@ public class UserControllerTest {
         );
 
         this.mockMvc.perform(
-                getMockRequestWithAdminAuthorization(put("/api/v1/users/".concat(UUID.randomUUID().toString()) + "/dt_update/" + 659563531L))
+                getMockRequestWithAdminAuthorization(put("/users/".concat(UUID.randomUUID().toString()) + "/dt_update/" + 659563531L))
                         .contentType("application/json")
                         .content(string)
 
@@ -368,7 +368,7 @@ public class UserControllerTest {
     public void missingRequestParamCodeVerificationRequestTest() throws Exception {
 
         this.mockMvc.perform(
-                        get("/api/v1/users/verification")
+                        get("/users/verification")
                 ).andDo(print())
                 .andExpect(jsonPath("$.logref").value("structured_error"))
                 .andExpect(jsonPath("$.errors[0].field").value("code"));
@@ -379,7 +379,7 @@ public class UserControllerTest {
     public void missingRequestParamMailVerificationRequestTest() throws Exception {
 
         this.mockMvc.perform(
-                        get("/api/v1/users/verification").param("code", "555333")
+                        get("/users/verification").param("code", "555333")
                 ).andDo(print())
                 .andExpect(jsonPath("$.logref").value("structured_error"))
                 .andExpect(jsonPath("$.errors[0].field").value("mail"));
@@ -390,7 +390,7 @@ public class UserControllerTest {
     public void malformedCodeVerificationRequestTest() throws Exception {
 
         this.mockMvc.perform(
-                        get("/api/v1/users/verification")
+                        get("/users/verification")
                                 .param("code", "4564ff2")
                 )
                 .andDo(print())
@@ -516,12 +516,12 @@ public class UserControllerTest {
                 )
         );
 
-        ResultActions perform = this.mockMvc.perform(post("/api/v1/users/login/token")
+        ResultActions perform = this.mockMvc.perform(post("/users/login")
                 .contentType("application/json").content(
                         postAdminLogin
                 ));
 
-        return perform.andReturn().getResponse().getHeader("Bearer");
+        return perform.andReturn().getResponse().getContentAsString();
     }
 
     private String getUserToken() throws Exception {
@@ -532,7 +532,7 @@ public class UserControllerTest {
                 )
         );
 
-        ResultActions perform = this.mockMvc.perform(post("/api/v1/users/login/token")
+        ResultActions perform = this.mockMvc.perform(post("/users/login/token")
                 .contentType("application/json").content(
                         postAdminLogin
                 ));

@@ -82,6 +82,19 @@ services:
       spring.kafka.bootstrap-servers: kafka:9092
       app.network.user_service.address: user-service:8080
 
+  task-service:
+    depends_on:
+      - db
+    build: task-service
+    image: taskmanager_task-service:1.0.0
+    networks:
+      - taskmanager_ntwrk
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/task_service?ApplicationName=Task_Service
+      spring.datasource.username: root
+      spring.datasource.password: root
+      app.network.user_service.address: user-service:8080
+
 
 
   notification-service:

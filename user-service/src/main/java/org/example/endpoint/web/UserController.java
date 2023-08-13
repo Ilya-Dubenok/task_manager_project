@@ -3,7 +3,6 @@ package org.example.endpoint.web;
 import org.example.core.dto.user.PageOfUserDTO;
 import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserDTO;
-import org.example.core.dto.user.UserLoginDTO;
 import org.example.dao.entities.user.User;
 import org.example.service.UserHolder;
 import org.example.service.api.IUserService;
@@ -17,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/users")
 public class UserController {
 
     private final IUserService userService;
@@ -70,23 +69,6 @@ public class UserController {
         );
     }
 
-    @PostMapping(value = "/login")
-    public ResponseEntity<?> login(@RequestBody UserLoginDTO userLoginDTO) {
-
-        userService.login(userLoginDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
-
-    }
-
-    //TODO remove?
-    @PostMapping(value = "/login/token")
-    public ResponseEntity<?> loginToken(@RequestBody UserLoginDTO userLoginDTO) {
-
-        String token = userService.loginAndReceiveToken(userLoginDTO);
-
-        return ResponseEntity.status(HttpStatus.OK).header("Bearer", token).build();
-
-    }
 
     @GetMapping(value = "/me")
     public ResponseEntity<UserDTO> getMe() {

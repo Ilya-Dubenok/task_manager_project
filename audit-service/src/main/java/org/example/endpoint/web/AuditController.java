@@ -1,7 +1,6 @@
 package org.example.endpoint.web;
 
 
-import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.core.dto.audit.AuditDTO;
 import org.example.core.dto.audit.PageOfTypeDTO;
 import org.example.dao.entities.audit.Audit;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/audit")
+@RequestMapping("/audit")
 public class AuditController {
 
     private IAuditService auditService;
@@ -41,7 +40,7 @@ public class AuditController {
     }
 
     @GetMapping
-    public ResponseEntity<PageOfTypeDTO<AuditDTO>> getPAgeOfAudit(@RequestParam(value = "page", defaultValue = "0") Integer page,
+    public ResponseEntity<?> getPAgeOfAudit(@RequestParam(value = "page", defaultValue = "0") Integer page,
                                                         @RequestParam(value = "size", defaultValue = "20") Integer size){
 
         Page<Audit> pageOfAudit = auditService.getPageOfAudit(page, size);
@@ -50,14 +49,12 @@ public class AuditController {
                 PageOfTypeDTO.class, AuditDTO.class
         );
 
-        PageOfTypeDTO<AuditDTO> converted = (PageOfTypeDTO<AuditDTO>) conversionService.convert(
+        Object converted =  conversionService.convert(
                 pageOfAudit, TypeDescriptor.valueOf(PageImpl.class),
                 new TypeDescriptor(resolvableType, null, null)
         );
 
-        return new ResponseEntity<>(
-                converted, HttpStatus.OK
-        );
+        return new ResponseEntity<>(converted, HttpStatus.OK);
 
 
     }

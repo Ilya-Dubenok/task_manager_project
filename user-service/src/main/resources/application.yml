@@ -34,25 +34,23 @@ logging:
 server:
   port: 8080
   servlet:
-    context-path: /user_service
     encoding:
       charset: UTF-8
       force: true
 app:
   network:
     user_service:
-      address: localhost:8080
       host: localhost
-      appendix: /user_service/api/v1/users
-      internal_appendix: /user_service/internal
+      appendix: /api/v1/users
+      internal_appendix: /internal
     audit_service:
       address: localhost:81
       host: localhost:81
-      appendix: /audit_service/api/v1/audit
+      appendix: /audit
     notification_service:
       address: localhost:82
       host: localhost:82
-      appendix: /notification_service/api/v1/email
+      appendix: /notification_service/email
 
 jwt:
   secret: ucHYIsBgrm/XpThkkMBk4uaEl/8Es4VXSM85QcopGhk=
