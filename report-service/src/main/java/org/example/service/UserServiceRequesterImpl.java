@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-public class UserServiceFeignRequesterImpl implements IUserServiceRequester {
+public class UserServiceRequesterImpl implements IUserServiceRequester {
 
     private final String URL_PREFIX = "http://";
 
@@ -25,7 +25,7 @@ public class UserServiceFeignRequesterImpl implements IUserServiceRequester {
 
     private final IUserServiceFeignClient userServiceFeignRequester;
 
-    public UserServiceFeignRequesterImpl(IUserServiceFeignClient userServiceFeignRequester, ApplicationProperties applicationProperties) {
+    public UserServiceRequesterImpl(IUserServiceFeignClient userServiceFeignRequester, ApplicationProperties applicationProperties) {
         this.userServiceFeignRequester = userServiceFeignRequester;
         USER_SERVICE_INTERNAL_URL = formUserServiceUrl(applicationProperties);
     }
