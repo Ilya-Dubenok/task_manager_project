@@ -92,9 +92,21 @@ public class ReportServiceImpl implements IReportService {
     }
 
 
-
     @Override
     public boolean isReportAvailable(UUID reportUuid) {
-        return false;
+        return reportRepository.findByUuidAndStatusIs(reportUuid, ReportStatus.DONE).isPresent();
+    }
+
+    @Override
+    @Transactional
+    public void setStatusFailed(UUID reportUuid) {
+        Report report = reportRepository.findById(reportUuid).orElseThrow(
+                () -> new GeneralException("Unknown condition exception")
+        );
+
+        report.setStatus(ReportStatus.ERROR);
+
+        reportRepository.saveAndFlush(report);
+
     }
 }

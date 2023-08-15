@@ -58,8 +58,7 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
 
             } catch (ReportFormingFailedException e) {
 
-
-                //TODO ADD LOGIC IN THIS POINT
+                reportService.setStatusFailed(report.getUuid());
             }
 
 

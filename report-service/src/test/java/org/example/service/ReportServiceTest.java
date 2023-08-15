@@ -180,31 +180,7 @@ public class ReportServiceTest {
         Assertions.assertEquals(1, list.size());
     }
 
-    @Test
-    public void testCreateSpreadsheetFileWithAuditDTO() throws IOException {
 
-        AuditDTO auditDTO1 = new AuditDTO(UUID.randomUUID(), System.currentTimeMillis(),
-                new UserAuditDTO(UUID.randomUUID(), "some_mail", "fio", UserRole.USER),
-                "some text", Type.USER, UUID.randomUUID().toString()
-        );
-        AuditDTO auditDTO2 = new AuditDTO(UUID.randomUUID(), System.currentTimeMillis(),
-                new UserAuditDTO(UUID.randomUUID(), "someasdasd_mail", "fiodfhgdfh", UserRole.USER),
-                "some text", Type.USER, UUID.randomUUID().toString()
-        );
-        AuditDTO auditDTO3 = new AuditDTO(UUID.randomUUID(), System.currentTimeMillis(),
-                new UserAuditDTO(UUID.randomUUID(), "some_mailfgdfg", "fio", UserRole.USER),
-                "some text", Type.USER, UUID.randomUUID().toString()
-        );
-
-
-        String fileWithAuditReports = createFileWithAuditReports(List.of(auditDTO1, auditDTO2, auditDTO3), UUID.randomUUID());
-
-        File file = new File(fileWithAuditReports);
-//        boolean delete = file.delete();
-//        System.out.println(delete);
-
-
-    }
 
     private String createFileWithAuditReports(List<AuditDTO> auditDTOList, UUID reportUuid) throws IOException {
 

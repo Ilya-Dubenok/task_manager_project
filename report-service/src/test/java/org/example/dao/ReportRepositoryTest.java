@@ -100,6 +100,40 @@ public class ReportRepositoryTest {
 
     }
 
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void testFindIsReportAvalableWorks() {
+
+        UUID readyUuid = UUID.randomUUID();
+
+        Report ready = new Report(readyUuid);
+        ready.setType(ReportType.JOURNAL_AUDIT);
+        ready.setStatus(ReportStatus.DONE);
+        ready.setParams(new HashMap<>());
+        ready.setDescription("some descr");
+
+        reportRepository.saveAndFlush(ready);
+
+
+        boolean present = reportRepository.findByUuidAndStatusIs(readyUuid, ReportStatus.DONE).isPresent();
+        Assertions.assertTrue(present);
+
+
+        UUID notReadyUuid = UUID.randomUUID();
+
+        Report notReady = new Report(notReadyUuid);
+        notReady.setType(ReportType.JOURNAL_AUDIT);
+        notReady.setStatus(ReportStatus.PROGRESS);
+        notReady.setParams(new HashMap<>());
+        notReady.setDescription("some descr");
+
+        reportRepository.saveAndFlush(notReady);
+
+
+        present = reportRepository.findByUuidAndStatusIs(notReadyUuid, ReportStatus.DONE).isPresent();
+        Assertions.assertFalse(present);
+    }
+
 
     private static void clearAndInitSchema(DataSource dataSource) {
         ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
