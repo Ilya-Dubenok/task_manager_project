@@ -43,6 +43,10 @@ app:
       address: localhost:8080
       host: localhost
       internal_appendix: /internal
+    minio:
+      host: localhost:9000
+      access_key: minio_user
+      secret_key: minio_password
 
 
 jwt:

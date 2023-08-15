@@ -22,6 +22,8 @@ public class ApplicationProperties {
 
         private AuditService auditService;
 
+        private Minio minio;
+
         public UserService getUserService() {
             return userService;
         }
@@ -36,6 +38,14 @@ public class ApplicationProperties {
 
         public void setAuditService(AuditService auditService) {
             this.auditService = auditService;
+        }
+
+        public Minio getMinio() {
+            return minio;
+        }
+
+        public void setMinio(Minio minio) {
+            this.minio = minio;
         }
 
         public static class UserService{
@@ -121,6 +131,39 @@ public class ApplicationProperties {
 
             public void setInternalAppendix(String internalAppendix) {
                 this.internalAppendix = internalAppendix;
+            }
+        }
+
+        public static class Minio{
+
+            private String host;
+
+            private String accessKey;
+
+            private String secretKey;
+
+            public String getHost() {
+                return host;
+            }
+
+            public void setHost(String host) {
+                this.host = host;
+            }
+
+            public String getAccessKey() {
+                return accessKey;
+            }
+
+            public void setAccessKey(String accessKey) {
+                this.accessKey = accessKey;
+            }
+
+            public String getSecretKey() {
+                return secretKey;
+            }
+
+            public void setSecretKey(String secretKey) {
+                this.secretKey = secretKey;
             }
         }
 

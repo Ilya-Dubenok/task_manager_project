@@ -1,6 +1,5 @@
 package org.example.service;
 
-import io.minio.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -10,8 +9,9 @@ import org.example.core.exception.ReportFormingFailedException;
 import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
-import org.example.service.api.IAuditReportService;
+import org.example.service.api.IAuditReportFormerService;
 import org.example.service.api.IAuditServiceRequester;
+import org.example.service.api.IFileRepositoryService;
 import org.example.service.api.IReportService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-public class AuditReportServiceImpl implements IAuditReportService {
+public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
 
     private HashMap<String, LocalDateTime> storedReportsData = new HashMap<>();
 
@@ -36,10 +36,13 @@ public class AuditReportServiceImpl implements IAuditReportService {
 
     private IAuditServiceRequester auditServiceRequester;
 
-    public AuditReportServiceImpl(IReportService reportService, ConversionService conversionService, IAuditServiceRequester auditServiceRequester) {
+    private IFileRepositoryService fileRepositoryService;
+
+    public AuditReportFormerServiceImpl(IReportService reportService, ConversionService conversionService, IAuditServiceRequester auditServiceRequester, IFileRepositoryService fileRepositoryService) {
         this.reportService = reportService;
         this.conversionService = conversionService;
         this.auditServiceRequester = auditServiceRequester;
+        this.fileRepositoryService = fileRepositoryService;
     }
 
     @Scheduled(fixedDelay = 30000)
@@ -69,6 +72,8 @@ public class AuditReportServiceImpl implements IAuditReportService {
 
         Map<String, Object> params = report.getParams();
 
+        String fileName = null;
+
         try {
 
             ReportParamAudit reportParamAudit = (ReportParamAudit) conversionService.convert(
@@ -83,46 +88,24 @@ public class AuditReportServiceImpl implements IAuditReportService {
                     reportParamAudit.getTo().plusDays(1)
             );
 
-            String fileName = createFileWithReports(auditDTOList, report.getUuid());
+            fileName = createFileWithReports(auditDTOList, report.getUuid());
 
-
-            MinioClient minioClient =
-                    MinioClient.builder()
-                            .endpoint("http://127.0.0.1:9000")
-                            .credentials("minio_user", "minio_password")
-                            .build();
-
-            boolean b = minioClient.bucketExists(
-                    BucketExistsArgs
-                            .builder()
-                            .bucket("user2")
-                            .build()
-            );
-
-            if (!b){
-
-                minioClient.makeBucket(
-                        MakeBucketArgs
-                                .builder()
-                                .bucket("user2")
-                                .build());
-
-            }
-
-
-            minioClient.uploadObject(
-                    UploadObjectArgs
-                            .builder()
-                            .bucket("user2")
-                            .object(fileName)
-                            .filename(fileName)
-                            .build()
-                    );
+            fileRepositoryService.saveFile(fileName, report.getType());
 
 
         } catch (Exception e) {
 
             throw new ReportFormingFailedException(e.getMessage());
+
+        } finally {
+
+            if (fileName != null) {
+
+                File file = new File(fileName);
+
+                file.delete();
+            }
+
 
         }
 
