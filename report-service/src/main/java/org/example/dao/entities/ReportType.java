@@ -29,4 +29,13 @@ public enum ReportType {
 
         return String.format(reportTypeFormat, from, to);
     }
+
+    public String getReportFileName(Report report) {
+        return report.getUuid().toString().concat(".xlsx");
+    }
+
+
+    public String getReportFileType() {
+        return "journal_audit";
+    }
 }

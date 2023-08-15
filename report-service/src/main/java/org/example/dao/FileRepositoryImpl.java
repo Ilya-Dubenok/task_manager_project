@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.dao;
 
 import io.minio.*;
 import io.minio.errors.*;
@@ -6,14 +6,14 @@ import io.minio.http.Method;
 import jakarta.annotation.PostConstruct;
 import org.example.config.properties.ApplicationProperties;
 import org.example.core.exception.GeneralException;
-import org.example.service.api.IFileRepositoryService;
+import org.example.dao.api.IFileRepository;
 import org.example.core.exception.ObjectNotPresentException;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class FileRepositoryServiceImpl implements IFileRepositoryService {
+public class FileRepositoryImpl implements IFileRepository {
 
     private final String URL_PREFIX = "http://";
 
@@ -21,7 +21,7 @@ public class FileRepositoryServiceImpl implements IFileRepositoryService {
 
     private MinioClient minioClient;
 
-    public FileRepositoryServiceImpl(ApplicationProperties applicationProperties) {
+    public FileRepositoryImpl(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
     }
 
@@ -96,10 +96,11 @@ public class FileRepositoryServiceImpl implements IFileRepositoryService {
 
         } catch (ErrorResponseException e) {
 
-            boolean equals = e.errorResponse().code().equals("NoSuchKey");
+            if (e.errorResponse().code().equals("NoSuchKey")) {
+                //TODO place for logging
 
-            if (equals) {
-                throw new ObjectNotPresentException(e);
+                throw new ObjectNotPresentException("Такого отчета не найдено в репозитории");
+
             } else {
                 throw new GeneralException("Неизвестная ошибка в ходе выполнения операции");
             }

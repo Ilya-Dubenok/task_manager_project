@@ -11,7 +11,7 @@ import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
 import org.example.service.api.IAuditReportFormerService;
 import org.example.service.api.IAuditServiceRequester;
-import org.example.service.api.IFileRepositoryService;
+import org.example.dao.api.IFileRepository;
 import org.example.service.api.IReportService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -28,7 +28,6 @@ import java.util.*;
 @Service
 public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
 
-    private HashMap<String, LocalDateTime> storedReportsData = new HashMap<>();
 
     private IReportService reportService;
 
@@ -36,9 +35,9 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
 
     private IAuditServiceRequester auditServiceRequester;
 
-    private IFileRepositoryService fileRepositoryService;
+    private IFileRepository fileRepositoryService;
 
-    public AuditReportFormerServiceImpl(IReportService reportService, ConversionService conversionService, IAuditServiceRequester auditServiceRequester, IFileRepositoryService fileRepositoryService) {
+    public AuditReportFormerServiceImpl(IReportService reportService, ConversionService conversionService, IAuditServiceRequester auditServiceRequester, IFileRepository fileRepositoryService) {
         this.reportService = reportService;
         this.conversionService = conversionService;
         this.auditServiceRequester = auditServiceRequester;
@@ -212,5 +211,4 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 2, 5));
 
     }
-
 }

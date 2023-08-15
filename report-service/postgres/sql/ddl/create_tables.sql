@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS app.report
     status character varying(255) NOT NULL,
     type character varying(255) NOT NULL,
     description character varying NOT NULL,
-    params json NOT NULL
+    params json NOT NULL,
+    CONSTRAINT report_pkey PRIMARY KEY (uuid)
 
 );
 

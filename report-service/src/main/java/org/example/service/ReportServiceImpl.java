@@ -1,9 +1,10 @@
 package org.example.service;
 
-import org.example.core.dto.audit.AuditDTO;
 import org.example.core.dto.report.ReportParamAudit;
 import org.example.core.exception.GeneralException;
+import org.example.core.exception.ObjectNotPresentException;
 import org.example.core.exception.StructuredException;
+import org.example.dao.api.IFileRepository;
 import org.example.dao.api.IReportRepository;
 import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportStatus;
@@ -24,14 +25,17 @@ import java.util.UUID;
 @Service
 public class ReportServiceImpl implements IReportService {
 
-    private IReportRepository reportRepository;
-
     private ConversionService conversionService;
 
+    private IReportRepository reportRepository;
 
-    public ReportServiceImpl(IReportRepository reportRepository, ConversionService conversionService) {
+    private IFileRepository fileRepository;
+
+
+    public ReportServiceImpl(IReportRepository reportRepository, ConversionService conversionService, IFileRepository fileRepository) {
         this.reportRepository = reportRepository;
         this.conversionService = conversionService;
+        this.fileRepository = fileRepository;
     }
 
     @Override
@@ -116,6 +120,34 @@ public class ReportServiceImpl implements IReportService {
     public void setStatus(UUID uuid, ReportStatus reportStatus) {
 
         reportRepository.updateStatus(uuid, reportStatus.toString());
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getReportFileUrl(UUID uuid) {
+
+        Report report = reportRepository.findById(uuid).orElseThrow(() -> new ObjectNotPresentException("Такого отчета не существует"));
+
+        if (!report.getStatus().equals(ReportStatus.DONE)) {
+
+            throw new ObjectNotPresentException("Отчет не сформирован");
+
+        }
+
+        ReportType type = report.getType();
+
+        if (type.equals(ReportType.JOURNAL_AUDIT)) {
+
+            return fileRepository.getFileUrl(
+                    ReportType.JOURNAL_AUDIT.getReportFileName(report),
+                    ReportType.JOURNAL_AUDIT.getReportFileType()
+            );
+
+        }
+
+        return null;
+
 
     }
 }

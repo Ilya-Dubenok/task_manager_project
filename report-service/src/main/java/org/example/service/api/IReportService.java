@@ -20,4 +20,6 @@ public interface IReportService {
 
     void setStatus(UUID uuid, ReportStatus reportStatus);
 
+    String getReportFileUrl(UUID uuid);
+
 }
