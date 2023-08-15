@@ -93,6 +93,7 @@ public class ReportServiceImpl implements IReportService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isReportAvailable(UUID reportUuid) {
         return reportRepository.findByUuidAndStatusIs(reportUuid, ReportStatus.DONE).isPresent();
     }
@@ -107,6 +108,14 @@ public class ReportServiceImpl implements IReportService {
         report.setStatus(ReportStatus.ERROR);
 
         reportRepository.saveAndFlush(report);
+
+    }
+
+    @Override
+    @Transactional
+    public void setStatus(UUID uuid, ReportStatus reportStatus) {
+
+        reportRepository.updateStatus(uuid, reportStatus.toString());
 
     }
 }

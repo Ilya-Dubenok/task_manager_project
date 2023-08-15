@@ -52,13 +52,19 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
 
         for (Report report : reports) {
 
+            UUID uuid = report.getUuid();
+
             try {
+
+                reportService.setStatus(uuid, ReportStatus.PROGRESS);
 
                 formAndSendReport(report);
 
+                reportService.setStatus(uuid, ReportStatus.DONE);
+
             } catch (ReportFormingFailedException e) {
 
-                reportService.setStatusFailed(report.getUuid());
+                reportService.setStatusFailed(uuid);
             }
 
 
@@ -89,7 +95,7 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
 
             fileName = createFileWithReports(auditDTOList, report.getUuid());
 
-            fileRepositoryService.saveFile(fileName, report.getType());
+            fileRepositoryService.saveFile(fileName, report.getType().toString());
 
 
         } catch (Exception e) {

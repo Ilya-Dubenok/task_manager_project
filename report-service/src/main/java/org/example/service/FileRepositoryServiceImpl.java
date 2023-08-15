@@ -1,16 +1,16 @@
 package org.example.service;
 
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.UploadObjectArgs;
+import io.minio.*;
+import io.minio.errors.*;
+import io.minio.http.Method;
 import jakarta.annotation.PostConstruct;
 import org.example.config.properties.ApplicationProperties;
-import org.example.dao.entities.ReportType;
+import org.example.core.exception.GeneralException;
 import org.example.service.api.IFileRepositoryService;
+import org.example.core.exception.ObjectNotPresentException;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class FileRepositoryServiceImpl implements IFileRepositoryService {
@@ -26,14 +26,14 @@ public class FileRepositoryServiceImpl implements IFileRepositoryService {
     }
 
     @Override
-    public void saveFile(String fileName, ReportType reportType) {
+    public void saveFile(String fileName, String fileType) {
 
         boolean bucketExists = false;
 
         try {
 
 
-            String bucketName = reportType.toString().toLowerCase().replaceAll("_","");
+            String bucketName = fileType.toLowerCase().replaceAll("_","");
 
             bucketExists = minioClient.bucketExists(
                     BucketExistsArgs
@@ -56,7 +56,7 @@ public class FileRepositoryServiceImpl implements IFileRepositoryService {
                     UploadObjectArgs
                             .builder()
                             .bucket(bucketName)
-                            .object(ThreadLocalRandom.current().nextInt(0,10)+fileName)
+                            .object(fileName)
                             .filename(fileName)
                             .build()
             );
@@ -70,13 +70,49 @@ public class FileRepositoryServiceImpl implements IFileRepositoryService {
 
     }
 
+    @Override
+    public String getFileUrl(String fileName, String fileType) {
+
+        try {
+
+            String bucketName = fileType.toLowerCase().replaceAll("_", "");
+
+            minioClient.statObject(StatObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(fileName)
+                            .build());
+
+
+            String url =
+                    minioClient.getPresignedObjectUrl(
+                            GetPresignedObjectUrlArgs.builder()
+                                    .method(Method.GET)
+                                    .bucket(bucketName)
+                                    .object(fileName)
+                                    .expiry(5, TimeUnit.MINUTES)
+                                    .build());
+
+            return url;
+
+        } catch (ErrorResponseException e) {
+
+            boolean equals = e.errorResponse().code().equals("NoSuchKey");
+
+            if (equals) {
+                throw new ObjectNotPresentException(e);
+            } else {
+                throw new GeneralException("Неизвестная ошибка в ходе выполнения операции");
+            }
+        } catch (Exception e) {
+            throw new GeneralException("Неизвестная ошибка в ходе выполнения операции");
+        }
+    }
+
 
     @PostConstruct
     private void init() {
 
         ApplicationProperties.NetworkProp.Minio minio = applicationProperties.getNetwork().getMinio();
-
-        minio.setSecretKey("new secret key");
 
         String miniEndpoint = URL_PREFIX + minio.getHost();
 

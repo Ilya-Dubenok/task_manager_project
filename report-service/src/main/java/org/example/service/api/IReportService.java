@@ -17,4 +17,7 @@ public interface IReportService {
     boolean isReportAvailable(UUID reportUuid);
 
     void setStatusFailed(UUID reportUuid);
+
+    void setStatus(UUID uuid, ReportStatus reportStatus);
+
 }

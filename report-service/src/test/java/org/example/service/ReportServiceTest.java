@@ -181,6 +181,28 @@ public class ReportServiceTest {
     }
 
 
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void testUpdateMethod() {
+        UUID notReadyUuid = UUID.randomUUID();
+
+        Report notReady = new Report(notReadyUuid);
+        notReady.setType(ReportType.JOURNAL_AUDIT);
+        notReady.setStatus(ReportStatus.PROGRESS);
+        notReady.setParams(new HashMap<>());
+        notReady.setDescription("some descr");
+
+        reportRepository.saveAndFlush(notReady);
+
+        reportService.setStatus(notReadyUuid, ReportStatus.DONE);
+
+        Report report = reportRepository.findById(notReadyUuid).orElseThrow();
+
+        Assertions.assertEquals(report.getStatus(), ReportStatus.DONE);
+
+    }
+
+
 
     private String createFileWithAuditReports(List<AuditDTO> auditDTOList, UUID reportUuid) throws IOException {
 
