@@ -46,7 +46,7 @@ public class SecurityConfig {
                 )
                 //TODO ADD URLS
                 .authorizeHttpRequests(requests->requests
-                        .anyRequest().authenticated()
+                        .anyRequest().hasAnyRole("ADMIN")
                 )
                 .addFilterBefore(
                 filter,

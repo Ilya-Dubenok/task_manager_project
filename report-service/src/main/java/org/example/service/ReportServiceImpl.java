@@ -107,7 +107,7 @@ public class ReportServiceImpl implements IReportService {
     @Override
     @Transactional(readOnly = true)
     public boolean isReportAvailable(UUID reportUuid) {
-        return reportRepository.findByUuidAndStatusIs(reportUuid, ReportStatus.DONE).isPresent();
+        return reportInfoRepository.existsById(reportUuid);
     }
 
     @Override

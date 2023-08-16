@@ -73,6 +73,20 @@ public class ReportController {
     }
 
 
+    @RequestMapping(method = RequestMethod.HEAD, value = "/{uuid}/export")
+    public ResponseEntity<?> checkIfReady(@PathVariable UUID uuid) throws IOException {
+
+        boolean reportAvailable = reportService.isReportAvailable(uuid);
+
+        if (reportAvailable) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+    }
+
+
 
 
 }
