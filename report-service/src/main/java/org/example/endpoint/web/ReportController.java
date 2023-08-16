@@ -1,6 +1,7 @@
 package org.example.endpoint.web;
 
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.core.dto.PageOfTypeDTO;
 import org.example.core.dto.report.ReportDTO;
 import org.example.dao.entities.Report;
@@ -15,7 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/report")
@@ -59,5 +62,17 @@ public class ReportController {
         return new ResponseEntity<>(converted, HttpStatus.OK);
 
     }
+
+    @GetMapping(value = "/{uuid}/export")
+    public void getReportFile(@PathVariable UUID uuid, HttpServletResponse response) throws IOException {
+
+        String url = reportService.getReportFileUrl(uuid);
+
+        response.sendRedirect(url);
+
+    }
+
+
+
 
 }
