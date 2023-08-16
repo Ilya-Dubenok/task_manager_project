@@ -16,6 +16,9 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -134,7 +137,7 @@ public class ReportServiceImpl implements IReportService {
 
         ReportInfo reportInfo = reportInfoRepository.findByReportUuid(uuid).orElseThrow(() -> new ObjectNotPresentException("Отчет не найден"));
 
-        return fileRepository.getFileUrl(reportInfo.getFileName(),reportInfo.getBucketName());
+        return fileRepository.getFileUrl(reportInfo.getFileName(), reportInfo.getBucketName());
 
     }
 
@@ -149,5 +152,34 @@ public class ReportServiceImpl implements IReportService {
 
         reportInfoRepository.save(reportInfo);
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Report> getPageOfReports(Integer page, Integer size) {
+
+        validatePageArguments(page, size);
+
+        return reportRepository.findAll(PageRequest.of(page, size, Sort.by("uuid")));
+
+    }
+
+
+    private static void validatePageArguments(Integer currentRequestedPage, Integer rowsPerPage) {
+        StructuredException exception = new StructuredException();
+
+        if (currentRequestedPage < 0) {
+
+            exception.put("page", "Номер страницы не может быть меньше 0");
+
+        }
+        if (rowsPerPage < 1) {
+            exception.put("size", "Размер страницы не может быть меньше 0");
+
+        }
+
+        if (exception.hasExceptions()) {
+            throw exception;
+        }
     }
 }

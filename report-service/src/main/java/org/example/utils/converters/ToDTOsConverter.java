@@ -1,5 +1,6 @@
 package org.example.utils.converters;
 
+import org.example.core.dto.PageOfTypeDTO;
 import org.example.core.dto.report.Params;
 import org.example.core.dto.report.ReportDTO;
 import org.example.core.dto.report.ReportParamAudit;
@@ -7,8 +8,11 @@ import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportType;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -22,7 +26,9 @@ public class ToDTOsConverter<IN, OUT> implements GenericConverter {
         return Set.of(
 
                 new ConvertiblePair(Report.class, ReportDTO.class),
-                new ConvertiblePair(Map.class, ReportParamAudit.class)
+                new ConvertiblePair(Map.class, ReportParamAudit.class),
+                new ConvertiblePair(Page.class, PageOfTypeDTO.class)
+
         );
 
     }
@@ -90,8 +96,51 @@ public class ToDTOsConverter<IN, OUT> implements GenericConverter {
 
         }
 
+        if (expectedSourceClass.equals(PageImpl.class) && expectedTargetClass.equals(PageOfTypeDTO.class)) {
+
+            Type resolvedGenericType = targetType.getResolvableType().getGeneric(0).getType();
+
+            if (resolvedGenericType.equals(ReportDTO.class)) {
+
+                PageOfTypeDTO<ReportDTO> res = new PageOfTypeDTO<>();
+
+                Page<Report> reportPage = (Page<Report>) source;
+
+                List<ReportDTO> content = new ArrayList<>();
+
+                for (Report report : reportPage.toList()) {
+                    content.add(
+                            (ReportDTO) this.convert(report,
+                                    TypeDescriptor.valueOf(Report.class),
+                                    TypeDescriptor.valueOf(ReportDTO.class))
+                    );
+
+                }
+
+                fillPageWithValues(res, reportPage, content);
+
+                return res;
+
+            }
+
+
+        }
 
         return null;
+
+    }
+
+
+    private <T, E> void fillPageWithValues(PageOfTypeDTO<T> res, Page<E> source, List<T> content) {
+
+        res.setNumber(source.getNumber());
+        res.setTotalPages(source.getTotalPages());
+        res.setTotalElements(source.getTotalElements());
+        res.setFirst(source.isFirst());
+        res.setLast(!source.hasNext());
+        res.setSize(source.getSize());
+        res.setNumberOfElements(content.size());
+        res.setContent(content);
 
     }
 

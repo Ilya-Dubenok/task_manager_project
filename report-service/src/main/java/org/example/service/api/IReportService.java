@@ -3,6 +3,8 @@ package org.example.service.api;
 import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
+import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -23,4 +25,7 @@ public interface IReportService {
     String getReportFileUrl(UUID uuid);
 
     void saveReportInfo(UUID reportUuid, String fileName, String bucketName);
+
+    @Transactional(readOnly = true)
+    Page<Report> getPageOfReports(Integer page, Integer size);
 }
