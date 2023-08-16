@@ -1,7 +1,6 @@
 package org.example.dao;
 
 
-import org.example.core.dto.report.ReportDTO;
 import org.example.dao.api.IReportRepository;
 import org.example.dao.entities.Report;
 import org.example.dao.entities.ReportStatus;

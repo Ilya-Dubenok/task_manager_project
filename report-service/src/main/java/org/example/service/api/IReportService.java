@@ -22,4 +22,5 @@ public interface IReportService {
 
     String getReportFileUrl(UUID uuid);
 
+    void saveReportInfo(UUID reportUuid, String fileName, String bucketName);
 }

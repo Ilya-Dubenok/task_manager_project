@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 
 @Service
 public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
@@ -36,6 +37,10 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
     private IAuditServiceRequester auditServiceRequester;
 
     private IFileRepository fileRepositoryService;
+
+    private Function<UUID, String> fileNameFromUuidFunction = (x)-> x.toString().concat(".xlsx");
+
+    private Function<ReportType, String> bucketNameFromReportTypeFunction = (x)-> "journal_audit";
 
     public AuditReportFormerServiceImpl(IReportService reportService, ConversionService conversionService, IAuditServiceRequester auditServiceRequester, IFileRepository fileRepositoryService) {
         this.reportService = reportService;
@@ -92,9 +97,16 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
                     reportParamAudit.getTo().plusDays(1)
             );
 
-            fileName = createFileWithReports(auditDTOList, report.getUuid());
+            UUID reportUuid = report.getUuid();
 
-            fileRepositoryService.saveFile(fileName, report.getType().toString());
+            fileName = createFileWithReports(auditDTOList, reportUuid, this.fileNameFromUuidFunction);
+
+            String bucketName = formBucketName(report.getType(), this.bucketNameFromReportTypeFunction);
+
+            fileRepositoryService.saveFile(fileName, bucketName);
+
+            reportService.saveReportInfo(reportUuid, fileName, bucketName);
+
 
 
         } catch (Exception e) {
@@ -117,7 +129,7 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
     }
 
 
-    private String createFileWithReports(List<AuditDTO> auditDTOList, UUID reportUuid) throws IOException {
+    private <T> String createFileWithReports(List<AuditDTO> auditDTOList, T source, Function<T, String> formReportFileName) throws IOException {
 
         try (Workbook workbook = new XSSFWorkbook()){
 
@@ -138,7 +150,7 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
                 sheet.autoSizeColumn(i);
             }
 
-            String fileName = reportUuid.toString().concat(".xlsx");
+            String fileName = fileNameFormer(source, formReportFileName);
 
             try (FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
 
@@ -151,6 +163,19 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
             return fileName;
 
         }
+
+    }
+
+    private <T> String fileNameFormer(T source,Function<T, String> formReportFileNameFunction) {
+
+        return formReportFileNameFunction.apply(source);
+
+    }
+
+
+    private <T> String formBucketName(T source, Function<T, String> formBucketFileNameFunction) {
+
+        return formBucketFileNameFunction.apply(source);
 
     }
 

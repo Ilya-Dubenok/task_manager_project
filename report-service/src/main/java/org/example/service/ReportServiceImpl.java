@@ -5,8 +5,10 @@ import org.example.core.exception.GeneralException;
 import org.example.core.exception.ObjectNotPresentException;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IFileRepository;
+import org.example.dao.api.IReportInfoRepository;
 import org.example.dao.api.IReportRepository;
 import org.example.dao.entities.Report;
+import org.example.dao.entities.ReportInfo;
 import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
 import org.example.service.api.IReportService;
@@ -31,11 +33,14 @@ public class ReportServiceImpl implements IReportService {
 
     private IFileRepository fileRepository;
 
+    private IReportInfoRepository reportInfoRepository;
 
-    public ReportServiceImpl(IReportRepository reportRepository, ConversionService conversionService, IFileRepository fileRepository) {
+
+    public ReportServiceImpl(IReportRepository reportRepository, ConversionService conversionService, IFileRepository fileRepository, IReportInfoRepository reportInfoRepository) {
         this.reportRepository = reportRepository;
         this.conversionService = conversionService;
         this.fileRepository = fileRepository;
+        this.reportInfoRepository = reportInfoRepository;
     }
 
     @Override
@@ -127,27 +132,22 @@ public class ReportServiceImpl implements IReportService {
     @Transactional(readOnly = true)
     public String getReportFileUrl(UUID uuid) {
 
-        Report report = reportRepository.findById(uuid).orElseThrow(() -> new ObjectNotPresentException("Такого отчета не существует"));
+        ReportInfo reportInfo = reportInfoRepository.findByReportUuid(uuid).orElseThrow(() -> new ObjectNotPresentException("Отчет не найден"));
 
-        if (!report.getStatus().equals(ReportStatus.DONE)) {
+        return fileRepository.getFileUrl(reportInfo.getFileName(),reportInfo.getBucketName());
 
-            throw new ObjectNotPresentException("Отчет не сформирован");
+    }
 
-        }
+    @Override
+    @Transactional
+    public void saveReportInfo(UUID reportUuid, String fileName, String bucketName) {
 
-        ReportType type = report.getType();
+        ReportInfo reportInfo = new ReportInfo();
+        reportInfo.setReportUuid(reportUuid);
+        reportInfo.setFileName(fileName);
+        reportInfo.setBucketName(bucketName);
 
-        if (type.equals(ReportType.JOURNAL_AUDIT)) {
-
-            return fileRepository.getFileUrl(
-                    ReportType.JOURNAL_AUDIT.getReportFileName(report),
-                    ReportType.JOURNAL_AUDIT.getReportFileType()
-            );
-
-        }
-
-        return null;
-
+        reportInfoRepository.save(reportInfo);
 
     }
 }
