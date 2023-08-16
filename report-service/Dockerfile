@@ -1,6 +1,6 @@
 FROM eclipse-temurin:19-jre-focal
 
-ADD ./target/task_service.jar /app/
+ADD ./target/report_service.jar /app/
 
 CMD ["java", "-Xmx200m", "-jar", "/app/report_service.jar"]
 
