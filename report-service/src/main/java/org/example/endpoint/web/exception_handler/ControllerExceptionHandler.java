@@ -104,7 +104,8 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         StructuredException structuredException = new StructuredException();
         if (Objects.equals(propertyName, "uuid") ||
                 Objects.equals(propertyName, "page") ||
-                Objects.equals(propertyName, "size")
+                Objects.equals(propertyName, "size") ||
+                Objects.equals(propertyName, "type")
         ) {
             structuredException.put(
                     propertyName, String.format(MESSAGE_FOR_INVALID_PROPERTY, propertyName)
