@@ -111,6 +111,8 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
 
         } catch (Exception e) {
 
+            //TODO place for logging
+
             throw new ReportFormingFailedException(e.getMessage());
 
         } finally {

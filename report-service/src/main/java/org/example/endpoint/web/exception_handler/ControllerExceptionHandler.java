@@ -66,6 +66,12 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(List.of(generalExceptionDTO), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(value = ObjectNotPresentException.class)
+    protected ResponseEntity<Object> handleObjectNotPresentException(ObjectNotPresentException e, WebRequest request) {
+
+        return new ResponseEntity<>("Сервер, по предоставленному uuid, не смог найти информацию", HttpStatus.NO_CONTENT);
+    }
+
     @ExceptionHandler(value = Exception.class)
     protected ResponseEntity<Object> handleUndefinedException(Exception e, WebRequest request) {
         GeneralExceptionDTO generalExceptionDTO = new GeneralExceptionDTO(

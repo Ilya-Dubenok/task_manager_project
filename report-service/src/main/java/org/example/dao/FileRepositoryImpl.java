@@ -99,7 +99,7 @@ public class FileRepositoryImpl implements IFileRepository {
             if (e.errorResponse().code().equals("NoSuchKey")) {
                 //TODO place for logging
 
-                throw new ObjectNotPresentException("Такого отчета не найдено в репозитории");
+                throw new GeneralException("Такого отчета не найдено в репозитории");
 
             } else {
                 throw new GeneralException("Неизвестная ошибка в ходе выполнения операции");
