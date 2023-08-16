@@ -1,0 +1,58 @@
+spring:
+  jpa:
+    generate-ddl: false
+    properties:
+      hibernate:
+        format_sql: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/report_service?ApplicationName=Report_Service
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      schema: app
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL:
+          DEBUG
+        orm:
+          jdbc:
+            bind:
+              Trace
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+app:
+  network:
+    user_service:
+      address: localhost:8080
+      host: localhost
+      appendix: /users
+      internal_appendix: /internal
+    audit_service:
+      address: localhost:8080
+      host: localhost
+      internal_appendix: /internal
+    minio:
+      host: localhost:9000
+      access_key: minio_user
+      secret_key: minio_password
+
+
+jwt:
+  secret: ucHYIsBgrm/XpThkkMBk4uaEl/8Es4VXSM85QcopGhk=
+  issuer: Ilya
+
+
+
+

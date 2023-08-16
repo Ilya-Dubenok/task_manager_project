@@ -1,11 +1,12 @@
 package org.example.service;
 
 
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
-import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.IAuditRepository;
 import org.example.dao.entities.audit.Audit;
 import org.example.service.api.IAuditService;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -75,5 +78,27 @@ public class AuditServiceImpl implements IAuditService {
 
         return page;
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Audit> getListOfAuditsForUserUuidAndTimeRange(UUID userUuid, LocalDate from, LocalDate to) {
+        return auditRepository.findAll(
+                ((root, query, builder) -> {
+
+                    Path<UUID> userPersistedUuid = root.get("user").get("uuid");
+
+                    Predicate userEqual = builder.equal(userPersistedUuid, userUuid);
+
+                    Path<LocalDate> dtCreate = root.get("dtCreate");
+
+                    Predicate before = builder.lessThanOrEqualTo(dtCreate, to);
+
+                    Predicate after = builder.greaterThanOrEqualTo(dtCreate, from);
+
+                    return builder.and(userEqual, before, after);
+
+                })
+        );
     }
 }

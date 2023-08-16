@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/report_service_test?ApplicationName=Report_Service
+
+
+
+
+
+

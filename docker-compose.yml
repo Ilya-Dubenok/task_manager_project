@@ -95,7 +95,32 @@ services:
       spring.datasource.password: root
       app.network.user_service.address: user-service:8080
 
+  report-service:
+    depends_on:
+      - db
+      - minio
+    build: report-service
+    image: taskmanager_report-service:1.0.0
+    networks:
+      - taskmanager_ntwrk
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/report_service?ApplicationName=Report_Service
+      spring.datasource.username: root
+      spring.datasource.password: root
+      app.network.user_service.address: user-service:8080
+      app.network.audit_service.address: audit-service:8080
+      app.network.minio.host: minio:9000
 
+  minio:
+    image: bitnami/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio_user
+      MINIO_ROOT_PASSWORD: minio_password
+    networks:
+      - taskmanager_ntwrk
 
   notification-service:
     build: notification-service
