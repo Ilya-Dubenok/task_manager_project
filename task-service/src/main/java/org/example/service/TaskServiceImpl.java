@@ -10,6 +10,7 @@ import org.example.core.dto.user.UserRole;
 import org.example.core.exception.AuthenticationFailedException;
 import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
+import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.ITaskRepository;
 import org.example.dao.entities.project.Project;
 import org.example.dao.entities.task.Task;
@@ -96,6 +97,7 @@ public class TaskServiceImpl implements ITaskService {
     @Transactional(readOnly = true)
     public Page<Task> getPagesWithRoleOfUserInContextCheck(Integer currentRequestedPage, Integer rowsPerPage, List<UUID> projectUuids, List<UUID> implementersUuids, List<TaskStatus> taskStatuses) {
 
+        validatePageArguments(currentRequestedPage, rowsPerPage);
 
         if (userService.userInCurrentContextHasOneOfRoles(UserRole.ADMIN)) {
 
@@ -167,7 +169,13 @@ public class TaskServiceImpl implements ITaskService {
 
         } catch (Exception e) {
 
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
 
         }
 
@@ -222,7 +230,13 @@ public class TaskServiceImpl implements ITaskService {
 
         } catch (Exception e) {
 
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
 
         }
 
@@ -279,7 +293,13 @@ public class TaskServiceImpl implements ITaskService {
 
         } catch (Exception e) {
 
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
 
         }
     }

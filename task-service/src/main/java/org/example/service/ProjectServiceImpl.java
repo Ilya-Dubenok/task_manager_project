@@ -19,6 +19,7 @@ import org.example.dao.entities.user.User;
 import org.example.service.api.IProjectService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -63,7 +64,13 @@ public class ProjectServiceImpl implements IProjectService {
 
 
         } catch (Exception e) {
-            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
+            StructuredException structuredException = new StructuredException();
+
+            if (DatabaseExceptionsMapper.isExceptionCauseRecognized(e, structuredException)) {
+                throw structuredException;
+            }
+
+            throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
     }

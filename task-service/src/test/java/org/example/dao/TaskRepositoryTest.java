@@ -32,7 +32,7 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-public class TaskRepositoryDaoTest {
+public class TaskRepositoryTest {
 
     private static final UUID USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS = UUID.randomUUID();
     private static final UUID USER_UUID_WORKS_ON_SEPARATE_TASK = UUID.randomUUID();

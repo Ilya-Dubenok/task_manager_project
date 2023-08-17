@@ -1,6 +1,8 @@
 package org.example.dao;
 
 import jakarta.persistence.criteria.Predicate;
+import org.example.core.exception.StructuredException;
+import org.example.core.exception.utils.DatabaseExceptionsMapper;
 import org.example.dao.api.IProjectRepository;
 import org.example.dao.api.IUserRepository;
 import org.example.dao.entities.project.Project;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -244,6 +247,37 @@ public class ProjectRepositoryTest {
         boolean exists = projectRepository.exists(getSpecificationOfProjectUuidAndUserIsInProject(notWorks, existing.getUuid()));
 
         Assertions.assertFalse(exists);
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void exceptionForDuplicatesParsed() {
+
+        String sharedName = "project1";
+
+        Project project = new Project(UUID.randomUUID());
+        project.setName(sharedName);
+        projectRepository.save(project);
+
+
+        Project project2 = new Project(UUID.randomUUID());
+        project2.setName(sharedName);
+        try {
+            projectRepository.save(project2);
+        } catch (DataIntegrityViolationException e) {
+
+            StructuredException exception = new StructuredException();
+
+            boolean exceptionCauseRecognized = DatabaseExceptionsMapper.isExceptionCauseRecognized(e, exception);
+
+            Assertions.assertTrue(exceptionCauseRecognized);
+
+
+        }
+
+
+
 
     }
 
