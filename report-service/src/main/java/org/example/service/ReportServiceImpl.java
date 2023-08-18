@@ -16,6 +16,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -127,8 +128,24 @@ public class ReportServiceImpl implements IReportService {
     @Transactional
     public void setStatus(UUID uuid, ReportStatus reportStatus) {
 
-        reportRepository.updateStatus(uuid, reportStatus.toString());
+        if (reportStatus == null) {
+            throw new StructuredException("status", "must not be null");
+        }
 
+        Report report = reportRepository.findById(uuid).orElseThrow(() -> new StructuredException("uuid", "uuid не найден"));
+
+        try {
+            report.setStatus(reportStatus);
+            reportRepository.saveAndFlush(report);
+        } catch (DataIntegrityViolationException e) {
+
+            throw e;
+
+        } catch(Exception e){
+
+            throw new GeneralException("произошла ошибка неизвестного характера");
+
+        }
     }
 
     @Override
