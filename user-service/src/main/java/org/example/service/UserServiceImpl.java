@@ -159,6 +159,20 @@ public class UserServiceImpl implements IUserService {
         );
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public User getByUUIDAndStatus(UUID uuid, UserStatus userStatus) {
+
+        User found = getByUUID(uuid);
+
+        if (!found.getStatus().equals(userStatus)) {
+            throw new GeneralException("user status doesn't match");
+        }
+
+        return found;
+
+    }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -195,6 +209,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsersByUuidAndStatus(List<UUID> uuids, UserStatus userStatus) {
 
         if (uuids == null || uuids.contains(null)) {

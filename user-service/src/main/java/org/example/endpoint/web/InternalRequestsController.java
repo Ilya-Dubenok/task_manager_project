@@ -47,9 +47,11 @@ public class InternalRequestsController {
     }
 
     @GetMapping(value = "/user/{uuid}")
-    public ResponseEntity<UserDTO> getByUuid(@PathVariable UUID uuid) {
+    public ResponseEntity<UserDTO> getByUuid(@PathVariable UUID uuid,
+                                             @RequestParam(value = "status", defaultValue = "ACTIVATED")
+                                             UserStatus userStatus) {
 
-        User userById = userService.getActiveUserByUUID(uuid);
+        User userById = userService.getByUUIDAndStatus(uuid, userStatus);
         UserDTO dto = conversionService.convert(userById, UserDTO.class);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }

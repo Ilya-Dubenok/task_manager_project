@@ -23,6 +23,8 @@ public interface IUserService {
 
     User getByUUID(UUID uuid);
 
+    User getByUUIDAndStatus(UUID uuid, UserStatus userStatus);
+
     User getActiveUserByUUID(UUID uuid);
 
 
