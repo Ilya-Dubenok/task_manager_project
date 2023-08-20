@@ -58,7 +58,7 @@ public class UserServiceImpl implements IUserService {
         UserDTO dtoRes = userServiceRequester.getUser(userDTO.getUuid());
 
         if (null == dtoRes) {
-            throw new ConstraintViolationException("передан uuid не существующего пользователя",null);
+            throw new ConstraintViolationException("Not existing or not active user was passed",null);
         }
 
         if (null == dtoRes.getRole()) {
