@@ -58,7 +58,7 @@ public class UserServiceImpl implements IUserService {
         UserDTO dtoRes = userServiceRequester.getUser(userDTO.getUuid());
 
         if (null == dtoRes) {
-            throw new ConstraintViolationException("передан uuid не существующего пользователя",null);
+            throw new ConstraintViolationException("Not existing or not active user was passed",null);
         }
 
         if (null == dtoRes.getRole()) {
@@ -103,7 +103,7 @@ public class UserServiceImpl implements IUserService {
 
             if (found.size() + toSaveAdditionally.size() < userDTOList.size()) {
 
-                throw new ConstraintViolationException("Переданы не существующие пользователи", null);
+                throw new ConstraintViolationException("Not existing or not active users were passed", null);
             }
 
             found.addAll(toSaveAdditionally);

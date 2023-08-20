@@ -437,7 +437,7 @@ public class UserControllerTest {
 
 
     @Test
-    public void getListOfUsersReturns() throws Exception {
+    public void getListOfUsersWithNoRequestParamReturns() throws Exception {
 
         List<User> users = userRepository.findAll();
 
@@ -479,6 +479,220 @@ public class UserControllerTest {
 
     }
 
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void getListOfUsersWithNoParamSpecifiedReturns() throws Exception {
+        UUID deactivatedUuid = UUID.randomUUID();
+        UUID waitingActivationUuid = UUID.randomUUID();
+
+        userRepository.save(new User(deactivatedUuid, "deactivated@gmail.com", "fio", UserRole.MANAGER,
+                UserStatus.DEACTIVATED, "12345"));
+        userRepository.save(new User(waitingActivationUuid, "waiting_activation@gmail.com", "fio", UserRole.USER,
+                UserStatus.WAITING_ACTIVATION, "12345"));
+
+        List<UUID> twoActiveUsers = userRepository.findAll().stream()
+                .filter(x -> x.getStatus().equals(UserStatus.ACTIVATED))
+                .limit(2)
+                .map(User::getUuid)
+                .toList();
+
+        List<UUID> activeAndNotActiveUsers = List.of(
+                deactivatedUuid,
+                waitingActivationUuid,
+                twoActiveUsers.get(0),
+                twoActiveUsers.get(1)
+        );
+
+        ObjectMapper objectMapper = converter.getObjectMapper();
+
+        String contentAsString = this.mockMvc.perform(
+                        post("/internal/user")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(activeAndNotActiveUsers)
+                                )
+
+                )
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<UserDTO> resultList = objectMapper.readValue(
+                contentAsString, objectMapper.getTypeFactory().constructCollectionType(List.class, UserDTO.class)
+        );
+
+        Assertions.assertEquals(2, resultList.size());
+        resultList.forEach(
+                x -> Assertions.assertEquals(UserStatus.ACTIVATED, x.getStatus())
+        );
+
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void getListOfUsersWithActiveStatusParamReturns() throws Exception {
+        UUID deactivatedUuid = UUID.randomUUID();
+        UUID waitingActivationUuid = UUID.randomUUID();
+
+        userRepository.save(new User(deactivatedUuid, "deactivated@gmail.com", "fio", UserRole.MANAGER,
+                UserStatus.DEACTIVATED, "12345"));
+        userRepository.save(new User(waitingActivationUuid, "waiting_activation@gmail.com", "fio", UserRole.USER,
+                UserStatus.WAITING_ACTIVATION, "12345"));
+
+        List<UUID> twoActiveUsers = userRepository.findAll().stream()
+                .filter(x -> x.getStatus().equals(UserStatus.ACTIVATED))
+                .limit(2)
+                .map(User::getUuid)
+                .toList();
+
+        List<UUID> activeAndNotActiveUsers = List.of(
+                deactivatedUuid,
+                waitingActivationUuid,
+                twoActiveUsers.get(0),
+                twoActiveUsers.get(1)
+        );
+
+        ObjectMapper objectMapper = converter.getObjectMapper();
+
+        String contentAsString = this.mockMvc.perform(
+                        post("/internal/user")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(activeAndNotActiveUsers)
+                                )
+                                .param("status", UserStatus.ACTIVATED.toString())
+
+                )
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<UserDTO> resultList = objectMapper.readValue(
+                contentAsString, objectMapper.getTypeFactory().constructCollectionType(List.class, UserDTO.class)
+        );
+
+        Assertions.assertEquals(2, resultList.size());
+        resultList.forEach(
+                x -> Assertions.assertEquals(UserStatus.ACTIVATED, x.getStatus())
+        );
+
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void getListOfUsersWithWaitingActivationStatusParamReturns() throws Exception {
+        UUID deactivatedUuid = UUID.randomUUID();
+        UUID waitingActivationUuid = UUID.randomUUID();
+
+        userRepository.save(new User(deactivatedUuid, "deactivated@gmail.com", "fio", UserRole.MANAGER,
+                UserStatus.DEACTIVATED, "12345"));
+        userRepository.save(new User(waitingActivationUuid, "waiting_activation@gmail.com", "fio", UserRole.USER,
+                UserStatus.WAITING_ACTIVATION, "12345"));
+
+        List<UUID> twoActiveUsers = userRepository.findAll().stream()
+                .filter(x -> x.getStatus().equals(UserStatus.ACTIVATED))
+                .limit(2)
+                .map(User::getUuid)
+                .toList();
+
+        List<UUID> activeAndNotActiveUsers = List.of(
+                deactivatedUuid,
+                waitingActivationUuid,
+                twoActiveUsers.get(0),
+                twoActiveUsers.get(1)
+        );
+
+        ObjectMapper objectMapper = converter.getObjectMapper();
+
+        String contentAsString = this.mockMvc.perform(
+                        post("/internal/user")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(activeAndNotActiveUsers)
+                                )
+                                .param("status", UserStatus.WAITING_ACTIVATION.toString())
+
+                )
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<UserDTO> resultList = objectMapper.readValue(
+                contentAsString, objectMapper.getTypeFactory().constructCollectionType(List.class, UserDTO.class)
+        );
+
+        Assertions.assertEquals(1, resultList.size());
+        resultList.forEach(
+                x -> Assertions.assertEquals(UserStatus.WAITING_ACTIVATION, x.getStatus())
+        );
+
+    }
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void tryToLoginWithWaitingActivationFails() throws Exception {
+
+        String waitingMail = "waiting_activation@gmail.com";
+
+        userService.save(new UserCreateDTO(waitingMail, "fio", UserRole.USER,
+                UserStatus.WAITING_ACTIVATION, "12345"));
+
+        User waitingActivation = userRepository.findByMail(waitingMail);
+
+
+        UserLoginDTO loginInfo = new UserLoginDTO(waitingMail, "12345");
+
+        ObjectMapper objectMapper = converter.getObjectMapper();
+
+        String contentAsString = this.mockMvc.perform(
+                        post("/users/login")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(loginInfo)
+                                )
+
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].logref").value("error"))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+
+
+    }
+
+
+    @Test
+    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
+    public void tryToLoginWithDeactivatedFails() throws Exception {
+
+        String waitingMail = "waiting_activation@gmail.com";
+
+        userService.save(new UserCreateDTO(waitingMail, "fio", UserRole.USER,
+                UserStatus.WAITING_ACTIVATION, "12345"));
+
+        User waitingActivation = userRepository.findByMail(waitingMail);
+
+
+        UserLoginDTO loginInfo = new UserLoginDTO(waitingMail, "12345");
+
+        ObjectMapper objectMapper = converter.getObjectMapper();
+
+
+        String contentAsString = this.mockMvc.perform(
+                        post("/users/login")
+                                .contentType("application/json")
+                                .content(
+                                        objectMapper.writeValueAsString(loginInfo)
+                                )
+
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].logref").value("error"))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+
+
+    }
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IUserRepository userRepository, @Autowired PasswordEncoder passwordEncoder) {

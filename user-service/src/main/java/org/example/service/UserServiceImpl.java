@@ -1,5 +1,8 @@
 package org.example.service;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 import org.example.core.dto.audit.Type;
 import org.example.core.dto.user.UserCreateDTO;
@@ -158,6 +161,35 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional(readOnly = true)
+    public User getByUUIDAndStatus(UUID uuid, UserStatus userStatus) {
+
+        User found = getByUUID(uuid);
+
+        if (!found.getStatus().equals(userStatus)) {
+            throw new GeneralException("user status doesn't match");
+        }
+
+        return found;
+
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getActiveUserByUUID(UUID uuid) {
+
+        User user = getByUUID(uuid);
+
+        if (!user.getStatus().equals(UserStatus.ACTIVATED)) {
+            throw new GeneralException("Such user is either not activated or was marked for deactivation");
+        }
+
+        return user;
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<User> getList(List<UUID> uuids) {
 
         if (uuids == null || uuids.contains(null)) {
@@ -173,6 +205,44 @@ public class UserServiceImpl implements IUserService {
             throw new GeneralException("Произошла ошибка при поиске");
 
         }
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getUsersByUuidAndStatus(List<UUID> uuids, UserStatus userStatus) {
+
+        if (uuids == null || uuids.contains(null)) {
+            throw new GeneralException("Переданы неверные данные для поиска");
+        }
+
+        try {
+
+            return userRepository.findAll(
+                    ((root, query, builder) -> {
+
+                        Path<Object> uuidPath = root.get("uuid");
+
+                        CriteriaBuilder.In<Object> inUuids = builder.in(uuidPath);
+
+                        Predicate inListOfUuids = inUuids.value(uuids);
+
+                        Path<Object> status = root.get("status");
+
+                        Predicate statusEqual = builder.equal(status, userStatus);
+
+                        return builder.and(inListOfUuids, statusEqual);
+
+
+                    })
+            );
+
+        } catch (Exception e) {
+
+            throw new GeneralException("Произошла ошибка при поиске");
+
+        }
+
 
     }
 
@@ -317,6 +387,10 @@ public class UserServiceImpl implements IUserService {
 
         if (user == null) {
             throw new StructuredException("mail", "Пользователь не найден");
+        }
+
+        if (!user.getStatus().equals(UserStatus.ACTIVATED)) {
+            throw new GeneralException("Such user is either not activated or was marked for deactivation");
         }
 
         if (!passwordEncoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
