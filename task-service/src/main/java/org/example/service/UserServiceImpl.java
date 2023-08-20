@@ -103,7 +103,7 @@ public class UserServiceImpl implements IUserService {
 
             if (found.size() + toSaveAdditionally.size() < userDTOList.size()) {
 
-                throw new ConstraintViolationException("Переданы не существующие пользователи", null);
+                throw new ConstraintViolationException("Not existing or not active users were passed", null);
             }
 
             found.addAll(toSaveAdditionally);

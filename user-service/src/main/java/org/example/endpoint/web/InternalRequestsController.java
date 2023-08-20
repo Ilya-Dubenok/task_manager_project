@@ -3,6 +3,7 @@ package org.example.endpoint.web;
 
 import org.example.core.dto.user.UserDTO;
 import org.example.dao.entities.user.User;
+import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.IAuthenticationService;
 import org.example.service.api.IUserService;
 import org.springframework.core.convert.ConversionService;
@@ -48,15 +49,17 @@ public class InternalRequestsController {
     @GetMapping(value = "/user/{uuid}")
     public ResponseEntity<UserDTO> getByUuid(@PathVariable UUID uuid) {
 
-        User userById = userService.getByUUID(uuid);
+        User userById = userService.getActiveUserByUUID(uuid);
         UserDTO dto = conversionService.convert(userById, UserDTO.class);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @PostMapping(value = "/user")
-    public ResponseEntity<List<UserDTO>> getByListOfUuids(@RequestBody List<UUID> uuidList) {
+    public ResponseEntity<List<UserDTO>> getByListOfUuids(@RequestBody List<UUID> uuidList,
+                                                          @RequestParam(value = "status", defaultValue = "ACTIVATED")
+                                                          UserStatus userStatus) {
 
-        List<User> userList = userService.getList(uuidList);
+        List<User> userList = userService.getUsersByUuidAndStatus(uuidList, userStatus);
         List<UserDTO> res = userList.stream()
                 .map(x -> conversionService.convert(x, UserDTO.class))
                 .toList();

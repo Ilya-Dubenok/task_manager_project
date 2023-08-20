@@ -74,7 +74,7 @@ public class UserController {
     public ResponseEntity<UserDTO> getMe() {
 
 
-        User userById = userService.getByUUID(UUID.fromString(userHolder.getUser().getUsername()));
+        User userById = userService.getActiveUserByUUID(UUID.fromString(userHolder.getUser().getUsername()));
         UserDTO dto = conversionService.convert(userById, UserDTO.class);
         return new ResponseEntity<>(dto, HttpStatus.OK);
 

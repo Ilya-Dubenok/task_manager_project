@@ -5,6 +5,7 @@ import org.example.core.dto.user.UserCreateDTO;
 import org.example.core.dto.user.UserLoginDTO;
 import org.example.core.dto.user.UserRegistrationDTO;
 import org.example.dao.entities.user.User;
+import org.example.dao.entities.user.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -22,7 +23,12 @@ public interface IUserService {
 
     User getByUUID(UUID uuid);
 
+    User getActiveUserByUUID(UUID uuid);
+
+
     List<User> getList(List<UUID> uuids);
+
+    List<User> getUsersByUuidAndStatus(List<UUID> uuids, UserStatus userStatus);
 
 
     void update(UUID uuid, LocalDateTime dt_update, @Valid UserCreateDTO userCreateDTO);
