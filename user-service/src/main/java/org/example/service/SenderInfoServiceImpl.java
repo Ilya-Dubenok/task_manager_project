@@ -1,7 +1,6 @@
 package org.example.service;
 
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.example.config.property.ApplicationProperties;
 import org.example.core.dto.email.EmailDTO;
 import org.example.core.dto.audit.AuditCreateDTO;
@@ -15,7 +14,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.Map;
 
 @Service
 public class SenderInfoServiceImpl implements ISenderInfoService {
@@ -52,7 +50,7 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
         AuditCreateDTO auditCreateDTO = new AuditCreateDTO(auditUserDTO, text, type, id);
 
         try {
-            auditSenderKafkaClient.send("audit_info", auditCreateDTO);
+            auditSenderKafkaClient.send("AuditInfo", auditCreateDTO);
 
         } catch (Exception e) {
             //TODO TRY LOGGING?
