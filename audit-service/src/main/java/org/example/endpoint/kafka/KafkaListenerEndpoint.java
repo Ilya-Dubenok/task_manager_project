@@ -17,7 +17,7 @@ public class KafkaListenerEndpoint {
     }
 
     @KafkaListener(
-            topics = "audit_info"
+            topics = "AuditInfo"
     )
     public void listener(AuditCreateDTO auditCreateDTO) {
         auditService.save(auditCreateDTO);

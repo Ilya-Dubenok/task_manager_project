@@ -59,11 +59,6 @@ public class KafkaProducerConfig {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    @Bean
-    public NewTopic topic() {
-
-        return new NewTopic("audit_info", 1, (short) 1);
-    }
 
     @Configuration
     @Profile("kafka_not_needed")

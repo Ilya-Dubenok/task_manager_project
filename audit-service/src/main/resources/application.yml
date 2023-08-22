@@ -14,7 +14,7 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:19092
     consumer:
       group-id: group-1
 
