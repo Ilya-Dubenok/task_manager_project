@@ -17,7 +17,7 @@ import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
-import org.example.service.utils.AuditMessagesFormer;
+import org.example.service.utils.JsonAuditMessagesFormer;
 import org.example.utils.jwt.JwtTokenHandler;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
@@ -50,7 +50,7 @@ public class UserServiceImpl implements IUserService {
 
     private final JwtTokenHandler jwtTokenHandler;
 
-    private final AuditMessagesFormer auditMessagesFormer;
+    private final JsonAuditMessagesFormer auditMessagesFormer;
 
 
     public UserServiceImpl(IUserRepository userRepository,
@@ -59,7 +59,7 @@ public class UserServiceImpl implements IUserService {
                            PasswordEncoder passwordEncoder,
                            UserHolder userHolder,
                            JwtTokenHandler jwtTokenHandler,
-                           AuditMessagesFormer auditMessagesFormer) {
+                           JsonAuditMessagesFormer auditMessagesFormer) {
         this.userRepository = userRepository;
         this.conversionService = conversionService;
         this.senderInfoService = senderInfoService;
@@ -101,7 +101,7 @@ public class UserServiceImpl implements IUserService {
 
             senderInfoService.sendAudit(
                     getUserFromCurrentSecurityContext(),
-                    auditMessagesFormer.getUserCreatedAuditMessage(),
+                    auditMessagesFormer.formUserCreatedAuditMessage(save),
                     Type.USER,
                     save.getUuid().toString()
             );
@@ -289,7 +289,7 @@ public class UserServiceImpl implements IUserService {
             try {
                 senderInfoService.sendAudit(
                         getUserFromCurrentSecurityContext(),
-                        auditMessagesFormer.formUpdateAuditMessage(copyBeforeUpdate, toUpdate),
+                        auditMessagesFormer.formUserUpdateAuditMessage(copyBeforeUpdate, toUpdate),
                         Type.USER,
                         toUpdate.getUuid().toString());
 
@@ -353,7 +353,7 @@ public class UserServiceImpl implements IUserService {
 
                 senderInfoService.sendAudit(
                         user,
-                        auditMessagesFormer.getAuditRegisteredMessage(),
+                        auditMessagesFormer.formUserRegisteredAuditMessage(user),
                         Type.USER,
                         user.getUuid().toString()
                 );

@@ -15,7 +15,6 @@ import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
-import org.example.service.utils.AuditMessagesFormer;
 import org.example.service.utils.ChangedFieldsOfEntitySearcher;
 import org.example.service.utils.JsonAuditMessagesFormer;
 import org.junit.jupiter.api.*;
@@ -65,8 +64,6 @@ public class UserServiceImplTest {
     @Autowired
     private ChangedFieldsOfEntitySearcher<User> searcher;
 
-    @Autowired
-    private AuditMessagesFormer auditMessagesFormer;
 
     @Autowired
     private JsonAuditMessagesFormer jsonAuditMessagesFormer;
@@ -238,7 +235,6 @@ public class UserServiceImplTest {
         User user2 = new User(user1.getUuid(), "old_mal", "new_fio", UserRole.ADMIN, UserStatus.ACTIVATED, "123456");
 
         String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formUserUpdateAuditMessage(user1, user2));
-        System.out.println(s);
 
     }
 
@@ -247,10 +243,16 @@ public class UserServiceImplTest {
         User user1 = new User(UUID.randomUUID(),"old_mal","old_fio",UserRole.USER, UserStatus.ACTIVATED,"12345");
 
         String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formUserCreatedAuditMessage(user1));
-        System.out.println(s);
 
     }
 
+    @Test
+    public void jsonRegisterInfoWorks() {
+        User user1 = new User(UUID.randomUUID(),"old_mal","old_fio",UserRole.USER, UserStatus.ACTIVATED,"12345");
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formUserRegisteredAuditMessage(user1));
+
+    }
 
 
     @Test

@@ -11,6 +11,7 @@ import org.example.service.api.IAuditSenderKafkaClient;
 import org.example.service.api.INotificationServiceFeignClient;
 import org.example.service.api.ISenderInfoService;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -43,6 +44,7 @@ public class SenderInfoServiceImpl implements ISenderInfoService {
 
 
     @Override
+    @Async
     public void sendAudit(User author, String text, Type type, String id) {
         AuditUserDTO auditUserDTO = conversionService.convert(author, AuditUserDTO.class);
 

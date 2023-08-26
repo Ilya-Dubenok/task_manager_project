@@ -41,7 +41,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
     }
 
 
-    public Map<String, Pair<String, String>> getChanges(T o1, T o2) {
+    public Map<String, Pair<Object, Object>> getChanges(T o1, T o2) {
 
         Set<Field> fields = getFieldsToScan();
 
@@ -82,9 +82,9 @@ public class ChangedFieldsOfEntitySearcher<T> {
     }
 
 
-    private Map<String, Pair<String, String>> getMapOfDifferencesOfFields(T o1, T o2, Set<Field> fields) {
+    private Map<String, Pair<Object, Object>> getMapOfDifferencesOfFields(T o1, T o2, Set<Field> fields) {
 
-        Map<String, Pair<String, String>> res = new HashMap<>();
+        Map<String, Pair<Object, Object>> res = new HashMap<>();
 
         fields.forEach(
                 field -> {
@@ -130,7 +130,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
 
     }
 
-    private void compareTwoFields(T o1, T o2, Map<String, Pair<String, String>> res, Field field) {
+    private void compareTwoFields(T o1, T o2, Map<String, Pair<Object, Object>> res, Field field) {
 
         try {
 
@@ -149,7 +149,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
 
 
                     if (!fieldsWithNoValuesToDisclose.contains(fieldName)) {
-                        res.put(fieldName, Pair.of(val1.toString(), val2.toString()));
+                        res.put(fieldName, Pair.of(val1, val2));
 
                     } else {
                         res.put(fieldName, null);
@@ -164,7 +164,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
             if (null == val1) {
                 String fieldName = field.getName();
                 if (!fieldsWithNoValuesToDisclose.contains(fieldName)) {
-                    res.put(fieldName, Pair.of("null", val2.toString()));
+                    res.put(fieldName, Pair.of("null", val2));
                 } else {
                     res.put(fieldName, null);
                 }
@@ -175,7 +175,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
             if (null == val2) {
                 String fieldName = field.getName();
                 if (!fieldsWithNoValuesToDisclose.contains(fieldName)) {
-                    res.put(fieldName, Pair.of(val1.toString(), "null"));
+                    res.put(fieldName, Pair.of(val1, "null"));
                 } else {
                     res.put(fieldName, null);
                 }

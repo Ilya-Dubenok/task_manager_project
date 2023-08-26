@@ -19,10 +19,6 @@ public class JsonAuditMessagesFormer {
 
     private MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
 
-    private final String USER_CREATED_MESSAGE = "Пользователь был создан";
-
-    private final String USER_REGISTERED_MESSAGE = "Пользователь был зарегистрирован";
-
 
     public JsonAuditMessagesFormer(ChangedFieldsOfEntitySearcher<User> userChangedFieldsOfEntitySearcher, MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter) {
         this.userChangedFieldsOfEntitySearcher = userChangedFieldsOfEntitySearcher;
@@ -78,14 +74,14 @@ public class JsonAuditMessagesFormer {
     }
 
     public String formUserUpdateAuditMessage(User user1, User user2) {
-        Map<String, Pair<String, String>> changes = userChangedFieldsOfEntitySearcher.getChanges(
+        Map<String, Pair<Object, Object>> changes = userChangedFieldsOfEntitySearcher.getChanges(
                 user1, user2
         );
         return parseUpdatesToAuditMessage(changes);
     }
 
 
-    private String parseUpdatesToAuditMessage(Map<String, Pair<String, String>> updates) {
+    private String parseUpdatesToAuditMessage(Map<String, Pair<Object, Object>> updates) {
 
         List<UpdateDTO> updatesList = new ArrayList<>();
 
@@ -126,10 +122,6 @@ public class JsonAuditMessagesFormer {
             throw new RuntimeException(e);
         }
 
-    }
-
-    public String getAuditRegisteredMessage() {
-        return USER_REGISTERED_MESSAGE;
     }
 
 
@@ -181,14 +173,14 @@ public class JsonAuditMessagesFormer {
 
         private String field;
 
-        private String oldValue;
+        private Object oldValue;
 
-        private String newValue;
+        private Object newValue;
 
         public UpdateDTO() {
         }
 
-        public UpdateDTO(String field, String oldValue, String newValue) {
+        public UpdateDTO(String field, Object oldValue, Object newValue) {
             this.field = field;
             this.oldValue = oldValue;
             this.newValue = newValue;
@@ -202,19 +194,19 @@ public class JsonAuditMessagesFormer {
             this.field = field;
         }
 
-        public String getOldValue() {
+        public Object getOldValue() {
             return oldValue;
         }
 
-        public void setOldValue(String oldValue) {
+        public void setOldValue(Object oldValue) {
             this.oldValue = oldValue;
         }
 
-        public String getNewValue() {
+        public Object getNewValue() {
             return newValue;
         }
 
-        public void setNewValue(String newValue) {
+        public void setNewValue(Object newValue) {
             this.newValue = newValue;
         }
     }

@@ -5,7 +5,7 @@ import org.example.dao.entities.user.User;
 import org.example.dao.entities.user.UserRole;
 import org.example.dao.entities.user.UserStatus;
 import org.example.service.api.ISenderInfoService;
-import org.example.service.utils.AuditMessagesFormer;
+import org.example.service.utils.JsonAuditMessagesFormer;
 import org.example.utils.jwt.JwtTokenHandler;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +23,7 @@ public class UserServiceTestImpl extends UserServiceImpl{
             PasswordEncoder passwordEncoder,
             UserHolder userHolder,
             JwtTokenHandler jwtTokenHandler,
-            AuditMessagesFormer auditMessagesFormer
+            JsonAuditMessagesFormer auditMessagesFormer
     ) {
         super(userRepository, conversionService, senderInfoService, passwordEncoder, userHolder, jwtTokenHandler, auditMessagesFormer);
     }
