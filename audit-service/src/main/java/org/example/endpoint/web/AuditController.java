@@ -40,7 +40,7 @@ public class AuditController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getPAgeOfAudit(@RequestParam(value = "page", defaultValue = "0") Integer page,
+    public ResponseEntity<?> getPageOfAudit(@RequestParam(value = "page", defaultValue = "0") Integer page,
                                                         @RequestParam(value = "size", defaultValue = "20") Integer size){
 
         Page<Audit> pageOfAudit = auditService.getPageOfAudit(page, size);

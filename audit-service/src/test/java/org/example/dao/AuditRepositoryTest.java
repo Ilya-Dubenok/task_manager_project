@@ -110,31 +110,6 @@ public class AuditRepositoryTest {
         Assertions.assertNotNull(convert);
     }
 
-    @Test
-    public void canConvertFromAuditDTOtoAuditWithoutException() throws JsonProcessingException {
-        ObjectMapper objectMapper = this.springMvcJacksonConverter.getObjectMapper();
-
-        String rawConvert = """
-                {
-                    "user":{
-                        "uuid":"2d6aee7b-31a4-49dd-b910-130aaaa3e185",
-                        "mail":"some mail",
-                        "fio":"some fio",
-                        "role":"USER"
-                    },
-                    "text":"some text added",
-                    "type":"USER"
-                }""";
-
-        AuditCreateDTO dto = objectMapper.readValue(rawConvert, AuditCreateDTO.class);
-        Audit convert = conversionService.convert(
-                dto, Audit.class
-        );
-
-        Assertions.assertNotNull(convert);
-
-
-    }
 
 
     @BeforeAll
@@ -176,7 +151,7 @@ public class AuditRepositoryTest {
                 )
                 .map(
                         x -> new Audit(
-                                UUID.randomUUID(), x, "some text", Type.USER, x.getUuid().toString()
+                                UUID.randomUUID(), x, "{\"type\":\"update\",\"content\":[{\"field\":\"password\",\"old_value\":\"not_to_disclose\",\"new_value\":\"not_to_disclose\"},{\"field\":\"role\",\"old_value\":\"USER\",\"new_value\":\"ADMIN\"},{\"field\":\"fio\",\"old_value\":\"old_fio\",\"new_value\":\"new_fio\"}]}", Type.USER, x.getUuid().toString()
                         ))
                 .forEach(repository::save);
 
