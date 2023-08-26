@@ -17,6 +17,7 @@ import org.example.service.api.ISenderInfoService;
 import org.example.service.api.IUserService;
 import org.example.service.utils.AuditMessagesFormer;
 import org.example.service.utils.ChangedFieldsOfEntitySearcher;
+import org.example.service.utils.JsonAuditMessagesFormer;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,7 +26,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.test.context.ActiveProfiles;
@@ -67,6 +67,9 @@ public class UserServiceImplTest {
 
     @Autowired
     private AuditMessagesFormer auditMessagesFormer;
+
+    @Autowired
+    private JsonAuditMessagesFormer jsonAuditMessagesFormer;
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired @Qualifier("testWithoutSecurityContext")
@@ -227,6 +230,28 @@ public class UserServiceImplTest {
                 () -> userService.update(uuid, user.getDtUpdate(), userCreateDTO));
 
     }
+
+    @Test
+    public void jsonUpdateInfoWorks() {
+
+        User user1 = new User(UUID.randomUUID(),"old_mal","old_fio",UserRole.USER, UserStatus.ACTIVATED,"12345");
+        User user2 = new User(user1.getUuid(), "old_mal", "new_fio", UserRole.ADMIN, UserStatus.ACTIVATED, "123456");
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formUserUpdateAuditMessage(user1, user2));
+        System.out.println(s);
+
+    }
+
+    @Test
+    public void jsonCreateInfoWorks() {
+        User user1 = new User(UUID.randomUUID(),"old_mal","old_fio",UserRole.USER, UserStatus.ACTIVATED,"12345");
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formUserCreatedAuditMessage(user1));
+        System.out.println(s);
+
+    }
+
+
 
     @Test
     @Tag(RESTORE_BASE_VALUES_AFTER_TAG)

@@ -2,6 +2,7 @@ package org.example.service.utils;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.ReflectionUtils;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -26,6 +27,19 @@ public class ChangedFieldsOfEntitySearcher<T> {
         this.fieldsWithNoValuesToDisclose = fieldsWithNoValuesToDisclose;
     }
 
+    public Map<String, Object> getFieldsAndValues(T obj) {
+
+        Set<Field> fields = getFieldsToScan();
+
+        if (fields.size() != 0) {
+
+            return getMapOfFieldsAndValues(obj, fields);
+        }
+
+        return new HashMap<>();
+
+    }
+
 
     public Map<String, Pair<String, String>> getChanges(T o1, T o2) {
 
@@ -41,7 +55,35 @@ public class ChangedFieldsOfEntitySearcher<T> {
 
     }
 
+    private Map<String, Object> getMapOfFieldsAndValues(T obj, Set<Field> fields) {
+
+        Map<String, Object> res = new HashMap<>();
+
+        fields.forEach(
+                field -> {
+                    if (!field.canAccess(obj)) {
+                        try {
+                            field.setAccessible(true);
+
+                            mapFieldNameAndValue(obj, res, field);
+                        } finally {
+                            field.setAccessible(false);
+                        }
+                    } else {
+                        mapFieldNameAndValue(obj, res, field);
+                    }
+
+                }
+
+        );
+
+        return res;
+
+    }
+
+
     private Map<String, Pair<String, String>> getMapOfDifferencesOfFields(T o1, T o2, Set<Field> fields) {
+
         Map<String, Pair<String, String>> res = new HashMap<>();
 
         fields.forEach(
@@ -63,6 +105,29 @@ public class ChangedFieldsOfEntitySearcher<T> {
         );
 
         return res;
+    }
+
+    private void mapFieldNameAndValue(T obj, Map<String, Object> res, Field field) {
+
+        try {
+
+            Object value = field.get(obj);
+
+            String fieldName = field.getName();
+
+            if (null==value) {
+                res.put(fieldName, "null");
+            } else if (fieldsWithNoValuesToDisclose.contains(fieldName)){
+                res.put(fieldName, null);
+            } else {
+                res.put(fieldName, value);
+            }
+
+        } catch ( IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 
     private void compareTwoFields(T o1, T o2, Map<String, Pair<String, String>> res, Field field) {
@@ -95,7 +160,6 @@ public class ChangedFieldsOfEntitySearcher<T> {
                 return;
 
             }
-
 
             if (null == val1) {
                 String fieldName = field.getName();
@@ -133,9 +197,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
                 field -> {
                     Annotation[] annotations = field.getAnnotations();
                     for (Annotation annotation : annotations) {
-                        if (
-                                notToScanAnnotations.contains(annotation.annotationType())
-                        )
+                        if (notToScanAnnotations.contains(annotation.annotationType()))
                             return false;
                     }
                     return true;
@@ -148,6 +210,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
     public static class Builder<T> {
 
         private Class<T> targetClass;
+        private MappingJackson2HttpMessageConverter jackson2HttpMessageConverter;
 
         private Set<Class<? extends Annotation>> notToScanAnnotations = new HashSet<>();
 
@@ -163,8 +226,8 @@ public class ChangedFieldsOfEntitySearcher<T> {
             return this;
         }
 
-        public Builder<T> setFieldsWithNoValuesToDisclose(Collection<String> namesOfFiledNotToDisclose) {
-            this.fieldsWithNoValuesToDisclose.addAll(namesOfFiledNotToDisclose);
+        public Builder<T> setFieldsWithNoValuesToDisclose(Collection<String> namesOfFieldsNotToDisclose) {
+            this.fieldsWithNoValuesToDisclose.addAll(namesOfFieldsNotToDisclose);
             return this;
         }
 
