@@ -10,7 +10,7 @@ public class AuditCreateDTO {
     @NotNull(message = "поле пользователя не должно быть null")
     private UserAuditDTO user;
 
-    @NotBlank(message = "текст не должен быть пустым")
+    @NotNull(message = "текст не должен быть пустым")
     private String text;
 
     @NotNull(message = "type не должен быть пустым")

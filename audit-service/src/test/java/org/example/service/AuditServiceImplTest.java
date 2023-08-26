@@ -60,7 +60,7 @@ public class AuditServiceImplTest {
 
         AuditCreateDTO createDTO = new AuditCreateDTO();
 
-        createDTO.setText("");
+        createDTO.setText(null);
 
         createDTO.setType(Type.USER);
 
@@ -81,7 +81,7 @@ public class AuditServiceImplTest {
 
         AuditCreateDTO createDTO = new AuditCreateDTO();
 
-        createDTO.setText("some");
+        createDTO.setText("{\"type\": \"update\"}");
 
         createDTO.setUser(
                 new UserAuditDTO(UUID.randomUUID(), "mail", "fio", UserRole.USER)
@@ -151,39 +151,7 @@ public class AuditServiceImplTest {
 
     }
 
-//    @Test
-////    @Tag(RESTORE_BASE_VALUES_AFTER_TAG)
-//    public void getByUserAndPeriodWorks() {
-//
-//        UUID uuid = UUID.randomUUID();
-//        Audit audit = new Audit(UUID.randomUUID(),
-//                new UserAuditDTO(
-//                        uuid, "mail", "fio", UserRole.ADMIN
-//                ), "some txt", Type.USER, "id");
-//
-//
-//        Audit audit2 = new Audit(UUID.randomUUID(),
-//                new UserAuditDTO(
-//                        uuid, "mail", "fio", UserRole.ADMIN
-//                ), "some txt", Type.USER, "id");
-//
-//        Audit audit3 = new Audit(UUID.randomUUID(),
-//                new UserAuditDTO(
-//                        uuid, "mail", "fio", UserRole.ADMIN
-//                ), "some txt", Type.USER, "id");
-//
-//
-//        repository.saveAndFlush(audit);
-//
-//        repository.saveAndFlush(audit2);
-//
-//        repository.saveAndFlush(audit3);
-//
-//        List<Audit> listOfAuditsForUserUuidAndTimeRange = auditService.getListOfAuditsForUserUuidAndTimeRange(uuid, LocalDate.now(), LocalDate.now().plusDays(3));
-//
-//
-//        System.out.println(listOfAuditsForUserUuidAndTimeRange.size());
-//    }
+
 
     @BeforeAll
     public static void initWithDefaultValues(@Autowired DataSource dataSource, @Autowired IAuditRepository repository) {
@@ -224,7 +192,7 @@ public class AuditServiceImplTest {
                 )
                 .map(
                         x -> new Audit(
-                                UUID.randomUUID(), x, "some text", Type.USER, x.getUuid().toString()
+                                UUID.randomUUID(), x, "{}", Type.USER, x.getUuid().toString()
                         ))
                 .forEach(repository::save);
 

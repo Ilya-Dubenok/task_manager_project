@@ -1,6 +1,7 @@
 package org.example.dao.entities.audit;
 
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import org.example.core.dto.user.UserAuditDTO;
 import org.springframework.data.annotation.CreatedDate;
@@ -23,6 +24,7 @@ public class Audit {
     @Embedded
     private UserAuditDTO user;
 
+    @org.hibernate.annotations.Type(JsonType.class)
     private String text;
 
     @Enumerated(EnumType.STRING)
