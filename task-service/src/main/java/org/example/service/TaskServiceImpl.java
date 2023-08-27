@@ -255,7 +255,6 @@ public class TaskServiceImpl implements ITaskService {
 
         }
 
-        AuditUserDTO author = userService.findAuditUserDTOInfoInCurrentContext();
 
         String message = auditMessagesFormer.formObjectCreatedAuditMessage(res);
 
