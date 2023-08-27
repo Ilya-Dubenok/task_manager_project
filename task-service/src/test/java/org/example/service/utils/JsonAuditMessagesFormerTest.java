@@ -33,6 +33,7 @@ public class JsonAuditMessagesFormerTest {
     private static final UUID PROJECT_4_UUID = UUID.randomUUID();
 
     private static final UUID INIT_TASK_UUID = UUID.randomUUID();
+    private static final UUID SECOND_TASK_UUID = UUID.randomUUID();
 
     private static final String RESTORE_BASE_VALUES_AFTER_TAG = "restore_base_value";
 
@@ -100,11 +101,85 @@ public class JsonAuditMessagesFormerTest {
     }
 
     @Test
-    public void ProjectCreatedMessageFormed() {
+    public void projectCreatedMessageFormed() {
 
         Project project = projectRepository.findById(PROJECT_2_UUID).orElseThrow();
 
         String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formObjectCreatedAuditMessage(project));
+
+    }
+
+    @Test
+    public void taskUpdatedMessageFormed() {
+
+        Task task1 = taskRepository.findById(INIT_TASK_UUID).orElseThrow();
+
+        task1.setProject(null);
+
+        Task task2 = taskRepository.findById(SECOND_TASK_UUID).orElseThrow();
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formObjectUpdatedAuditMessage(task1, task2));
+
+    }
+
+    @Test
+    public void taskUpdatedMessageFormed2() {
+
+        Task task1 = taskRepository.findById(INIT_TASK_UUID).orElseThrow();
+
+        Task task2 = taskRepository.findById(SECOND_TASK_UUID).orElseThrow();
+
+        task2.setProject(null);
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formObjectUpdatedAuditMessage(task1, task2));
+
+    }
+
+    @Test
+    public void taskUpdatedMessageFormed3() {
+
+        Task task1 = taskRepository.findById(INIT_TASK_UUID).orElseThrow();
+
+        Task task2 = taskRepository.findById(SECOND_TASK_UUID).orElseThrow();
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formObjectUpdatedAuditMessage(task1, task2));
+
+    }
+
+    @Test
+    public void taskUpdatedMessageFormed4() {
+
+        Task task1 = taskRepository.findById(INIT_TASK_UUID).orElseThrow();
+
+        Task task2 = taskRepository.findById(SECOND_TASK_UUID).orElseThrow();
+
+        task2.setProject(new Project(UUID.randomUUID()));
+
+        task2.setImplementer(null);
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formObjectUpdatedAuditMessage(task1, task2));
+
+    }
+
+    @Test
+    public void projectUpdatedMessageFormed1() {
+
+        Project project1 = projectRepository.findById(INIT_PROJECT_UUID).orElseThrow();
+        Project project2 = projectRepository.findById(PROJECT_2_UUID).orElseThrow();
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formObjectUpdatedAuditMessage(project1, project2));
+
+    }
+
+    @Test
+    public void projectUpdatedMessageFormed2() {
+
+        Project project1 = projectRepository.findById(INIT_PROJECT_UUID).orElseThrow();
+        Project project2 = projectRepository.findById(INIT_PROJECT_UUID).orElseThrow();
+
+        project2.setName(null);
+
+        String s = Assertions.assertDoesNotThrow(() -> jsonAuditMessagesFormer.formObjectUpdatedAuditMessage(project1, project2));
 
     }
 
@@ -180,6 +255,17 @@ public class JsonAuditMessagesFormerTest {
         initTask.setProject(init_project);
 
         taskRepository.saveAndFlush(initTask);
+
+
+        Task secondTask = new Task();
+        secondTask.setUuid(SECOND_TASK_UUID);
+        secondTask.setTitle("second_title");
+        secondTask.setImplementer(new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS));
+        secondTask.setStatus(TaskStatus.IN_WORK);
+        secondTask.setProject(init_project);
+
+        taskRepository.saveAndFlush(secondTask);
+
 
 
     }

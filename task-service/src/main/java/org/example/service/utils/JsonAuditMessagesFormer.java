@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.example.dao.entities.project.Project;
 import org.example.dao.entities.task.Task;
-import org.example.dao.entities.user.User;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 

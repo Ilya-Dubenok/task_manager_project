@@ -145,6 +145,16 @@ public class ChangedFieldsOfEntitySearcher<T> {
 
         try {
 
+            Annotation[] annotations = field.getAnnotations();
+
+            for (Annotation annotation : annotations) {
+                if (annotation instanceof SpecifiedScan) {
+                    compareFieldValuesForSpecifiedScanAnnotation(o1, o2, res, field, (SpecifiedScan) annotation);
+                    return;
+                }
+            }
+            
+
             Object val1 = field.get(o1);
             Object val2 = field.get(o2);
 
@@ -175,7 +185,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
             if (null == val1) {
                 String fieldName = field.getName();
                 if (!fieldsWithNoValuesToDisclose.contains(fieldName)) {
-                    res.put(fieldName, Pair.of("null", val2));
+                    res.put(fieldName, Pair.of(null, val2));
                 } else {
                     res.put(fieldName, null);
                 }
@@ -186,7 +196,7 @@ public class ChangedFieldsOfEntitySearcher<T> {
             if (null == val2) {
                 String fieldName = field.getName();
                 if (!fieldsWithNoValuesToDisclose.contains(fieldName)) {
-                    res.put(fieldName, Pair.of(val1, "null"));
+                    res.put(fieldName, Pair.of(val1, null));
                 } else {
                     res.put(fieldName, null);
                 }
@@ -233,11 +243,11 @@ public class ChangedFieldsOfEntitySearcher<T> {
         );
     }
 
-    private <A extends SpecifiedScan> void mapFieldNameAndValueForSpecifiedScanAnnotation(T obj, Map<String, Object> res, Field fieldToAnalyze, A annotation) throws IllegalAccessException {
+    private <A extends SpecifiedScan> void mapFieldNameAndValueForSpecifiedScanAnnotation(Object obj, Map<String, Object> res, Field fieldToParse, A annotation) throws IllegalAccessException {
 
-        Object value = fieldToAnalyze.get(obj);
+        Object value = fieldToParse.get(obj);
 
-        String fieldName = fieldToAnalyze.getName();
+        String fieldName = fieldToParse.getName();
 
         String[] fieldsToScan = annotation.fieldsToScan();
 
@@ -267,6 +277,79 @@ public class ChangedFieldsOfEntitySearcher<T> {
         }
 
         res.put(fieldName, innerMap.size() == 0 ? "n/a" : innerMap);
+
+    }
+
+    private <A extends SpecifiedScan> Map<String,Object> getMapOfFieldNameAndValueForSpecifiedScanAnnotation(Object obj, Field fieldToParse, A annotation) throws IllegalAccessException {
+
+        Object value = fieldToParse.get(obj);
+
+        String[] fieldsToScan = annotation.fieldsToScan();
+
+        Set<Field> fields = getFieldsToScan(value, fieldsToScan);
+
+        Map<String, Object> res = new HashMap<>();
+
+        for (Field field : fields) {
+
+            if (!field.canAccess(value)) {
+
+                try {
+                    field.setAccessible(true);
+
+                    res.put(field.getName(), field.get(value));
+
+                } finally {
+                    field.setAccessible(false);
+                }
+
+            } else {
+
+                res.put(field.getName(), field.get(value));
+
+            }
+
+        }
+
+        return res;
+    }
+
+    private <A extends SpecifiedScan> void compareFieldValuesForSpecifiedScanAnnotation(T o1, T o2, Map<String, Pair<Object, Object>> res, Field fieldToParse, A annotation) throws IllegalAccessException {
+
+        Object value1 = fieldToParse.get(o1);
+        Object value2 = fieldToParse.get(o2);
+
+        if (null == value1 && null == value2) {
+            return;
+        }
+
+        String fieldName = fieldToParse.getName();
+
+        if (null == value1) {
+
+            Map<String, Object> obj2InnerValuesMap = getMapOfFieldNameAndValueForSpecifiedScanAnnotation(o2, fieldToParse, annotation);
+            res.put(fieldName, Pair.of(null, obj2InnerValuesMap));
+            return;
+
+        }
+
+        if (null == value2) {
+            Map<String, Object> obj1InnerValuesMap = getMapOfFieldNameAndValueForSpecifiedScanAnnotation(o1, fieldToParse, annotation);
+            res.put(fieldName, Pair.of( obj1InnerValuesMap, null));
+            return;
+        }
+
+
+        Map<String, Object> obj1InnerValuesMap = getMapOfFieldNameAndValueForSpecifiedScanAnnotation(o1, fieldToParse, annotation);
+        Map<String, Object> obj2InnerValuesMap = getMapOfFieldNameAndValueForSpecifiedScanAnnotation(o2, fieldToParse, annotation);
+
+        if (!obj1InnerValuesMap.equals(obj2InnerValuesMap)) {
+
+            res.put(fieldName, Pair.of(obj1InnerValuesMap, obj2InnerValuesMap));
+
+        }
+
+
 
     }
 
