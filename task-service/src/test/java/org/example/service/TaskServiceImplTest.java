@@ -138,6 +138,8 @@ public class TaskServiceImplTest {
 
         doReturn(inProject).when(userService).findUserInCurrentContext();
 
+        doReturn(null).when(userService).findAuditUserDTOInfoInCurrentContext();
+
         Task save = taskService.saveForUserInContext(taskCreateDTO);
 
         Assertions.assertNotNull(save);

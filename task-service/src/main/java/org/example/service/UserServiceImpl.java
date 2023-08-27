@@ -1,6 +1,7 @@
 package org.example.service;
 
 import jakarta.validation.ConstraintViolationException;
+import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
 import org.example.core.exception.GeneralException;
@@ -124,6 +125,17 @@ public class UserServiceImpl implements IUserService {
         user.setUuid(uuid);
 
         return user;
+    }
+
+    @Override
+    public AuditUserDTO findAuditUserDTOInfoInCurrentContext() {
+
+        String holderUuid = userHolder.getUser().getUsername();
+
+        UserDTO userDTO = userServiceRequester.getUser(UUID.fromString(holderUuid));
+
+        return new AuditUserDTO(userDTO.getUuid(), userDTO.getMail(), userDTO.getFio(), userDTO.getRole());
+
     }
 
     @Override

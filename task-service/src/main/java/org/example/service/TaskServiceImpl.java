@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
+import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.task.TaskCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
@@ -19,6 +20,7 @@ import org.example.dao.entities.user.User;
 import org.example.service.api.IProjectService;
 import org.example.service.api.ITaskService;
 import org.example.service.api.IUserService;
+import org.example.service.utils.JsonAuditMessagesFormer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -41,11 +43,14 @@ public class TaskServiceImpl implements ITaskService {
 
     private ITaskRepository taskRepository;
 
+    private JsonAuditMessagesFormer auditMessagesFormer;
 
-    public TaskServiceImpl(IProjectService projectService, IUserService userService, ITaskRepository taskRepository) {
+
+    public TaskServiceImpl(IProjectService projectService, IUserService userService, ITaskRepository taskRepository, JsonAuditMessagesFormer auditMessagesFormer) {
         this.projectService = projectService;
         this.userService = userService;
         this.taskRepository = taskRepository;
+        this.auditMessagesFormer = auditMessagesFormer;
     }
 
 
@@ -163,9 +168,11 @@ public class TaskServiceImpl implements ITaskService {
 
         updateTaskFields(taskCreateDTO, project, implementer, toPersist);
 
+        Task res;
+
         try {
 
-            return taskRepository.saveAndFlush(toPersist);
+            res = taskRepository.saveAndFlush(toPersist);
 
         } catch (Exception e) {
 
@@ -178,6 +185,12 @@ public class TaskServiceImpl implements ITaskService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
 
         }
+
+        AuditUserDTO author = userService.findAuditUserDTOInfoInCurrentContext();
+
+        String message = auditMessagesFormer.formObjectCreatedAuditMessage(res);
+
+        return res;
 
     }
 
@@ -224,9 +237,11 @@ public class TaskServiceImpl implements ITaskService {
 
         updateTaskFields(taskCreateDTO, project, implementer, toPersist);
 
+        Task res;
+
         try {
 
-            return taskRepository.saveAndFlush(toPersist);
+            res = taskRepository.saveAndFlush(toPersist);
 
         } catch (Exception e) {
 
@@ -240,6 +255,11 @@ public class TaskServiceImpl implements ITaskService {
 
         }
 
+        AuditUserDTO author = userService.findAuditUserDTOInfoInCurrentContext();
+
+        String message = auditMessagesFormer.formObjectCreatedAuditMessage(res);
+
+        return res;
     }
 
     @Override

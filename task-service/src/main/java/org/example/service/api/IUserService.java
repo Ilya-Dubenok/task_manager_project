@@ -1,5 +1,6 @@
 package org.example.service.api;
 
+import org.example.core.dto.audit.AuditUserDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
 import org.example.dao.entities.user.User;
@@ -16,6 +17,8 @@ public interface IUserService {
     List<User> findAllAndSave(Set<UserDTO> userDTOSet);
 
     User findUserInCurrentContext();
+
+    AuditUserDTO findAuditUserDTOInfoInCurrentContext();
 
     boolean userInCurrentContextHasOneOfRoles(UserRole... userRoles);
 

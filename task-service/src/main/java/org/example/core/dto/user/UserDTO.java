@@ -15,6 +15,13 @@ public class UserDTO implements Uidable {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private UserRole role;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String mail;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String fio;
+
+
     public UserDTO() {
     }
 
@@ -36,6 +43,22 @@ public class UserDTO implements Uidable {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public String getMail() {
+        return mail;
+    }
+
+    public void setMail(String mail) {
+        this.mail = mail;
+    }
+
+    public String getFio() {
+        return fio;
+    }
+
+    public void setFio(String fio) {
+        this.fio = fio;
     }
 
     @Override
