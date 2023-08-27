@@ -1,6 +1,7 @@
 package org.example.service.utils;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.example.service.utils.annotations.SpecifiedScan;
 import org.reflections.ReflectionUtils;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
@@ -113,6 +114,16 @@ public class ChangedFieldsOfEntitySearcher<T> {
 
             Object value = field.get(obj);
 
+            Annotation[] annotations = field.getAnnotations();
+
+            for (Annotation annotation : annotations) {
+                if (annotation instanceof SpecifiedScan) {
+                    mapFieldNameAndValueForSpecifiedScanAnnotation(obj, res, field, (SpecifiedScan) annotation);
+                    return;
+                }
+            }
+
+
             String fieldName = field.getName();
 
             if (null==value) {
@@ -206,6 +217,58 @@ public class ChangedFieldsOfEntitySearcher<T> {
         );
     }
 
+    private Set<Field> getFieldsToScan(Object obj, String[] fieldsToScan) {
+        return ReflectionUtils.get(
+                Fields.of(obj.getClass()),
+                field -> {
+
+                    for (String fieldToScan : fieldsToScan) {
+                        if (field.getName().equals(fieldToScan))
+                            return true;
+
+                    }
+                    return false;
+                }
+
+        );
+    }
+
+    private <A extends SpecifiedScan> void mapFieldNameAndValueForSpecifiedScanAnnotation(T obj, Map<String, Object> res, Field fieldToAnalyze, A annotation) throws IllegalAccessException {
+
+        Object value = fieldToAnalyze.get(obj);
+
+        String fieldName = fieldToAnalyze.getName();
+
+        String[] fieldsToScan = annotation.fieldsToScan();
+
+        Set<Field> fields = getFieldsToScan(value, fieldsToScan);
+
+        Map<String, Object> innerMap = new HashMap<>();
+
+        for (Field field : fields) {
+
+            if (!field.canAccess(value)) {
+
+                try {
+                    field.setAccessible(true);
+
+                    innerMap.put(field.getName(), field.get(value));
+
+                } finally {
+                    field.setAccessible(false);
+                }
+
+            } else {
+
+                    innerMap.put(field.getName(), field.get(value));
+
+            }
+
+        }
+
+        res.put(fieldName, innerMap.size() == 0 ? "n/a" : innerMap);
+
+    }
 
     public static class Builder<T> {
 

@@ -3,6 +3,7 @@ package org.example.dao.entities.task;
 import jakarta.persistence.*;
 import org.example.dao.entities.project.Project;
 import org.example.dao.entities.user.User;
+import org.example.service.utils.annotations.SpecifiedScan;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -28,6 +29,7 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(nullable = false, foreignKey = @ForeignKey(name = "task_project_foreign_key"))
+    @SpecifiedScan(fieldsToScan = {"uuid"})
     private Project project;
 
     @Column(nullable = false)
