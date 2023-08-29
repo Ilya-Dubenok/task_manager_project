@@ -4,7 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
-import org.example.core.dto.audit.AuditUserDTO;
+import org.example.core.dto.audit.Type;
 import org.example.core.dto.task.TaskCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
@@ -17,6 +17,7 @@ import org.example.dao.entities.project.Project;
 import org.example.dao.entities.task.Task;
 import org.example.dao.entities.task.TaskStatus;
 import org.example.dao.entities.user.User;
+import org.example.service.api.IAuditService;
 import org.example.service.api.IProjectService;
 import org.example.service.api.ITaskService;
 import org.example.service.api.IUserService;
@@ -45,12 +46,15 @@ public class TaskServiceImpl implements ITaskService {
 
     private JsonAuditMessagesFormer auditMessagesFormer;
 
+    private IAuditService auditService;
 
-    public TaskServiceImpl(IProjectService projectService, IUserService userService, ITaskRepository taskRepository, JsonAuditMessagesFormer auditMessagesFormer) {
+
+    public TaskServiceImpl(IProjectService projectService, IUserService userService, ITaskRepository taskRepository, JsonAuditMessagesFormer auditMessagesFormer, IAuditService auditService) {
         this.projectService = projectService;
         this.userService = userService;
         this.taskRepository = taskRepository;
         this.auditMessagesFormer = auditMessagesFormer;
+        this.auditService = auditService;
     }
 
 
@@ -186,9 +190,13 @@ public class TaskServiceImpl implements ITaskService {
 
         }
 
-        AuditUserDTO author = userService.findAuditUserDTOInfoInCurrentContext();
+        auditService.sendAudit(
+                userService.findUserInCurrentContext().getUuid(),
+                auditMessagesFormer.formObjectCreatedAuditMessage(res),
+                Type.TASK,
+                res.getUuid().toString()
+                );
 
-        String message = auditMessagesFormer.formObjectCreatedAuditMessage(res);
 
         return res;
 

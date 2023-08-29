@@ -128,11 +128,9 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public AuditUserDTO findAuditUserDTOInfoInCurrentContext() {
+    public AuditUserDTO findAuditUserDTOInfoInCurrentContext(UUID holderUuid) {
 
-        String holderUuid = userHolder.getUser().getUsername();
-
-        UserDTO userDTO = userServiceRequester.getUser(UUID.fromString(holderUuid));
+        UserDTO userDTO = userServiceRequester.getUser(holderUuid);
 
         return new AuditUserDTO(userDTO.getUuid(), userDTO.getMail(), userDTO.getFio(), userDTO.getRole());
 
