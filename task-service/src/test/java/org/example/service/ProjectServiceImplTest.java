@@ -43,6 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
@@ -126,6 +127,9 @@ public class ProjectServiceImplTest {
     public void validationOnFieldsWithCustomAnnotations() {
 
         ProjectCreateDTO projectCreateDTO = new ProjectCreateDTO();
+
+        doReturn(new User(UUID.randomUUID())).when(userService).findUserInCurrentContext();
+
         Assertions.assertDoesNotThrow(() -> projectService.save(projectCreateDTO));
 
         projectCreateDTO.setManager(new UserDTO());
@@ -239,10 +243,10 @@ public class ProjectServiceImplTest {
         projectCreateDTO.setManager(manager);
 
         doReturn(manager).when(userServiceRequester).getUser(managerUUID);
+        doReturn(new User(UUID.randomUUID())).when(userService).findUserInCurrentContext();
 
         Project save = projectService.save(projectCreateDTO);
 
-        Mockito.verify(userServiceRequester, Mockito.times(1)).getUser(any());
 
         Assertions.assertTrue(userRepository.existsById(managerUUID));
 
@@ -281,10 +285,9 @@ public class ProjectServiceImplTest {
 
         doReturn(manager).when(userServiceRequester).getUser(managerUUID);
         doReturn(staff).when(userServiceRequester).getSetOfUserDTOs(any());
+        doReturn(new User(managerUUID)).when(userService).findUserInCurrentContext();
 
         Project save = projectService.save(projectCreateDTO);
-
-        Mockito.verify(userServiceRequester, Mockito.times(1)).getUser(any());
 
         Assertions.assertTrue(userRepository.existsById(managerUUID));
 

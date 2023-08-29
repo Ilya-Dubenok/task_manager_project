@@ -57,7 +57,7 @@ public class KafkaProducerConfig {
 
 
     @Configuration
-    @Profile("kafka_not_needed")
+    @Profile("kafka_not_needed | test")
     public static class NoKafkaConfiguration{
 
         @Bean

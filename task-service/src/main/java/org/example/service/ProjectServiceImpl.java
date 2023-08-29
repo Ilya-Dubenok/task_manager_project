@@ -5,6 +5,7 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import org.example.core.dto.audit.Type;
 import org.example.core.dto.project.ProjectCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
@@ -16,10 +17,11 @@ import org.example.dao.api.IProjectRepository;
 import org.example.dao.entities.project.Project;
 import org.example.dao.entities.project.ProjectStatus;
 import org.example.dao.entities.user.User;
+import org.example.service.api.IAuditService;
 import org.example.service.api.IProjectService;
 import org.example.service.api.IUserService;
+import org.example.service.utils.JsonAuditMessagesFormer;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -41,11 +43,20 @@ public class ProjectServiceImpl implements IProjectService {
 
     private ConversionService conversionService;
 
-    public ProjectServiceImpl(IUserService userService, IProjectRepository projectRepository,
-                              ConversionService conversionService) {
+    private JsonAuditMessagesFormer auditMessagesFormer;
+
+    private IAuditService auditService;
+
+    public ProjectServiceImpl(IUserService userService,
+                              IProjectRepository projectRepository,
+                              ConversionService conversionService,
+                              JsonAuditMessagesFormer auditMessagesFormer,
+                              IAuditService auditService) {
         this.userService = userService;
         this.projectRepository = projectRepository;
         this.conversionService = conversionService;
+        this.auditMessagesFormer = auditMessagesFormer;
+        this.auditService = auditService;
     }
 
     @Override
@@ -58,9 +69,11 @@ public class ProjectServiceImpl implements IProjectService {
 
         verifyAndPersistUsers(projectCreateDTO, toPersist);
 
+        Project res;
+
         try {
 
-            return projectRepository.saveAndFlush(toPersist);
+             res = projectRepository.saveAndFlush(toPersist);
 
 
         } catch (Exception e) {
@@ -72,6 +85,22 @@ public class ProjectServiceImpl implements IProjectService {
 
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
+
+        try {
+
+            auditService.sendAudit(
+                    userService.findUserInCurrentContext().getUuid(),
+                    auditMessagesFormer.formObjectCreatedAuditMessage(res),
+                    Type.PROJECT,
+                    res.getUuid().toString()
+            );
+
+        } catch (Exception ignored) {
+            //TODO logging
+        }
+
+
+        return res;
 
     }
 
@@ -93,11 +122,13 @@ public class ProjectServiceImpl implements IProjectService {
             throw new StructuredException("dt_update", "Версия проекта уже была обновлена");
         }
 
+        Project copyBeforeUpdate = copyProject(toUpdate);
+
         updateProjectFields(projectCreateDTO, toUpdate);
 
         try {
 
-            return projectRepository.saveAndFlush(toUpdate);
+            toUpdate =  projectRepository.saveAndFlush(toUpdate);
 
         } catch (Exception e) {
 
@@ -110,6 +141,39 @@ public class ProjectServiceImpl implements IProjectService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
         }
 
+        try {
+
+            if (!copyBeforeUpdate.equals(toUpdate)) {
+                auditService.sendAudit(
+                        userService.findUserInCurrentContext().getUuid(),
+                        auditMessagesFormer.formObjectUpdatedAuditMessage(copyBeforeUpdate, toUpdate),
+                        Type.PROJECT,
+                        toUpdate.getUuid().toString()
+                );
+            }
+
+        } catch (Exception ignored) {
+            //TODO logging
+        }
+
+        return toUpdate;
+
+    }
+
+    private Project copyProject(Project toUpdate) {
+
+        Project res = new Project(
+                toUpdate.getUuid(),
+                toUpdate.getDtCreate(),
+                toUpdate.getDtCreate(),
+                toUpdate.getName(),
+                toUpdate.getDescription(),
+                toUpdate.getManager(),
+                toUpdate.getStaff(),
+                toUpdate.getStatus()
+        );
+
+        return res;
 
     }
 

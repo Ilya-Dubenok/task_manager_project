@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.service.api.IAuditSenderKafkaClient;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@Profile("!(test | kafka_not_needed)")
 public class AuditSenderKafkaClientImpl implements IAuditSenderKafkaClient<String, Object> {
 
     private KafkaTemplate<String, Object> kafkaTemplate;
