@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -125,5 +126,18 @@ public class Task {
 
     public void setImplementer(User implementer) {
         this.implementer = implementer;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return Objects.equals(uuid, task.uuid) && Objects.equals(dtCreate, task.dtCreate) && Objects.equals(dtUpdate, task.dtUpdate) && Objects.equals(project, task.project) && Objects.equals(title, task.title) && Objects.equals(description, task.description) && status == task.status && Objects.equals(implementer, task.implementer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uuid, dtCreate, dtUpdate, project, title, description, status, implementer);
     }
 }

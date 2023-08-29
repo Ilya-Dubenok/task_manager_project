@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -130,5 +131,18 @@ public class Project {
 
     public void setStatus(ProjectStatus status) {
         this.status = status;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Project project = (Project) o;
+        return Objects.equals(uuid, project.uuid) && Objects.equals(dtCreate, project.dtCreate) && Objects.equals(dtUpdate, project.dtUpdate) && Objects.equals(name, project.name) && Objects.equals(description, project.description) && Objects.equals(manager, project.manager) && Objects.equals(staff, project.staff) && status == project.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uuid, dtCreate, dtUpdate, name, description, manager, staff, status);
     }
 }

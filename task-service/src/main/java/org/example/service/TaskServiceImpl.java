@@ -264,7 +264,12 @@ public class TaskServiceImpl implements ITaskService {
         }
 
 
-        String message = auditMessagesFormer.formObjectCreatedAuditMessage(res);
+        auditService.sendAudit(
+                userService.findUserInCurrentContext().getUuid(),
+                auditMessagesFormer.formObjectCreatedAuditMessage(res),
+                Type.TASK,
+                res.getUuid().toString()
+        );
 
         return res;
     }
@@ -312,11 +317,13 @@ public class TaskServiceImpl implements ITaskService {
             throw new StructuredException("dt_update", "Версия задачи уже была обновлена");
         }
 
+        Task copyBeforeUpdate = copyTaskBeforeSupposedChanges(toUpdate);
+
         updateTaskFields(taskCreateDTO, project, implementer, toUpdate);
 
         try {
 
-            return taskRepository.saveAndFlush(toUpdate);
+            toUpdate = taskRepository.saveAndFlush(toUpdate);
 
         } catch (Exception e) {
 
@@ -329,6 +336,23 @@ public class TaskServiceImpl implements ITaskService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
 
         }
+
+        try {
+
+            if (!toUpdate.equals(copyBeforeUpdate)) {
+                auditService.sendAudit(
+                        userService.findUserInCurrentContext().getUuid(),
+                        auditMessagesFormer.formObjectUpdatedAuditMessage(copyBeforeUpdate, toUpdate),
+                        Type.TASK,
+                        toUpdate.getUuid().toString()
+                );
+            }
+
+        } catch (Exception ignored) {
+            //TODO placeForLogging
+        }
+
+        return toUpdate;
     }
 
     @Override
@@ -384,17 +408,42 @@ public class TaskServiceImpl implements ITaskService {
             throw new StructuredException("dt_update", "Версия задачи уже была обновлена");
         }
 
+
+        if (toUpdate.getStatus() == taskStatus) {
+
+            return toUpdate;
+
+        }
+
+        Task copyBeforeUpdate = copyTaskBeforeSupposedChanges(toUpdate);
+
         toUpdate.setStatus(taskStatus);
 
         try {
 
-            return taskRepository.saveAndFlush(toUpdate);
+            toUpdate = taskRepository.saveAndFlush(toUpdate);
 
         } catch (Exception e) {
 
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
 
         }
+
+        try {
+
+            auditService.sendAudit(
+                    userService.findUserInCurrentContext().getUuid(),
+                    auditMessagesFormer.formObjectUpdatedAuditMessage(copyBeforeUpdate, toUpdate),
+                    Type.TASK,
+                    toUpdate.getUuid().toString()
+            );
+
+        } catch (Exception ignored) {
+            //TODO placeForLogging
+        }
+
+        return toUpdate;
+
     }
 
     @Override
@@ -422,17 +471,40 @@ public class TaskServiceImpl implements ITaskService {
 
         }
 
+        if (toUpdate.getStatus() == taskStatus) {
+
+            return toUpdate;
+
+        }
+
+        Task copyBeforeUpdate = copyTaskBeforeSupposedChanges(toUpdate);
+
         toUpdate.setStatus(taskStatus);
 
         try {
 
-            return taskRepository.saveAndFlush(toUpdate);
+            toUpdate = taskRepository.saveAndFlush(toUpdate);
 
         } catch (Exception e) {
 
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
 
         }
+
+        try {
+
+            auditService.sendAudit(
+                    userService.findUserInCurrentContext().getUuid(),
+                    auditMessagesFormer.formObjectUpdatedAuditMessage(copyBeforeUpdate, toUpdate),
+                    Type.TASK,
+                    toUpdate.getUuid().toString()
+            );
+
+        } catch (Exception ignored) {
+            //TODO placeForLogging
+        }
+
+        return toUpdate;
 
     }
 
@@ -448,6 +520,23 @@ public class TaskServiceImpl implements ITaskService {
             return updateStatusForUserInContext(uuid, dtUpdate, taskStatus);
 
         }
+    }
+
+    private Task copyTaskBeforeSupposedChanges(Task toUpdate) {
+
+        Task copyBeforeSaving = new Task(
+                toUpdate.getUuid(),
+                toUpdate.getDtCreate(),
+                toUpdate.getDtUpdate(),
+                toUpdate.getProject(),
+                toUpdate.getTitle(),
+                toUpdate.getDescription(),
+                toUpdate.getStatus(),
+                toUpdate.getImplementer()
+        );
+
+        return copyBeforeSaving;
+
     }
 
     private Project getProjectAndCheckImplementer(TaskCreateDTO taskCreateDTO, User implementer) {
