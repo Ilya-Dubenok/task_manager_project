@@ -1,7 +1,7 @@
-package org.example.dao.entities.audit;
+package org.example.core.dto.audit;
 
 public enum Type {
-    USER("user"), TASK("task"), PROJECT("project");
+    PROJECT("project"), TASK("task");
 
     private String id;
 

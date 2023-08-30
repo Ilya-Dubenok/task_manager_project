@@ -142,6 +142,16 @@ public class ReportServiceTest {
 
 
     @Test
+    public void testPutReportWorks2() {
+        Map<String, String> init = new HashMap<>();
+        init.put("from", "2023-08-13");
+        init.put("to", "2023-08-13");
+        Assertions.assertDoesNotThrow(
+                () -> reportService.putReportRequest(init, ReportType.JOURNAL_AUDIT));
+
+    }
+
+    @Test
     public void testPutReportThrows() {
         Map<String, String> init = new HashMap<>();
         init.put("user", null);
@@ -152,19 +162,9 @@ public class ReportServiceTest {
 
     }
 
+
     @Test
     public void testPutReportThrows2() {
-        Map<String, String> init = new HashMap<>();
-        init.put("from", "2023-08-13");
-        init.put("to", "2023-08-13");
-        StructuredException structuredException = Assertions.assertThrows(StructuredException.class,
-                () -> reportService.putReportRequest(init, ReportType.JOURNAL_AUDIT));
-
-    }
-
-
-    @Test
-    public void testPutReportThrows3() {
         Map<String, String> init = new HashMap<>();
         init.put("user", UUID.randomUUID().toString());
         init.put("from", "2023-09-13");

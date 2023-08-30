@@ -1,11 +1,15 @@
 package org.example.core.dto.report;
 
+import org.example.core.dto.audit.Type;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
 public class ReportParamAudit implements Params {
 
-    private UUID user;
+    private Type type;
+
+    private UUID id;
 
     private LocalDate from;
 
@@ -14,18 +18,27 @@ public class ReportParamAudit implements Params {
     public ReportParamAudit() {
     }
 
-    public ReportParamAudit(UUID user, LocalDate from, LocalDate to) {
-        this.user = user;
+    public ReportParamAudit(Type type, UUID id, LocalDate from, LocalDate to) {
+        this.type = type;
+        this.id = id;
         this.from = from;
         this.to = to;
     }
 
-    public UUID getUser() {
-        return user;
+    public Type getType() {
+        return type;
     }
 
-    public void setUser(UUID user) {
-        this.user = user;
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public LocalDate getFrom() {

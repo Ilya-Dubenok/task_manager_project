@@ -33,6 +33,7 @@ import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
@@ -137,6 +138,8 @@ public class TaskServiceImplTest {
         User inProject = new User(USER_UUID_IS_MANAGER_AND_STAFF_IN_3_PROJECTS);
 
         doReturn(inProject).when(userService).findUserInCurrentContext();
+
+        doReturn(null).when(userService).findAuditUserDTOInfoInCurrentContext(any());
 
         Task save = taskService.saveForUserInContext(taskCreateDTO);
 

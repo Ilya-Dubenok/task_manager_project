@@ -2,6 +2,7 @@ package org.example.service;
 
 import org.example.config.properties.ApplicationProperties;
 import org.example.core.dto.audit.AuditDTO;
+import org.example.core.dto.audit.Type;
 import org.example.core.exception.GeneralException;
 import org.example.service.api.IAuditServiceFeignClient;
 import org.example.service.api.IAuditServiceRequester;
@@ -31,12 +32,23 @@ public class AuditServiceRequesterImpl implements IAuditServiceRequester {
     }
 
     @Override
-    public List<AuditDTO> getAuditDTOList(UUID uuid, LocalDate from, LocalDate to) {
+    public List<AuditDTO> getAuditDTOList(Type type, UUID id, LocalDate from, LocalDate to) {
         try {
 
             URI uri = URI.create(AUDIT_SERVICE_INTERNAL_URL.toString().concat("/list"));
-            ResponseEntity<List<AuditDTO>> response = auditServiceFeignClient.getAuditDTOList( uri,uuid,
-                    from, to);
+
+            ResponseEntity<List<AuditDTO>> response;
+
+            if (type != null) {
+
+                response = auditServiceFeignClient.getAuditDTOList(uri, type, id, from, to);
+
+            } else {
+
+                response = auditServiceFeignClient.getAuditDTOList(uri, from, to);
+
+            }
+
             if (response.getStatusCode() == HttpStatus.OK) {
                 return response.getBody();
             }

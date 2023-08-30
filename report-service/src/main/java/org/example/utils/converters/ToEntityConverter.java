@@ -18,6 +18,7 @@ import java.util.UUID;
 
 @Component
 public class ToEntityConverter implements GenericConverter {
+
     @Override
     public Set<ConvertiblePair> getConvertibleTypes() {
         return Set.of(
@@ -58,21 +59,25 @@ public class ToEntityConverter implements GenericConverter {
 
         StructuredException e = new StructuredException();
 
-        String userUuid = initParams.get("user");
+        if (initParams.containsKey("user")) {
 
-        if (null == userUuid) {
+            String id = initParams.get("user");
 
-            e.put("user", "must not be null in request");
+            validateAndFillId(res, e, id, "user");
 
-        } else {
 
-            try {
-                res.put("user", UUID.fromString(userUuid));
-            } catch (Exception exception) {
+        } else if (initParams.containsKey("task")) {
 
-                e.put("user", "uuid is malformed");
+            String id = initParams.get("task");
 
-            }
+            validateAndFillId(res, e, id, "task");
+
+
+        } else if (initParams.containsKey("project")) {
+
+            String id = initParams.get("project");
+
+            validateAndFillId(res, e, id, "project");
 
         }
 
@@ -102,7 +107,7 @@ public class ToEntityConverter implements GenericConverter {
         } else {
 
             try {
-                
+
                 res.put("from",LocalDate.parse(fromString));
 
             } catch (Exception exception) {
@@ -116,5 +121,23 @@ public class ToEntityConverter implements GenericConverter {
         }
 
         return res;
+    }
+
+    private static void validateAndFillId(Map<String, Object> res, StructuredException e, String id, String type) {
+        if (null == id) {
+
+            e.put(type, "must not be null in request");
+
+        } else {
+
+            try {
+                res.put(type, UUID.fromString(id));
+            } catch (Exception exception) {
+
+                e.put(type, "uuid is malformed");
+
+            }
+
+        }
     }
 }

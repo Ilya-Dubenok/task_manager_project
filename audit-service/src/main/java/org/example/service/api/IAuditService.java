@@ -3,6 +3,7 @@ package org.example.service.api;
 import jakarta.validation.Valid;
 import org.example.core.dto.audit.AuditCreateDTO;
 import org.example.dao.entities.audit.Audit;
+import org.example.dao.entities.audit.Type;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -19,7 +20,9 @@ public interface IAuditService {
 
     Page<Audit> getPageOfAudit(Integer currentRequestedPage, Integer rowsPerPage);
 
-    List<Audit> getListOfAuditsForUserUuidAndTimeRange(UUID userUuid, LocalDate from, LocalDate to);
+    List<Audit> getListOfAuditsForTimeRange(LocalDate from, LocalDate to);
+
+    List<Audit> getListOfAuditsForTypeAndIdAndTimeRange(Type type, String id, LocalDate from, LocalDate to);
 
 
 }

@@ -1,5 +1,6 @@
 package org.example.core.dto.report;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.example.dao.entities.ReportStatus;
 import org.example.dao.entities.ReportType;
 
@@ -19,6 +20,7 @@ public class ReportDTO {
 
     private String description;
 
+    @JsonSerialize(using = ParamsSerializer.class)
     private Params params;
 
     public ReportDTO() {

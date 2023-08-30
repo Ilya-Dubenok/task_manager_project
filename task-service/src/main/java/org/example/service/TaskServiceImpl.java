@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
+import org.example.core.dto.audit.Type;
 import org.example.core.dto.task.TaskCreateDTO;
 import org.example.core.dto.user.UserDTO;
 import org.example.core.dto.user.UserRole;
@@ -16,9 +17,11 @@ import org.example.dao.entities.project.Project;
 import org.example.dao.entities.task.Task;
 import org.example.dao.entities.task.TaskStatus;
 import org.example.dao.entities.user.User;
+import org.example.service.api.IAuditService;
 import org.example.service.api.IProjectService;
 import org.example.service.api.ITaskService;
 import org.example.service.api.IUserService;
+import org.example.service.utils.JsonAuditMessagesFormer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -41,11 +44,17 @@ public class TaskServiceImpl implements ITaskService {
 
     private ITaskRepository taskRepository;
 
+    private JsonAuditMessagesFormer auditMessagesFormer;
 
-    public TaskServiceImpl(IProjectService projectService, IUserService userService, ITaskRepository taskRepository) {
+    private IAuditService auditService;
+
+
+    public TaskServiceImpl(IProjectService projectService, IUserService userService, ITaskRepository taskRepository, JsonAuditMessagesFormer auditMessagesFormer, IAuditService auditService) {
         this.projectService = projectService;
         this.userService = userService;
         this.taskRepository = taskRepository;
+        this.auditMessagesFormer = auditMessagesFormer;
+        this.auditService = auditService;
     }
 
 
@@ -163,9 +172,11 @@ public class TaskServiceImpl implements ITaskService {
 
         updateTaskFields(taskCreateDTO, project, implementer, toPersist);
 
+        Task res;
+
         try {
 
-            return taskRepository.saveAndFlush(toPersist);
+            res = taskRepository.saveAndFlush(toPersist);
 
         } catch (Exception e) {
 
@@ -178,6 +189,16 @@ public class TaskServiceImpl implements ITaskService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
 
         }
+
+        auditService.sendAudit(
+                userService.findUserInCurrentContext().getUuid(),
+                auditMessagesFormer.formObjectCreatedAuditMessage(res),
+                Type.TASK,
+                res.getUuid().toString()
+                );
+
+
+        return res;
 
     }
 
@@ -224,9 +245,11 @@ public class TaskServiceImpl implements ITaskService {
 
         updateTaskFields(taskCreateDTO, project, implementer, toPersist);
 
+        Task res;
+
         try {
 
-            return taskRepository.saveAndFlush(toPersist);
+            res = taskRepository.saveAndFlush(toPersist);
 
         } catch (Exception e) {
 
@@ -240,6 +263,15 @@ public class TaskServiceImpl implements ITaskService {
 
         }
 
+
+        auditService.sendAudit(
+                userService.findUserInCurrentContext().getUuid(),
+                auditMessagesFormer.formObjectCreatedAuditMessage(res),
+                Type.TASK,
+                res.getUuid().toString()
+        );
+
+        return res;
     }
 
     @Override
@@ -285,11 +317,13 @@ public class TaskServiceImpl implements ITaskService {
             throw new StructuredException("dt_update", "Версия задачи уже была обновлена");
         }
 
+        Task copyBeforeUpdate = copyTaskBeforeSupposedChanges(toUpdate);
+
         updateTaskFields(taskCreateDTO, project, implementer, toUpdate);
 
         try {
 
-            return taskRepository.saveAndFlush(toUpdate);
+            toUpdate = taskRepository.saveAndFlush(toUpdate);
 
         } catch (Exception e) {
 
@@ -302,6 +336,23 @@ public class TaskServiceImpl implements ITaskService {
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE, e);
 
         }
+
+        try {
+
+            if (!toUpdate.equals(copyBeforeUpdate)) {
+                auditService.sendAudit(
+                        userService.findUserInCurrentContext().getUuid(),
+                        auditMessagesFormer.formObjectUpdatedAuditMessage(copyBeforeUpdate, toUpdate),
+                        Type.TASK,
+                        toUpdate.getUuid().toString()
+                );
+            }
+
+        } catch (Exception ignored) {
+            //TODO placeForLogging
+        }
+
+        return toUpdate;
     }
 
     @Override
@@ -357,17 +408,42 @@ public class TaskServiceImpl implements ITaskService {
             throw new StructuredException("dt_update", "Версия задачи уже была обновлена");
         }
 
+
+        if (toUpdate.getStatus() == taskStatus) {
+
+            return toUpdate;
+
+        }
+
+        Task copyBeforeUpdate = copyTaskBeforeSupposedChanges(toUpdate);
+
         toUpdate.setStatus(taskStatus);
 
         try {
 
-            return taskRepository.saveAndFlush(toUpdate);
+            toUpdate = taskRepository.saveAndFlush(toUpdate);
 
         } catch (Exception e) {
 
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
 
         }
+
+        try {
+
+            auditService.sendAudit(
+                    userService.findUserInCurrentContext().getUuid(),
+                    auditMessagesFormer.formObjectUpdatedAuditMessage(copyBeforeUpdate, toUpdate),
+                    Type.TASK,
+                    toUpdate.getUuid().toString()
+            );
+
+        } catch (Exception ignored) {
+            //TODO placeForLogging
+        }
+
+        return toUpdate;
+
     }
 
     @Override
@@ -395,17 +471,40 @@ public class TaskServiceImpl implements ITaskService {
 
         }
 
+        if (toUpdate.getStatus() == taskStatus) {
+
+            return toUpdate;
+
+        }
+
+        Task copyBeforeUpdate = copyTaskBeforeSupposedChanges(toUpdate);
+
         toUpdate.setStatus(taskStatus);
 
         try {
 
-            return taskRepository.saveAndFlush(toUpdate);
+            toUpdate = taskRepository.saveAndFlush(toUpdate);
 
         } catch (Exception e) {
 
             throw new GeneralException(GeneralException.DEFAULT_DATABASE_EXCEPTION_MESSAGE);
 
         }
+
+        try {
+
+            auditService.sendAudit(
+                    userService.findUserInCurrentContext().getUuid(),
+                    auditMessagesFormer.formObjectUpdatedAuditMessage(copyBeforeUpdate, toUpdate),
+                    Type.TASK,
+                    toUpdate.getUuid().toString()
+            );
+
+        } catch (Exception ignored) {
+            //TODO placeForLogging
+        }
+
+        return toUpdate;
 
     }
 
@@ -421,6 +520,23 @@ public class TaskServiceImpl implements ITaskService {
             return updateStatusForUserInContext(uuid, dtUpdate, taskStatus);
 
         }
+    }
+
+    private Task copyTaskBeforeSupposedChanges(Task toUpdate) {
+
+        Task copyBeforeSaving = new Task(
+                toUpdate.getUuid(),
+                toUpdate.getDtCreate(),
+                toUpdate.getDtUpdate(),
+                toUpdate.getProject(),
+                toUpdate.getTitle(),
+                toUpdate.getDescription(),
+                toUpdate.getStatus(),
+                toUpdate.getImplementer()
+        );
+
+        return copyBeforeSaving;
+
     }
 
     private Project getProjectAndCheckImplementer(TaskCreateDTO taskCreateDTO, User implementer) {
