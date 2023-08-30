@@ -126,6 +126,12 @@ public class ProjectServiceImpl implements IProjectService {
 
         updateProjectFields(projectCreateDTO, toUpdate);
 
+        if (Objects.equals(copyBeforeUpdate, toUpdate)){
+
+            return toUpdate;
+
+        }
+
         try {
 
             toUpdate =  projectRepository.saveAndFlush(toUpdate);
@@ -157,23 +163,6 @@ public class ProjectServiceImpl implements IProjectService {
         }
 
         return toUpdate;
-
-    }
-
-    private Project copyProject(Project toUpdate) {
-
-        Project res = new Project(
-                toUpdate.getUuid(),
-                toUpdate.getDtCreate(),
-                toUpdate.getDtCreate(),
-                toUpdate.getName(),
-                toUpdate.getDescription(),
-                toUpdate.getManager(),
-                toUpdate.getStaff(),
-                toUpdate.getStatus()
-        );
-
-        return res;
 
     }
 
@@ -417,6 +406,23 @@ public class ProjectServiceImpl implements IProjectService {
 
     }
 
+
+    private Project copyProject(Project toUpdate) {
+
+        Project res = new Project(
+                toUpdate.getUuid(),
+                toUpdate.getDtCreate(),
+                toUpdate.getDtUpdate(),
+                toUpdate.getName(),
+                toUpdate.getDescription(),
+                toUpdate.getManager(),
+                toUpdate.getStaff(),
+                toUpdate.getStatus()
+        );
+
+        return res;
+
+    }
 
     private void verifyAndPersistUsers(ProjectCreateDTO projectCreateDTO, Project project) {
 
