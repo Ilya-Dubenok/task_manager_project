@@ -1,7 +1,7 @@
 package org.example.core.dto.audit;
 
 public enum Type {
-    USER("user");
+    USER("user"), TASK("task"), PROJECT("project");
 
     private String id;
 

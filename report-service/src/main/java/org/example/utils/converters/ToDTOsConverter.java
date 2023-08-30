@@ -75,9 +75,26 @@ public class ToDTOsConverter<IN, OUT> implements GenericConverter {
 
             Map<String,Object> params =  (Map<String, Object>) source;
 
-            String user = (String) params.get("user");
+            if (params.containsKey("user")) {
 
-            res.setUser(UUID.fromString(user));
+                UUID id = UUID.fromString((String) params.get("user"));
+                res.setType(org.example.core.dto.audit.Type.USER);
+                res.setId(id);
+
+
+            } else if (params.containsKey("task")) {
+
+                UUID id = UUID.fromString((String) params.get("task"));
+                res.setType(org.example.core.dto.audit.Type.TASK);
+                res.setId(id);
+
+            } else if (params.containsKey("project")) {
+
+                UUID id = UUID.fromString((String) params.get("project"));
+                res.setType(org.example.core.dto.audit.Type.PROJECT);
+                res.setId(id);
+
+            }
 
             List<?> fromNums = (List<?>) params.get("from");
 

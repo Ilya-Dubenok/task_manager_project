@@ -9,6 +9,7 @@ import org.example.core.exception.GeneralException;
 import org.example.core.exception.StructuredException;
 import org.example.dao.api.IAuditRepository;
 import org.example.dao.entities.audit.Audit;
+import org.example.dao.entities.audit.Type;
 import org.example.service.api.IAuditService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
@@ -82,13 +83,9 @@ public class AuditServiceImpl implements IAuditService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Audit> getListOfAuditsForUserUuidAndTimeRange(UUID userUuid, LocalDate from, LocalDate to) {
-        return auditRepository.findAll(
+    public List<Audit> getListOfAuditsForTimeRange(LocalDate from, LocalDate to) {
+        return auditRepository.findAll
                 ((root, query, builder) -> {
-
-                    Path<UUID> userPersistedUuid = root.get("user").get("uuid");
-
-                    Predicate userEqual = builder.equal(userPersistedUuid, userUuid);
 
                     Path<LocalDate> dtCreate = root.get("dtCreate");
 
@@ -96,7 +93,40 @@ public class AuditServiceImpl implements IAuditService {
 
                     Predicate after = builder.greaterThanOrEqualTo(dtCreate, from);
 
-                    return builder.and(userEqual, before, after);
+                    return builder.and(before, after);
+
+                    }
+                );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Audit> getListOfAuditsForTypeAndIdAndTimeRange(Type type, String id, LocalDate from, LocalDate to) {
+        return auditRepository.findAll(
+                ((root, query, builder) -> {
+                    
+
+                    Predicate target;
+
+                    if (type.equals(Type.USER)) {
+                        Path<UUID> typePersistedId = root.get("user").get("uuid");
+                        target = builder.equal(typePersistedId, UUID.fromString(id));
+
+                    } else {
+
+                        Predicate typeEqual = builder.equal(root.get("type"), type);
+                        Predicate idEqual = builder.equal(root.get("id"), id);
+                        target = builder.and(typeEqual, idEqual);
+
+                    }
+
+                    Path<LocalDate> dtCreate = root.get("dtCreate");
+
+                    Predicate before = builder.lessThanOrEqualTo(dtCreate, to);
+
+                    Predicate after = builder.greaterThanOrEqualTo(dtCreate, from);
+
+                    return builder.and(target, before, after);
 
                 })
         );

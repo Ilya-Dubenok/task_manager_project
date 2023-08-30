@@ -92,7 +92,8 @@ public class AuditReportFormerServiceImpl implements IAuditReportFormerService {
             );
 
             List<AuditDTO> auditDTOList = auditServiceRequester.getAuditDTOList(
-                    reportParamAudit.getUser(),
+                    reportParamAudit.getType(),
+                    reportParamAudit.getId(),
                     reportParamAudit.getFrom(),
                     reportParamAudit.getTo().plusDays(1)
             );
