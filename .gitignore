@@ -30,6 +30,8 @@ replay_pid*
 .idea/
 target/
 
+# Not for public eyes properties
+*confidential.yml
 
 # User-specific stuff
 .idea/**/workspace.xml
