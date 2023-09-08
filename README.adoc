@@ -13,6 +13,8 @@ endif::[]
 
 = Task Managemer Project
 
+== Overview
+
 The main purpose of this project is to create convenient backend system of task management, providing the opportunity to work not only with tasks as the main essence of the system, but also to perform a number of related processes (user registration, access control, reporting, etc.)
 
 The following technologies/frameworks were used in this project:
@@ -35,7 +37,7 @@ The following technologies/frameworks were used in this project:
 
 
 
-== Description
+== Structure and description
 
 
 The project is based on the microservices architecture, each of which has its own database (where required) and its purpose for business logic. Such a construction of the system makes it possible to facilitate its scalability and expansion of functionality by adding instances of the developed services or writing new ones, respectively.
