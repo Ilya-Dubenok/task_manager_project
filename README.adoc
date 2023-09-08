@@ -1,0 +1,456 @@
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+:imagesdir: images
+
+:source-highlighter: prettify
+:toc:
+
+= Task Managemer Project
+
+The main purpose of this project is to create convenient backend system of task management, providing the opportunity to work not only with tasks as the main essence of the system, but also to perform a number of related processes (user registration, access control, reporting, etc.)
+
+The following technologies/frameworks were used in this project:
+
+* Spring:
+- Spring Boot;
+- Spring JPA;
+- Spring MVC;
+- Spring Security;
+- Spring Email;
+* PostgreSQL;
+* Hibernate;
+* Nginx;
+* https://github.com/OpenFeign/feign.git[OpenFeign];
+* https://kafka.apache.org/intro[Apache Kafka];
+* https://min.io/[MinIO];
+* Swagger (see https://github.com/Ilya-Dubenok/task_manager_project/tree/132ccfe4415982c1957f0ada1b1f716311b67335/swagger-ui[swagger open-api files]);
+* Maven;
+* Docker.
+
+
+
+== Description
+
+
+The project is based on the microservices architecture, each of which has its own database (where required) and its purpose for business logic. Such a construction of the system makes it possible to facilitate its scalability and expansion of functionality by adding instances of the developed services or writing new ones, respectively.
+
+
+___
+
+The full list of currently implemented micro services:
+
+- <<user_service, User-service>>;
+- <<task_service, Task-service>>;
+- <<audit_service, Audit-service>>;
+- <<report_service, Report-service>>;
+- <<notification_service, Notification-service>>;
+
+---
+
+NOTE: All operations are divided depending on the *role* of the user requesting for operation. Any user with *ADMIN* role has access to perform *any* operation. By default, ```Admin``` with _admin@admin.com_ email and password _admin123_ is created 
+
+=== anchor:user_service[]User-service
+
+The general porpuse of this service is to perform the following operations:
+
+* `User` creation
+
+ POST requests to "/users" and "/users/registration" URLs
+
+- `User` may by created by `Admin`:
+
+- `User` may be created by self-registration, in this case client has to perform verification of his email (link is sent to the specified email, upon opening of which user's email is validated);
+
+- `Users'` passwords are encoded with PasswordEncoder (Spring Security)
+
+- Information on creation of `User` is sent to <<audit_service, `Audit-service`>>;
+
+
+
+* Logging in and getting information about `User(s)`:
+
+ GET requests to "/users/{uuid}" URL (for signle user info), "/users" URL (for page of users info)
+
+anchor:auth_token[]
+
+- To log in, user has to provide his email and password. On success, the token is sent back in response, token should be put in headers of the further requests (header's key is *Authorization* and value is **Bearer <received token>**);
+
+
+
+NOTE:  The received token is to be used in requests to *all* services of this system, not only `User-service`
+
+- Only `Admin` has access to see information on any `User`;
+
+- `User` may get information about himself: id, email, name, creation date, last update date, role, status.
+
+* Update of `User's` information:
+
+ PUT request to "users/{uuid}/dt_update/{dt_update}" URL
+ 
+ - Only `Admin` has access to update `users'` information;
+ 
+ - The following information may be updated: email, name, role, status, password
+ 
+ - On update, information of the performed changes is sent to <<audit_service, `Audit-service`>> (the sensitive information on user's old/new passwords is not reflected in audit)
+
+---
+
+
+=== anchor:task_service[] Task-service
+
+This service performs CRUD operations on `Project` and `Task` entities. 
+
+`Project` is an entity which reflects some business...project. All `Tasks` put in the system must be related to some `Project`. `Project` has such [underline]#business-logic# related attributes as:
+
+[%autowidth, options="header"]
+|====
+| Attribute | Description
+
+| Name | must be unique
+| Description | some information about ```Project```, may be null
+| Manager | ```User``` who must have *MANAGER* role
+| Status | *ACTIVE* or **ARCHIVED**
+| Staff | one or more ```Users``` no matter of their role
+
+|====
+
+
+`Task` is an entity which reflects some task put for completion in `Project`, `Task` has the following [underline]#business-logic# related attributes
+
+[%autowidth, options="header"]
+|====
+| Attribute | Description
+
+| Title | may be not unique
+| Description | some information about ```Project```, may not be null
+| Project | the ```Project``` entry  which this task is related to
+| Status | **WAIT**, **BLOCK**, **IN_WORK**, **DONE**, *CLOSE*
+| Implementer | ```User``` that is assigned to perform this ```Task```. Only ```Manager``` of the ```Project``` or ```User``` who is part of the ```Staff``` of the ```Project``` may be assigned as an ```Implementer``` of the Task
+
+|====
+
+
+
+`Project` and `Task`  have One-to-Many relationships, e.g. `Project` can include multiple number of independent `Tasks`, while any `Task` may be related only to one project in the same time; 
+
+The following operations are provided on `Project` entity:
+
+* `Project` creation:
+
+ POST request to "/project" URL;
+ 
+- `Project` may be created only by `Admin`;
+- Only registered and active `Users` (users with *ACTIVE* status) may be added to `Project`;
+- Information on creation of the `Project` is sent to <<audit_service, `Audit-service`>>.
+
+
+* Getting information on `Project(s)`:
+
+ GET requests to "/project/{uuid}" URL (for single project info), "/project" URL (for page of projects info) 
+
+- `Admin` has access to information on any `Project`;
+- Not Admin has access to information only on `Projects` in which he is assigned as `Manager` or a `Staff` member;
+- Information is provided either on single `Project` or as page of `Projects`;
+- When requesting for a page of `Projects`, additional boolean  parameter `__archived__` may be included as HTTP-request parameter --  if `__archived__` is set to `__true__`, the response will include also information on projects with *ARCHIVED* status (by default only information on *ACTIVE* `Projects` is sent).
+
+* Update of `Project's` information:
+
+ PUT request to "/project/{uuid}/dt_update/{dt_update}" URL
+
+- Only `Admin` or `Manager` of the `Project` have access to update `Project's` information;
+
+- The following information may be updated: name, description, manager, staff, status
+ 
+- On update, information of the performed changes is sent to <<audit_service, `Audit-service`>>;
+
+
+___
+
+The following operations are provided on `Task` entity:
+
+* `Task` creation:
+
+ POST request to "/task" URL
+
+- `Task` may be created by any `User` who is in `Project` (either as `Manager` or as part of `Staff`), also task may be created by `Admin` (no matter if he is part of the `Project` or not);
+- To be assigned as an `Implementer` of the `Task`, `User` also must be either `Manager` or member of `Staff` of the project;
+- Information on creation of `Task` is sent to <<audit_service, `Audit-service`>>.
+
+* Getting information on `Task(s)`:
+
+ GET request to "/task/{uuid}" URL (for single task info), "/task" URL (for page of tasks info)
+ 
+ - `Admin` has access to info on any `Task`;
+ - Not Admins may see information on only those `Tasks` which are part of the `Project` where the requester is either a `Manager` or `Staff` member;
+ - A set of the following additional filters may be put as part of the request for page of `Task` info (`"/task"` URL):
+ .. project (List<UUID> value);
+ .. implementer (List<UUID> value);
+ .. status(List<TaskStatus> value).
+ 
+[NOTE]
+====
+All the above filters are passed as HTTP-request parameters (see https://datatracker.ietf.org/doc/html/rfc3986#section-3.4[Query] from RFC 3986). Client may pass all filters, some of them, or none (in the later case filters are not applied).
+ 
+Filters are applied in the following order: matching values inside one filter are combined on OR basis (any matching value is added to result), creating 3 subsets, while the final result must be in every of those 3 subsets. 
+ 
+For example, request has "project" filter: `"project=**uuid1**&project=**uuid2**"`, as well as "status" filter: `"&status=**WAIT**&status=**BLOCK**&status=**IN_WORK**"`. In this case, a set of tasks which are part of project with `uuid1` OR `uuid2` AND which have `WAIT` / `BLOCK` / `IN_WORK` status.
+
+====
+
+
+
+* Update of `Task's` information:
+
+ PUT request to "/task/{uuid}/dt_update/{dt_update}" URL
+
+- Any `User` who is part of the `Project` may update information on `Task`;
+- `Admin` has access to update information of any `Task`;
+- If the information on `Implementer` is updated, the new value is checked to make sure new `Implementer` also is part of the `Project`;
+- On update, information of the performed changes is sent to <<audit_service, `Audit-service`>>;  
+
+=== anchor:audit_service[] Audit-service
+
+This service accumulates all the audit information described above. Every audit message is sent via https://kafka.apache.org/intro[Kafka] framework, where producer (User-service/Task-service) publishes information under `AuditInfo` topic. By default, this topic is created with 1 partition and replication factor of 1. 
+
+Audit-service, being a Kafka consumer, gathers published messages and stores them in its database. Thus, there is no access to directly add audit information to Audit-service database, all information is created automatically.
+
+Only `Admin` is allowed to get information from Audit-service directly:
+
+ GET request to "/audit/{uuid}" URL (for single task info), "/task" URL (for page of tasks info)
+
+
+Returned info is in JSON format and has the following fields:
+
+[%autowidth, options="header"]
+|====
+| Field | Description 
+
+| uuid | the unique id of this audit record 
+| dt_create | the unix-based time this record was created 
+| user | information about the ```User``` whose actions triggered forming this audit message
+| text | detailed information about the performed actions
+| type | the type of entity (```User``` / ```Project``` / ```Task```) on which the actions where performed
+| id | the id of the *entity* which was the "target" of the performed actions
+
+|====
+
+Even the field `text` of the returned audit info JSON is of type String, e.g. plain text (see https://github.com/Ilya-Dubenok/task_manager_project/blob/1dba28986741b2085f3145e24115ce44819b4849/swagger-ui/audit-service/spec/audit-service.yml[openapi] file for detailed information), the `text` is additionally formed in JSON structure. 
+
+The structure of `text` varies whether it was a `create` action (e.g. new record of `User` \ `Project` \ `Task` was created), `register` action (self-registration of the user finished with its email verification), or it was an `update` action (some information of the record was updated).
+
+The following text in JSON is formed upon `create` action:
+
+```
+{
+    "type":"create",
+    "content":
+    
+        {
+            "<field_name>":"<field_value>",
+            "<field_name>":"<field_value>",
+            ...
+        }
+
+}
+```
+
+
+
+Thus, the information of the created entry with its fields and values at the moment of their creation is returned.
+
+For example, the following text information will be included in audit record when some `User` was created:
+
+```
+{
+  "type": "create",
+  "content": {
+    "password": "not_to_disclose",
+    "role": "USER",
+    "mail": "user1@gmail.com",
+    "fio": "my_user_name",
+    "status": "ACTIVATED"
+  }
+}
+```
+
+NOTE: The sensitive information such as passwords is not disclosed even in its encrypted form, instead the String value ```"not_to_disclose"``` will be returned for such field (e.g. ```"password"``` field for ```User``` audit info).
+
+---
+The following text in JSON is formed upon `register` action:
+
+
+```
+{
+    "type": "register",
+    "content":
+    
+        {
+            "mail": "<user_email_value>"
+        }
+
+}
+```
+
+
+
+NOTE: Currently creating audit on ```register``` is only applicable to ```User``` entities. 
+
+
+`Text` field in JSON with the following structure is formed upon `update` action:
+
+
+```
+{
+    "type": "update",
+    "content": [
+    
+        {
+            "field": "<name of the field>",
+            "old_value": "<old value of the field>",
+            "new_value" : "<new value of the field>"
+        }
+    ]
+}
+
+```
+
+For example, the following text will be included in `text` field of audit record when fields `description` and `title` of some `Task` were updated:
+
+```
+{
+  "type": "update",
+  "content": [
+    {
+      "field": "description",
+      "old_value": "first_task_descr",
+      "new_value": "updated_description"
+    },
+    {
+      "field": "title",
+      "old_value": "first_task",
+      "new_value": "updated_title"
+    }
+  ]
+}
+
+```
+
+
+
+=== anchor:report_service[] Report-service
+
+This service forms `reports` in .xlsx format upon clients requests. Currently subject of `reports` are audit records. For example, it is possible to form `report` on all audit records created during the specified period, additionally client may specify `type` of the entity (`User`, `Project`, `Task`) and `id` of that entity, then only audit records about the entity with specified `type` and which have the specified `id` will be returned.
+
+
+NOTE: Only `Admin` has access to URLs of `Report-service`.
+
+To form a `report`, client must send `**POST**` request to `"/report/JOURNAL_AUDIT"` URL with request body with following structure:
+
+A) If *all* `type` of records are required:
+
+```
+ {
+
+    "from": "<yyyy-mm-dd>",
+    "to": "<yyyy-mm-dd>"
+
+ }
+```
+In this case, all audit records of all types created within the period "from-to" will be returned.
+
+B) If records of *particular* `type` are required:
+
+```
+{
+
+    "<type>": "<uuid>",
+    "from": "<yyyy-mm-dd>",
+    "to": "<yyyy-mm-dd>"
+
+}
+ 
+```
+
+`Type` value must be one of the following: `user`, `task`, `project` (starting in lower case).
+
+For example, to receive audit records on all actions performed on `Task` with id "uuid123" since 2023-08-25 to 2023-09-03, the following body should be submitted in POST request:
+
+```
+{
+
+    "task": "uuid123"
+    "from": "2023-08-25",
+    "to": "2023-09-03"
+
+}
+ 
+```
+
+---
+
+After the request to form a `report` is received it is put in queue. Based on the https://docs.spring.io/spring-framework/reference/integration/scheduling.html#page-title[Spring Scheduling], `Report-service` checks for new requests and forms `reports` on them every 30 seconds.
+
+The formed `report` is stored in https://min.io/[MinIO] storage in .xlsx format.
+
+
+Prior to downloading the formed file, client may check the status of the requested `report` by sending HTTP `*HEAD*` request to ```"/report/\{uuid\}/export"```, passing the uuid of the required `report`. If it was successfully formed, *200* HTTP code is returned. If the `report` was not formed (due to some error or because it is still awaiting to be formed), the *204* HTTP code is returned.
+
+To download a file of formed `report`, `**GET**` HTTP request to ```"/report/\{uuid\}/export"``` should be sent. `Report-service` will redirect the request directly to location of the file in Minio storage.
+
+
+
+=== anchor:notification_service[] Notification-service
+
+This service performs sending emails to passed email address to perform verification of `User`. It is based on Spring Email framework, information of successful/failed  operation is sent back to <<user_service,User-service>>.
+
+This service has no URLs open for direct usage, all its operations are triggered by other services.
+
+The emails are sent via mail.ru provider.
+
+NOTE: For this service to work, your credentials (email and password) are required. You must have file *confidential.yml* in /src/main/resources folder. For convenience, the confidential.example.yml with proper structure is created, you have to remove the _.example_ part in filemane and pass the email and password to the relevant placeholders.   
+
+== Installation
+
+To run a project on your machine, you will need:
+
+* Maven
+* Docker
+
+Before creating containers:
+
+* To send email and verification, you must enter your email and password in `confidential.example.yml` file in `notification-service/src/main/resources` folder. Then you have to rename your file to `confidential.yml` (file with such name is placed in `.gitignore` file, so no email and password will be published in Git.
+
+* Run "mvn package" from the root of the project.
+
+After the packaging is done, run "docker-compose up" from the root of the project. Containers will be initiated by Docker.
+
+* To view URLs, openapi file is available at http://localhost:81
+* To access the database, PGAdmin is available at http://localhost:82 
+
+ Login: admin@admin.com 
+ Password: root
+
+
+After upping containers, you will be able to run HTTP requests to the exposed URLs.
+
+NOTE: The entrypoint to all services is Nginx, which is located on port 80 by default. Thus, if running on local machine, all requests shall be addressed to `localhost` URL. In addition, every URL path must have `/api/v1/` suffix after the `host` part. These suffix is than removed by Nginx. 
+
+For example, if running on local machine and sending request to Task-service for getting one `Task`, the final request will be as following:
+
+```http
+
+GET http://localhost/api/v1/task/6e4738b4-cdd8-46dd-8b37-65556f939bff 
+Header: Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMjFhZTk4ZS05MTYyLTQzYzctOGIxZC1iOTEyYjYzMDBlNGEiLCJpc3MiOiJJbHlhIiwiaWF0IjoxNjkyMzQyNjU5LCJleHAiOjE2OTI5NDc0NTl9.YCg_pelWZzyPSGNpjoHTwrUN8b-QqHQytq0ScxYzd3g
+
+```
+
+where `6e4738...` is id of the `Task` record and `eyJhbG...` is a  <<auth_token, `token`>> received when logging in was performed.
+
+
+
