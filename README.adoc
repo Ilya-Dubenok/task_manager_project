@@ -441,7 +441,7 @@ After the packaging is done, run "docker-compose up" from the root of the projec
 
 After upping containers, you will be able to run HTTP requests to the exposed URLs.
 
-NOTE: The entrypoint to all services is Nginx, which is located on port 80 by default. Thus, if running on local machine, all requests shall be addressed to `localhost` URL. In addition, every URL path must have `/api/v1/` suffix after the `host` part. These suffix is than removed by Nginx. 
+NOTE: The entrypoint to all services is Nginx, which listens to port 80 by default. Thus, if running on local machine, all requests shall be addressed to `localhost` URL. In addition, every URL path must have `/api/v1/` suffix after the `host` part. These suffix is than removed by Nginx. 
 
 For example, if running on local machine and sending request to Task-service for getting one `Task`, the final request will be as following:
 
