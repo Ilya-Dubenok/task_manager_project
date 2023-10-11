@@ -8,7 +8,6 @@ spring:
     bootstrap-servers: localhost:19092
 
 
-
   datasource:
     url: jdbc:postgresql://localhost:5432/user_service?ApplicationName=User_Service
     username: postgres
@@ -19,8 +18,10 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
 
-
 logging:
+  file:
+    name: ./user_service
+
   level:
     org:
       hibernate:
