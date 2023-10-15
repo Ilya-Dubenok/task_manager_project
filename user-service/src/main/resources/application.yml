@@ -20,7 +20,8 @@ spring:
 
 logging:
   file:
-    name: ./user_service
+    name: user_service
+    path: logs/
 
   level:
     org:

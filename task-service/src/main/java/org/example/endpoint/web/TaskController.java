@@ -7,6 +7,8 @@ import org.example.core.dto.task.TaskDTO;
 import org.example.dao.entities.task.Task;
 import org.example.dao.entities.task.TaskStatus;
 import org.example.service.api.ITaskService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -24,6 +26,12 @@ import java.util.UUID;
 @RequestMapping("/task")
 public class TaskController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TaskController.class);
+
+
+
+
+
     private final ITaskService taskService;
 
     private final ConversionService conversionService;
@@ -36,6 +44,17 @@ public class TaskController {
 
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<TaskDTO> getByUuid(@PathVariable UUID uuid) {
+
+        LOG.warn("FIRST-WARNING-FROM-TASK-SERVICE");
+        LOG.info("SECOND-INFO-FROM-TASK-SERVICE");
+
+        try {
+            throw new RuntimeException("My custom exception is thrown");
+        } catch (RuntimeException e) {
+
+            LOG.error("THIRD-EXCEPTION-FROM-TASK-SERVICE",e);
+
+        }
 
         Task task = taskService.findWithRoleOfUserInContextCheck(uuid);
 

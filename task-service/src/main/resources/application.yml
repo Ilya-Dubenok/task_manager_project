@@ -19,6 +19,11 @@ spring:
 
 
 logging:
+
+  file:
+    name: task_service
+    path: logs/
+
   level:
     org:
       hibernate:
