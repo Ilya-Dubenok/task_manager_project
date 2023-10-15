@@ -1,6 +1,6 @@
 filebeat.inputs:
 - type: filestream
-  id: my-filestream-id
+  id: user-service-filestream
   enabled: true
   paths:
     - /logs/user-service/*.log
@@ -16,7 +16,7 @@ filebeat.inputs:
         target: "service"
 
 - type: filestream
-  id: my-filestream-id-2
+  id: task-service-filestream
   enabled: true
   paths:
     - /logs/task-service/*.log
@@ -50,64 +50,3 @@ processors:
   - add_cloud_metadata: ~
   - add_docker_metadata: ~
   - add_kubernetes_metadata: ~
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-
-    
-    
-
-    
-    
-    
-
-    
-    
-    
-
-    
-    
-
-
-
-
-
-
-

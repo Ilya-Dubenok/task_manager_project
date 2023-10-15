@@ -193,7 +193,6 @@ services:
     volumes:
       - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - ./filebeat/logs:/logs/
-#    entrypoint: /bin/sh -c "chown root:filebeat /usr/share/filebeat/filebeat.yml && chmod go-w /usr/share/filebeat/filebeat.yml && /usr/bin/tini -- /usr/local/bin/docker-entrypoint -environment container"
     command:
       - "-environment"
       - "container"
